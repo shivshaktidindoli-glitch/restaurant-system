@@ -603,14 +603,39 @@ def kitchen():
 @login_required
 @role_required('manager', 'waiter')
 def live_tables():
-    tables = Table.query.all()
+    tables = Table.query.order_by(Table.section, Table.name).all()
+    
+    # Calculate live totals and time
+    from datetime import datetime
+    now = datetime.utcnow()
+    
+    grouped_tables = {}
+    for t in tables:
+        t.active_total = 0
+        t.elapsed_mins = 0
+        
+        if t.status == 'occupied':
+            # Sum all non-completed/cancelled orders for this table
+            active_orders = Order.query.filter(Order.table_id == t.id, Order.status.notin_(['completed', 'cancelled'])).all()
+            for o in active_orders:
+                for item in o.items:
+                    t.active_total += item.price_at_order * item.quantity
+                    
+            if t.session_start_time:
+                delta = now - t.session_start_time
+                t.elapsed_mins = int(delta.total_seconds() // 60)
+                
+        if t.section not in grouped_tables:
+            grouped_tables[t.section] = []
+        grouped_tables[t.section].append(t)
+        
     total = len(tables)
     vacant = sum(1 for t in tables if t.status == 'vacant')
     occupied = sum(1 for t in tables if t.status == 'occupied')
     cleaning = sum(1 for t in tables if t.status == 'cleaning')
     return render_template('admin/live_tables.html', 
                            active_page='live_tables',
-                           tables=tables,
+                           grouped_tables=grouped_tables,
                            stats={'total': total, 'vacant': vacant, 'occupied': occupied, 'cleaning': cleaning})
 
 @app.route('/api/update_table_status', methods=['POST'])
@@ -631,13 +656,14 @@ def manage_tables():
     if request.method == 'POST':
         name = request.form.get('name')
         capacity = request.form.get('capacity', type=int)
+        section = request.form.get('section', 'Main')
         if name and capacity:
             branch = Branch.query.first() # Use first branch
             if branch:
-                new_table = Table(name=name, seats=capacity, status='vacant', branch_id=branch.id)
+                new_table = Table(name=name, section=section, seats=capacity, status='vacant', branch_id=branch.id)
                 db.session.add(new_table)
                 db.session.commit()
-                flash(f"Table {name} added successfully!")
+                flash(f"Table {name} in {section} added successfully!")
         return redirect(url_for('manage_tables'))
         
     tables = Table.query.all()
@@ -1021,10 +1047,14 @@ def items():
         is_combo = request.form.get('is_combo') == 'on'
         combo_items = request.form.get('combo_items', '')
         
+        is_favorite = request.form.get('is_favorite') == 'on'
+        food_type = request.form.get('food_type', 'veg')
+        short_code = request.form.get('short_code', '')
+        
         if name and cat_id and price:
             import json
             combo_json = json.dumps([i.strip() for i in combo_items.split(',') if i.strip()]) if is_combo else "[]"
-            item = MenuItem(category_id=cat_id, name=name, name_hi=name_hi, name_gu=name_gu, price=price, description=desc, desc_hi=desc_hi, desc_gu=desc_gu, variant_name=variant, is_combo=is_combo, combo_items=combo_json)
+            item = MenuItem(category_id=cat_id, name=name, name_hi=name_hi, name_gu=name_gu, price=price, description=desc, desc_hi=desc_hi, desc_gu=desc_gu, variant_name=variant, is_combo=is_combo, combo_items=combo_json, is_favorite=is_favorite, food_type=food_type, short_code=short_code)
             db.session.add(item)
             db.session.commit()
             socketio.emit('menu_update', namespace='/')

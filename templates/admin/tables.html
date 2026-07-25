@@ -48,6 +48,7 @@
             <thead>
                 <tr>
                     <th>Table Name</th>
+                    <th>Section</th>
                     <th>Seats</th>
                     <th>Status</th>
                     <th>QR Code</th>
@@ -58,6 +59,7 @@
                 {% for table in tables %}
                 <tr>
                     <td style="font-weight: 600;">{{ table.name }}</td>
+                    <td>{{ table.section }}</td>
                     <td>{{ table.seats }}</td>
                     <td><span class="badge {{ table.status }}">{{ table.status | capitalize }}</span></td>
                     <td>
@@ -79,6 +81,10 @@
             <div class="form-group">
                 <label>Table Name (e.g. T-10)</label>
                 <input type="text" name="name" required>
+            </div>
+            <div class="form-group">
+                <label>Section / Area</label>
+                <input type="text" name="section" placeholder="e.g. Ground Floor, Basement" required>
             </div>
             <div class="form-group">
                 <label>Seating Capacity</label>

@@ -35,6 +35,9 @@ class MenuItem(db.Model):
     desc_hi = db.Column(db.Text)
     desc_gu = db.Column(db.Text)
     price = db.Column(db.Float, nullable=False)
+    is_favorite = db.Column(db.Boolean, default=False)
+    food_type = db.Column(db.String(20), default="veg") # veg, non-veg, egg
+    short_code = db.Column(db.String(10), nullable=True)
     variant_name = db.Column(db.String(50)) # e.g. Small/Medium/Large
     is_combo = db.Column(db.Boolean, default=False)
     combo_items = db.Column(db.Text) # JSON string of what's included
@@ -50,6 +53,7 @@ class Table(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     branch_id = db.Column(db.Integer, db.ForeignKey('branches.id'), nullable=False)
     name = db.Column(db.String(20), nullable=False) # e.g. "T-1"
+    section = db.Column(db.String(50), default="Main") # Ground Floor, Party Hall, etc.
     seats = db.Column(db.Integer, default=2)
     qr_code = db.Column(db.String(255)) # Path or base64
     status = db.Column(db.String(20), default='vacant') # vacant, occupied, needs_cleaning

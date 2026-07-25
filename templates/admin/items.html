@@ -31,9 +31,11 @@
             <thead>
                 <tr>
                     <th>Category</th>
-                    <th>Name</th>
+                    <th>Name / Short Code</th>
                     <th>Variant</th>
                     <th>Price</th>
+                    <th>Food Type</th>
+                    <th>Favorite</th>
                     <th>Available (Live)</th>
                 </tr>
             </thead>
@@ -43,7 +45,10 @@
                     <td><span style="font-size: 0.8rem; background: #e2e8f0; padding: 4px 8px; border-radius: 4px;">{{ item.category.name }}</span></td>
                     <td style="font-weight: 600;">
                         <div style="display: flex; flex-direction: column;">
-                            <span>{{ item.name }}</span>
+                            <span>
+                                {{ item.name }} 
+                                {% if item.short_code %}<span style="color: var(--brand-orange); font-size: 0.8rem;">[{{ item.short_code }}]</span>{% endif %}
+                            </span>
                             {% if item.name_hi or item.name_gu %}
                             <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 400;">{{ item.name_hi or '' }} | {{ item.name_gu or '' }}</span>
                             {% endif %}
@@ -54,6 +59,12 @@
                     </td>
                     <td>{{ item.variant_name or '-' }}</td>
                     <td style="font-weight: 600;">₹{{ item.price }}</td>
+                    <td>
+                        <span class="badge" style="background: {% if item.food_type == 'veg' %}#d1fae5{% elif item.food_type == 'non-veg' %}#fee2e2{% else %}#fef3c7{% endif %}; color: {% if item.food_type == 'veg' %}#065f46{% elif item.food_type == 'non-veg' %}#991b1b{% else %}#92400e{% endif %}; border: 1px solid currentColor;">
+                            {{ item.food_type | upper }}
+                        </span>
+                    </td>
+                    <td>{% if item.is_favorite %}⭐{% else %}-{% endif %}</td>
                     <td>
                         <label class="toggle-switch">
                             <input type="checkbox" {% if item.is_available %}checked{% endif %} onchange="toggleItem({{ item.id }}, this.checked)">
@@ -120,6 +131,27 @@
                     <label>Variant (Opt)</label>
                     <input type="text" name="variant_name" placeholder="Small/Large">
                 </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Food Type</label>
+                    <select name="food_type">
+                        <option value="veg">Veg</option>
+                        <option value="non-veg">Non-Veg</option>
+                        <option value="egg">Egg</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Short Code</label>
+                    <input type="text" name="short_code" placeholder="e.g. V101">
+                </div>
+            </div>
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" name="is_favorite" style="width: auto;">
+                    ⭐ Mark as Favorite (Pin to top)
+                </label>
             </div>
             
             <div class="form-group">

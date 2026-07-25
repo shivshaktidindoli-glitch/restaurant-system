@@ -103,26 +103,38 @@
     </div>
 </div>
 
-<div class="tables-grid">
-    {% for table in tables %}
-    <div class="table-card {{ table.status }}" data-name="{{ table.name | lower }}">
-        <div class="table-name">{{ table.name }}</div>
-        <div class="table-seats">{{ table.seats }} Seats</div>
-        
-        {% if table.status == 'occupied' and table.session_start_time %}
-        <div class="table-timer" style="margin-bottom: 15px; font-weight: 600; color: #ef4444;" data-start="{{ table.session_start_time.isoformat() }}Z">
-            <span class="timer-display">00:00:00</span>
+<div id="sections-container">
+    {% for section_name, section_tables in grouped_tables.items() %}
+    <h3 style="margin: 30px 0 15px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">{{ section_name }}</h3>
+    <div class="tables-grid">
+        {% for table in section_tables %}
+        <div class="table-card {{ table.status }}" data-name="{{ table.name | lower }}">
+            <div class="table-name">{{ table.name }}</div>
+            <div class="table-seats">{{ table.seats }} Seats</div>
+            
+            {% if table.status == 'occupied' %}
+                <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 15px;">
+                    <div style="background: var(--brand-orange); color: white; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 0.9rem;">
+                        ₹{{ table.active_total }}
+                    </div>
+                    {% if table.session_start_time %}
+                    <div class="table-timer" style="background: #fee2e2; color: #ef4444; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 0.9rem;" data-start="{{ table.session_start_time.isoformat() }}Z">
+                        <span class="timer-display">{{ table.elapsed_mins }} Min</span>
+                    </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+            
+            <div class="table-actions">
+                <select onchange="updateTableStatus({{ table.id }}, this.value)">
+                    <option value="vacant" {% if table.status == 'vacant' %}selected{% endif %}>Vacant</option>
+                    <option value="occupied" {% if table.status == 'occupied' %}selected{% endif %}>Occupied</option>
+                    <option value="cleaning" {% if table.status == 'cleaning' %}selected{% endif %}>Needs Cleaning</option>
+                </select>
+                <button class="btn-qr" onclick="window.open('/menu?table={{ table.name }}', '_blank')">Simulate QR Scan</button>
+            </div>
         </div>
-        {% endif %}
-        
-        <div class="table-actions">
-            <select onchange="updateTableStatus({{ table.id }}, this.value)">
-                <option value="vacant" {% if table.status == 'vacant' %}selected{% endif %}>Vacant</option>
-                <option value="occupied" {% if table.status == 'occupied' %}selected{% endif %}>Occupied</option>
-                <option value="cleaning" {% if table.status == 'cleaning' %}selected{% endif %}>Needs Cleaning</option>
-            </select>
-            <button class="btn-qr" onclick="window.open('/menu?table={{ table.name }}', '_blank')">Simulate QR Scan</button>
-        </div>
+        {% endfor %}
     </div>
     {% endfor %}
 </div>
@@ -152,27 +164,19 @@
                 const startTime = new Date(startIso).getTime();
                 const now = new Date().getTime();
                 const diff = Math.max(0, now - startTime);
+                const mins = Math.floor(diff / (1000 * 60));
                 
-                const hrs = Math.floor(diff / (1000 * 60 * 60));
-                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                const secs = Math.floor((diff % (1000 * 60)) / 1000);
-                
-                const formatted = 
-                    String(hrs).padStart(2, '0') + ':' +
-                    String(mins).padStart(2, '0') + ':' +
-                    String(secs).padStart(2, '0');
-                    
                 const display = timerEl.querySelector('.timer-display');
                 if (display) {
-                    display.innerText = formatted;
+                    display.innerText = mins + ' Min';
                 }
             }
         });
     }
     
-    // Run immediately then every second
+    // Run immediately then every minute
     updateTimers();
-    setInterval(updateTimers, 1000);
+    setInterval(updateTimers, 60000);
     
     async function updateTableStatus(tableId, newStatus) {
         try {
