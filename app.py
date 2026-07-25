@@ -1,4 +1,5 @@
 import os
+import json
 import qrcode
 import io
 import csv
@@ -835,6 +836,11 @@ def settle_bill():
     data = request.json
     order_ids = data.get('order_ids', [])
     payment_method = data.get('payment_method')
+    custom_payment_method = data.get('custom_payment_method')
+    payment_note = data.get('payment_note')
+    customer_paid = float(data.get('customer_paid', 0.0))
+    change_returned = float(data.get('change_returned', 0.0))
+    tip_amount = float(data.get('tip_amount', 0.0))
     coupon_code = data.get('coupon_code', '').strip().upper()
     delivery_charge = float(data.get('delivery_charge', 0.0))
     
@@ -852,11 +858,17 @@ def settle_bill():
     discount = 0.0
     used_coupon = None
     
+    # Check for order level discount (Phase 22D)
+    if main_order.discount_type == 'fixed':
+        discount = main_order.discount_value
+    elif main_order.discount_type == 'percent':
+        discount = (subtotal * main_order.discount_value) / 100.0
+    
     # Try the manual coupon code first, else fall back to the one attached to main_order
     if not coupon_code and main_order.coupon_code:
         coupon_code = main_order.coupon_code
         
-    if coupon_code:
+    if coupon_code and not discount:
         c = Coupon.query.filter_by(code=coupon_code).first()
         if c and c.is_active:
             valid = True
@@ -866,34 +878,27 @@ def settle_bill():
                 valid = False
             if c.min_order_amount and subtotal < c.min_order_amount:
                 valid = False
-                
             if valid:
-                used_coupon = c.code
+                used_coupon = c
                 if c.discount_type == 'flat':
                     discount = c.discount_value
                 elif c.discount_type == 'percent':
                     discount = (subtotal * c.discount_value) / 100.0
                 
-                # Cap discount
-                if discount > subtotal:
-                    discount = subtotal
-                    
                 # Increment usage
                 c.usage_count += 1
-                
+                    
+    if discount > subtotal: discount = subtotal
+    
     taxable = subtotal - discount + delivery_charge
     gst_amount = taxable * 0.05
     exact_total = taxable + gst_amount
     rounded_total = round(exact_total)
     round_off = rounded_total - exact_total
     
-    last_invoice = Invoice.query.order_by(Invoice.id.desc()).first()
-    next_num = 1 if not last_invoice else int(last_invoice.invoice_number.split('-')[1]) + 1
-    inv_number = f"MB-{str(next_num).zfill(5)}"
-    
     invoice = Invoice(
         order_id=main_order.id,
-        invoice_number=inv_number,
+        invoice_number=f"INV-{main_order.id}-{datetime.utcnow().strftime('%H%M%S')}",
         subtotal=subtotal,
         discount=discount,
         gst_percent=5.0,
@@ -902,7 +907,12 @@ def settle_bill():
         delivery_charge=delivery_charge,
         total=rounded_total,
         payment_method=payment_method,
-        coupon_code=used_coupon
+        custom_payment_method=custom_payment_method,
+        payment_note=payment_note,
+        customer_paid=customer_paid,
+        change_returned=change_returned,
+        tip_amount=tip_amount,
+        coupon_code=used_coupon.code if used_coupon else None
     )
     db.session.add(invoice)
     db.session.flush() # Get invoice.id
@@ -935,7 +945,7 @@ def settle_bill():
         order.status = 'completed'
         
     db.session.commit()
-    log_activity('bill_settled', f"Settled orders {order_ids} into Invoice #{inv_number}. Total: Rs.{rounded_total}. Method: {payment_method}")
+    log_activity('bill_settled', f"Settled orders {order_ids} into Invoice #{invoice.invoice_number}. Total: Rs.{rounded_total}. Method: {payment_method}")
     return jsonify({'success': True, 'invoice_id': invoice.id})
 
 @app.route('/api/generate_upi_qr')
@@ -1590,84 +1600,127 @@ def admin_dummy(subpath):
     return render_template('admin/dashboard.html', stats={}, active_page=subpath, dummy=True)
 
 
+@app.route('/api/order_details/<int:order_id>', methods=['GET'])
+@login_required
+def api_order_details(order_id):
+    order = Order.query.get(order_id)
+    if not order:
+        return jsonify({'success': False, 'message': 'Order not found'})
+    items = []
+    for item in order.items:
+        items.append({
+            'id': item.id,
+            'menu_item_id': item.menu_item_id,
+            'name': item.menu_item.name,
+            'price': item.price_at_order,
+            'quantity': item.quantity,
+            'kot_number': item.kot_number
+        })
+    return jsonify({'success': True, 'items': items, 'total': sum(i['price'] * i['quantity'] for i in items)})
+
 @app.route('/api/split_bill', methods=['POST'])
 @login_required
 def split_bill():
     data = request.json
     order_id = data.get('order_id')
-    payment_method = data.get('payment_method')
+    split_type = data.get('split_type', 'portion')
     split_ways = int(data.get('split_ways', 1))
+    percentages = data.get('percentages', [])
+    item_parts = data.get('item_parts', [])
     
     order = Order.query.get(order_id)
     if not order:
         return jsonify({'success': False, 'message': 'Order not found'})
         
-    if split_ways < 1:
-        return jsonify({'success': False, 'message': 'Invalid split ways'})
-        
-    subtotal = sum((item.quantity * item.price_at_order) for item in order.items)
+    total_subtotal = sum((item.quantity * item.price_at_order) for item in order.items)
     
     discount = 0.0
     if order.coupon_code:
         c = Coupon.query.filter_by(code=order.coupon_code).first()
         if c and c.is_active:
-            if c.discount_type == 'flat':
-                discount = c.discount_value
-            elif c.discount_type == 'percent':
-                discount = (subtotal * c.discount_value) / 100.0
-            if discount > subtotal: discount = subtotal
+            if c.discount_type == 'flat': discount = c.discount_value
+            elif c.discount_type == 'percent': discount = (total_subtotal * c.discount_value) / 100.0
+            if discount > total_subtotal: discount = total_subtotal
                 
-    taxable = subtotal - discount + order.delivery_charge
-    gst_amount = taxable * 0.05
-    exact_total = taxable + gst_amount
-    rounded_total = round(exact_total)
+    total_taxable = total_subtotal - discount + order.delivery_charge
+    total_gst = total_taxable * 0.05
+    exact_grand_total = total_taxable + total_gst
     
-    split_amount = rounded_total // split_ways
-    remainder = rounded_total % split_ways
+    invoices = []
     
-    invoices_created = []
-    
-    for i in range(split_ways):
-        amount = split_amount
-        if i == split_ways - 1:
-            amount += remainder # Last split gets remainder
-            
-        last_invoice = Invoice.query.order_by(Invoice.id.desc()).first()
-        next_num = 1 if not last_invoice else int(last_invoice.invoice_number.split('-')[1]) + 1
-        inv_number = f"MB-{str(next_num).zfill(5)}"
-        
-        prorated_sub = subtotal / split_ways
-        prorated_gst = gst_amount / split_ways
-        prorated_del = order.delivery_charge / split_ways
-        prorated_disc = discount / split_ways
-        
-        inv = Invoice(
-            order_id=order.id,
-            invoice_number=inv_number,
-            subtotal=prorated_sub,
-            discount=prorated_disc,
-            gst_percent=5.0,
-            gst_amount=prorated_gst,
-            round_off=0.0,
-            delivery_charge=prorated_del,
-            total=amount,
-            payment_method=payment_method,
-            coupon_code=order.coupon_code
-        )
-        db.session.add(inv)
-        db.session.flush()
-        
-        if payment_method.lower() in ['credit/udhar', 'credit']:
-            ledger = CreditLedger(
-                customer_name=order.customer_name or 'Unknown Customer',
-                customer_mobile=order.customer_mobile or '0000000000',
-                invoice_id=inv.id,
-                amount=amount,
-                status='outstanding'
+    if split_type == 'portion':
+        if split_ways < 1: return jsonify({'success': False, 'message': 'Invalid split ways'})
+        split_amount = round(exact_grand_total / split_ways)
+        for i in range(split_ways):
+            inv = Invoice(
+                order_id=order.id,
+                invoice_number=f"INV-{order.id}-P{i+1}-{datetime.utcnow().strftime('%H%M%S')}",
+                subtotal=total_subtotal / split_ways,
+                discount=discount / split_ways,
+                gst_percent=5.0,
+                gst_amount=total_gst / split_ways,
+                round_off=0.0,
+                delivery_charge=order.delivery_charge / split_ways,
+                total=split_amount,
+                payment_method='due',
+                split_type='portion',
+                split_metadata=json.dumps({"part": i+1, "total_parts": split_ways})
             )
-            db.session.add(ledger)
+            invoices.append(inv)
             
-        invoices_created.append(inv.id)
+    elif split_type == 'percentage':
+        if sum(percentages) != 100: return jsonify({'success': False, 'message': 'Percentages must add up to 100'})
+        for i, pct in enumerate(percentages):
+            ratio = pct / 100.0
+            split_amount = round(exact_grand_total * ratio)
+            inv = Invoice(
+                order_id=order.id,
+                invoice_number=f"INV-{order.id}-Pct{i+1}-{datetime.utcnow().strftime('%H%M%S')}",
+                subtotal=total_subtotal * ratio,
+                discount=discount * ratio,
+                gst_percent=5.0,
+                gst_amount=total_gst * ratio,
+                round_off=0.0,
+                delivery_charge=order.delivery_charge * ratio,
+                total=split_amount,
+                payment_method='due',
+                split_type='percentage',
+                split_metadata=json.dumps({"part": i+1, "percentage": pct})
+            )
+            invoices.append(inv)
+            
+    elif split_type == 'item':
+        if not item_parts: return jsonify({'success': False, 'message': 'No items assigned'})
+        for part in item_parts:
+            part_num = part.get('part')
+            items = part.get('items', [])
+            part_subtotal = sum(i['price'] for i in items)
+            
+            # Pro-rate discount and delivery charge
+            ratio = part_subtotal / total_subtotal if total_subtotal > 0 else 0
+            part_discount = discount * ratio
+            part_taxable = part_subtotal - part_discount + (order.delivery_charge * ratio)
+            part_gst = part_taxable * 0.05
+            part_exact = part_taxable + part_gst
+            
+            inv = Invoice(
+                order_id=order.id,
+                invoice_number=f"INV-{order.id}-Itm{part_num}-{datetime.utcnow().strftime('%H%M%S')}",
+                subtotal=part_subtotal,
+                discount=part_discount,
+                gst_percent=5.0,
+                gst_amount=part_gst,
+                round_off=round(part_exact) - part_exact,
+                delivery_charge=order.delivery_charge * ratio,
+                total=round(part_exact),
+                payment_method='due',
+                split_type='item_wise',
+                split_metadata=json.dumps({"part": part_num, "items": items})
+            )
+            invoices.append(inv)
+            
+    for inv in invoices:
+        db.session.add(inv)
         
     if order.table_id:
         table = Table.query.get(order.table_id)
@@ -1677,9 +1730,15 @@ def split_bill():
             
     order.status = 'completed'
     db.session.commit()
-    log_activity('bill_split', f"Split Order {order_id} into {split_ways} ways. Total: Rs.{rounded_total}.")
     
-    return jsonify({'success': True, 'invoice_ids': invoices_created})
+    socketio.emit('table_update', {}, namespace='/')
+    
+    try:
+        invoices_created = [inv.id for inv in invoices]
+        log_activity('bill_split', f"Split Order {order_id} into {len(invoices)} ways.")
+        return jsonify({'success': True, 'invoice_ids': invoices_created})
+    except Exception:
+        return jsonify({'success': True})
 
 @app.route('/api/call_waiter', methods=['POST'])
 @csrf.exempt
@@ -1754,6 +1813,88 @@ def admin_feedback():
 @socketio.on('connect')
 def handle_connect():
     print("Client connected")
+
+from sqlalchemy import text
+
+def auto_migrate():
+    with app.app_context():
+        # Phase 22C
+        try:
+            db.session.execute(text('ALTER TABLE order_items ADD COLUMN kot_number INTEGER DEFAULT 1'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            
+        try:
+            db.session.execute(text('ALTER TABLE order_items ADD COLUMN added_at DATETIME'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            
+        # Phase 22D Order Fields
+        try:
+            db.session.execute(text('ALTER TABLE orders ADD COLUMN discount_reason VARCHAR(200)'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            
+        try:
+            db.session.execute(text('ALTER TABLE orders ADD COLUMN discount_type VARCHAR(20)'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            
+        try:
+            db.session.execute(text('ALTER TABLE orders ADD COLUMN discount_value FLOAT DEFAULT 0.0'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            
+        # Phase 22D Invoice Fields
+        try:
+            db.session.execute(text('ALTER TABLE invoices ADD COLUMN custom_payment_method VARCHAR(50)'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            
+        try:
+            db.session.execute(text('ALTER TABLE invoices ADD COLUMN payment_note TEXT'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            
+        try:
+            db.session.execute(text('ALTER TABLE invoices ADD COLUMN customer_paid FLOAT DEFAULT 0.0'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            
+        try:
+            db.session.execute(text('ALTER TABLE invoices ADD COLUMN change_returned FLOAT DEFAULT 0.0'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            
+        try:
+            db.session.execute(text('ALTER TABLE invoices ADD COLUMN tip_amount FLOAT DEFAULT 0.0'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            
+        try:
+            db.session.execute(text('ALTER TABLE invoices ADD COLUMN split_type VARCHAR(20)'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            
+        try:
+            db.session.execute(text('ALTER TABLE invoices ADD COLUMN split_metadata TEXT'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+# Run migration on startup (even with Gunicorn)
+auto_migrate()
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

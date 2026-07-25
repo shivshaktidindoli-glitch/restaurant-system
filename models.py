@@ -73,6 +73,9 @@ class Order(db.Model):
     delivery_address = db.Column(db.Text, nullable=True)
     landmark = db.Column(db.String(100), nullable=True)
     delivery_charge = db.Column(db.Float, default=0.0)
+    discount_reason = db.Column(db.String(200), nullable=True)
+    discount_type = db.Column(db.String(20), nullable=True) # 'percent', 'fixed'
+    discount_value = db.Column(db.Float, default=0.0)
     delivery_staff_id = db.Column(db.Integer, db.ForeignKey('staff_users.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     has_new_items = db.Column(db.Boolean, default=False)
@@ -105,7 +108,14 @@ class Invoice(db.Model):
     round_off = db.Column(db.Float, default=0.0)
     delivery_charge = db.Column(db.Float, default=0.0)
     total = db.Column(db.Float, nullable=False)
-    payment_method = db.Column(db.String(20)) # cash/upi/card/settled/credit
+    payment_method = db.Column(db.String(20)) # cash/upi/card/settled/credit/part/other
+    custom_payment_method = db.Column(db.String(50), nullable=True) # e.g. Google Pay
+    payment_note = db.Column(db.Text, nullable=True)
+    customer_paid = db.Column(db.Float, default=0.0)
+    change_returned = db.Column(db.Float, default=0.0)
+    tip_amount = db.Column(db.Float, default=0.0)
+    split_type = db.Column(db.String(20), nullable=True) # portion/percentage/item_wise
+    split_metadata = db.Column(db.Text, nullable=True) # JSON string
     coupon_code = db.Column(db.String(50), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
