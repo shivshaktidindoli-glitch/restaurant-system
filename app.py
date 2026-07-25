@@ -844,11 +844,20 @@ def settle_bill():
     coupon_code = data.get('coupon_code', '').strip().upper()
     delivery_charge = float(data.get('delivery_charge', 0.0))
     
+    discount_type = data.get('discount_type')
+    discount_value = float(data.get('discount_value', 0.0))
+    discount_reason = data.get('discount_reason')
+    
     orders = Order.query.filter(Order.id.in_(order_ids)).all()
     if not orders:
         return jsonify({'success': False, 'message': 'No orders found'})
         
     main_order = orders[0]
+    
+    if discount_type and discount_value > 0:
+        main_order.discount_type = discount_type
+        main_order.discount_value = discount_value
+        main_order.discount_reason = discount_reason
     
     subtotal = 0.0
     for order in orders:

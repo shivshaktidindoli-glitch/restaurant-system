@@ -282,6 +282,14 @@
     const socket = io();
     
     let currentSettleOrder = null;
+    let currentSettleOrderId = null;
+    let currentSettleOrderTotal = 0;
+    let currentSettleCoupon = '';
+    
+    // Discount variables
+    let appliedDiscountType = null;
+    let appliedDiscountValue = 0;
+    let appliedDiscountReason = '';
     let orderItemsMap = {}; // orderId -> items
 
     // Load order items data on page load for split logic
@@ -291,6 +299,10 @@
         currentSettleOrderId = orderId;
         currentSettleOrderTotal = parseFloat(totalStr);
         currentSettleCoupon = coupon || '';
+        
+        appliedDiscountType = null;
+        appliedDiscountValue = 0;
+        appliedDiscountReason = '';
         
         document.getElementById('settle-order-title').innerText = `Order #${orderId}`;
         document.getElementById('settle-total-display').innerText = currentSettleOrderTotal.toFixed(2);
@@ -341,7 +353,31 @@
     }
     
     function saveDiscount() {
-        alert("Discount applied! (Backend logic in Phase 22D test script)");
+        const dReason = document.getElementById('discount-reason').value;
+        const dType = document.querySelector('input[name="discount-type"]:checked').value;
+        const dValue = parseFloat(document.getElementById('discount-value').value) || 0;
+        
+        if (dValue > 0) {
+            appliedDiscountType = dType;
+            appliedDiscountValue = dValue;
+            appliedDiscountReason = dReason;
+            
+            let discountAmount = 0;
+            // Reverse engineering subtotal from total: (total / 1.05)
+            const subtotal = currentSettleOrderTotal / 1.05;
+            if (dType === 'percent') {
+                discountAmount = subtotal * (dValue / 100);
+            } else {
+                discountAmount = dValue;
+            }
+            
+            const newSubtotal = subtotal - discountAmount;
+            const newTotal = (newSubtotal * 1.05).toFixed(2);
+            
+            document.getElementById('settle-amount').value = newTotal;
+            document.getElementById('settle-total-display').innerText = newTotal + " (Discounted)";
+        }
+        
         closeModal('discount-modal');
     }
 
@@ -499,7 +535,10 @@
             change_returned: change,
             tip_amount: tipAmount,
             coupon_code: coupon,
-            delivery_charge: delivery
+            delivery_charge: delivery,
+            discount_type: appliedDiscountType,
+            discount_value: appliedDiscountValue,
+            discount_reason: appliedDiscountReason
         };
         
         fetch('/api/settle_bill', {
