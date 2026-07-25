@@ -101,7 +101,14 @@
             {% if order.table %}
             <div style="font-weight: 600; margin-top: 5px;">Table: {{ order.table.name }}</div>
             {% endif %}
-            <div style="margin-top: 5px;">Customer: {{ order.customer_name or 'N/A' }}</div>
+            <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 0.9rem; color: var(--text-secondary);">Customer Mobile (Optional)</label>
+                <input type="text" id="order-custMobile" value="{{ order.customer_mobile or '' }}" placeholder="10-digit number" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 4px;">
+            </div>
+            <div style="margin-top: 5px; display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 0.9rem; color: var(--text-secondary);">Customer Name</label>
+                <input type="text" id="order-custName" value="{{ order.customer_name or '' }}" placeholder="Name" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 4px;">
+            </div>
             <div style="margin-top: 5px; display: flex; align-items: center; gap: 10px;">
                 Guests/Covers: <input type="number" id="order-covers" value="{{ order.covers or 1 }}" min="1" style="width: 60px; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px;">
             </div>
@@ -289,10 +296,14 @@
         }));
         
         const coversInput = document.getElementById('order-covers');
+        const custMobileInput = document.getElementById('order-custMobile');
+        const custNameInput = document.getElementById('order-custName');
         const payload = {
             order_id: {{ order.id }},
             items: items,
-            covers: coversInput ? coversInput.value : 1
+            covers: coversInput ? coversInput.value : 1,
+            customer_mobile: custMobileInput ? custMobileInput.value.trim() : null,
+            customer_name: custNameInput ? custNameInput.value.trim() : null
         };
         
         try {
@@ -324,5 +335,12 @@
             btnPrint.innerText = 'Save & Print KOT';
         }
     }
+</script>
+
+{% include 'admin/_customer_autocomplete_modal.html' %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        setupCustomerAutocomplete('order-custMobile', 'order-custName');
+    });
 </script>
 {% endblock %}

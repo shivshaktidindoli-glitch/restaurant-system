@@ -16,6 +16,7 @@ from flask import abort, current_app
 from flask_wtf.csrf import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from sqlalchemy import func
 
 def role_required(*roles):
     def wrapper(fn):
@@ -409,6 +410,8 @@ def update_order():
     order_id = data.get('order_id')
     items = data.get('items', [])
     covers = data.get('covers')
+    customer_name = data.get('customer_name')
+    customer_mobile = data.get('customer_mobile')
     
     order = Order.query.get_or_404(order_id)
     
@@ -420,7 +423,19 @@ def update_order():
             order.covers = int(covers)
         except ValueError:
             pass
-        
+            
+    if customer_name is not None:
+        order.customer_name = customer_name
+    if customer_mobile is not None:
+        order.customer_mobile = customer_mobile
+        if customer_mobile:
+            profile = CustomerProfile.query.get(customer_mobile)
+            if not profile:
+                profile = CustomerProfile(mobile=customer_mobile, name=customer_name or '')
+                db.session.add(profile)
+            elif customer_name and (not profile.name or profile.name == ''):
+                profile.name = customer_name
+                
     if not items:
         # Cancel order
         order.status = 'cancelled'
@@ -1355,6 +1370,68 @@ def verify_coupon():
         'discount': round(discount, 2),
         'code': c.code,
         'message': 'Coupon applied successfully!'
+    })
+
+@app.route('/api/customer/autocomplete')
+@login_required
+def customer_autocomplete():
+    q = request.args.get('q', '').strip()
+    if len(q) < 4:
+        return jsonify([])
+    customers = CustomerProfile.query.filter(CustomerProfile.mobile.like(f"{q}%")).limit(10).all()
+    return jsonify([{'mobile': c.mobile, 'name': c.name or ''} for c in customers])
+
+@app.route('/api/customer/history')
+@login_required
+def customer_history():
+    mobile = request.args.get('mobile', '').strip()
+    if not mobile:
+        return jsonify({'success': False, 'message': 'Mobile is required'}), 400
+        
+    customer = CustomerProfile.query.get(mobile)
+    if not customer:
+        return jsonify({'success': False, 'message': 'Customer not found in CRM'}), 404
+        
+    # Max ordered item
+    max_item = db.session.query(MenuItem.name, func.sum(OrderItem.quantity).label('total_qty')) \
+        .join(OrderItem, MenuItem.id == OrderItem.menu_item_id) \
+        .join(Order, OrderItem.order_id == Order.id) \
+        .filter(Order.customer_mobile == mobile, Order.status == 'completed') \
+        .group_by(MenuItem.name) \
+        .order_by(func.sum(OrderItem.quantity).desc()) \
+        .first()
+        
+    max_ordered = f"{max_item[0]} ({max_item[1]} times)" if max_item else "N/A"
+    
+    # Average Bill & Coming Since
+    orders = Order.query.filter(Order.customer_mobile == mobile, Order.status == 'completed').order_by(Order.created_at.asc()).all()
+    
+    visits_count = len(orders)
+    coming_since = orders[0].created_at.strftime('%Y-%m-%d') if visits_count > 0 else "N/A"
+    
+    total_spend = sum(sum(i.price_at_order * i.quantity for i in o.items) for o in orders)
+    avg_bill = total_spend / visits_count if visits_count > 0 else 0
+    
+    # Recent 25 orders
+    recent_orders = []
+    for o in sorted(orders, key=lambda x: x.created_at, reverse=True)[:25]:
+        items_str = ", ".join([f"{i.quantity}x {i.menu_item.name}" for i in o.items])
+        total = sum(i.price_at_order * i.quantity for i in o.items)
+        recent_orders.append({
+            'date': o.created_at.strftime('%Y-%m-%d %H:%M'),
+            'items': items_str,
+            'total': total
+        })
+        
+    return jsonify({
+        'success': True,
+        'name': customer.name or 'Unknown',
+        'mobile': customer.mobile,
+        'max_ordered': max_ordered,
+        'avg_bill': round(avg_bill, 2),
+        'coming_since': coming_since,
+        'visits': visits_count,
+        'recent_orders': recent_orders
     })
 
 @app.route('/admin/day_end')

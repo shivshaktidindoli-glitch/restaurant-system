@@ -251,4 +251,11 @@
         }
     }
 </script>
+
+{% include 'admin/_customer_autocomplete_modal.html' %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        setupCustomerAutocomplete('custMobile', 'custName');
+    });
+</script>
 {% endblock %}
