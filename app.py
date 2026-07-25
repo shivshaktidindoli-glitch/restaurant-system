@@ -926,6 +926,7 @@ def settle_bill():
     tip_amount = float(data.get('tip_amount', 0.0))
     coupon_code = data.get('coupon_code', '').strip().upper()
     delivery_charge = float(data.get('delivery_charge', 0.0))
+    redeemed_points = int(data.get('redeemed_points', 0))
     
     discount_type = data.get('discount_type')
     discount_value = float(data.get('discount_value', 0.0))
@@ -979,6 +980,17 @@ def settle_bill():
                 
                 # Increment usage
                 c.usage_count += 1
+                
+    # Phase 23: Loyalty Points Redemption
+    customer_profile = None
+    if main_order.customer_mobile:
+        customer_profile = CustomerProfile.query.get(main_order.customer_mobile)
+        
+    if redeemed_points > 0 and customer_profile:
+        if redeemed_points > (customer_profile.loyalty_points or 0):
+            return jsonify({'success': False, 'message': 'Not enough loyalty points'})
+        customer_profile.loyalty_points -= redeemed_points
+        discount += redeemed_points
                     
     if discount > subtotal: discount = subtotal
     
@@ -1027,6 +1039,11 @@ def settle_bill():
         if table:
             table.status = 'vacant'
             table.session_start_time = None
+            
+    # Phase 23: Earn points on settled invoice total (post-discount, pre-tax)
+    if customer_profile and taxable > 0:
+        earned_points = int(taxable // 100)  # 1 point per Rs.100 (excluding GST)
+        customer_profile.loyalty_points = (customer_profile.loyalty_points or 0) + earned_points
             
     # Record coupon on main order if it wasn't there
     if used_coupon and not main_order.coupon_code:
@@ -1431,6 +1448,7 @@ def customer_history():
         'avg_bill': round(avg_bill, 2),
         'coming_since': coming_since,
         'visits': visits_count,
+        'loyalty_points': customer.loyalty_points or 0,
         'recent_orders': recent_orders
     })
 
@@ -2170,6 +2188,13 @@ def auto_migrate():
 
         try:
             db.session.execute(text('ALTER TABLE orders ADD COLUMN covers INTEGER DEFAULT 1'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            
+        # Phase 23
+        try:
+            db.session.execute(text('ALTER TABLE customers ADD COLUMN loyalty_points INTEGER DEFAULT 0'))
             db.session.commit()
         except Exception:
             db.session.rollback()

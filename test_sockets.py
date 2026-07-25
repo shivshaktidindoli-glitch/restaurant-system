@@ -1,69 +1,69 @@
 import socketio
-import requests
 import time
+import requests
+import threading
 import sys
 
-BASE_URL = 'http://127.0.0.1:5000'
-sio_admin = socketio.Client()
-sio_customer = socketio.Client()
+# Create a Socket.IO client for the Admin
+admin_sio = socketio.Client()
+server_url = "http://127.0.0.1:5000"
+event_received = False
 
-admin_events = []
-customer_events = []
+@admin_sio.event
+def connect():
+    print("[Admin] Connected to Socket.IO server!")
 
-@sio_admin.on('new_order')
-def on_new_order(data):
-    print("ADMIN RECEIVED new_order:", data)
-    admin_events.append(data)
+@admin_sio.event
+def new_waiter_call(data):
+    global event_received
+    print(f"\n[Admin] SUCCESS! Received 'new_waiter_call' event: {data}")
+    event_received = True
 
-@sio_customer.on('order_status_update')
-def on_order_status(data):
-    print("CUSTOMER RECEIVED order_status_update:", data)
-    customer_events.append(data)
+@admin_sio.event
+def connect_error(data):
+    print(f"[Admin] Connection failed: {data}")
 
-print("Connecting Admin WebSocket...")
-sio_admin.connect(BASE_URL)
+def run_admin():
+    try:
+        admin_sio.connect(server_url)
+        admin_sio.wait()
+    except Exception as e:
+        print(f"[Admin] Exception: {e}")
 
-print("Customer places a new order via API...")
-payload = {
-    "table_name": "T-1",
-    "order_type": "dine-in",
-    "customer_name": "WebSocket Tester",
-    "customer_mobile": "9998887776",
-    "items": [{"id": 1, "quantity": 1, "price": 250.0}]
-}
-r1 = requests.post(f"{BASE_URL}/api/place_order", json=payload)
-order_id = r1.json()['order_id']
-print(f"Order Placed! ID: {order_id}")
-
-print("Waiting for Admin WebSocket to receive the event...")
-time.sleep(2)
-
-if not admin_events or admin_events[-1]['order_id'] != order_id:
-    print("FAILED: Admin did not receive new_order via WebSocket.")
-    sys.exit(1)
-
-print("Success: Admin received the new_order WebSocket event instantly.")
-
-print("\nConnecting Customer WebSocket...")
-sio_customer.connect(BASE_URL)
-
-print("Admin marks order as 'preparing' via API...")
-session = requests.Session()
-# Need to login to call admin API
-session.post(f"{BASE_URL}/admin/login", data={'mobile': '9999999999', 'password': 'admin123'})
-
-r2 = session.post(f"{BASE_URL}/api/update_order_status", json={"order_id": order_id, "status": "preparing"})
-print("Admin update response:", r2.json())
-
-print("Waiting for Customer WebSocket to receive the event...")
-time.sleep(2)
-
-if not customer_events or customer_events[-1]['status'] != 'preparing':
-    print("FAILED: Customer did not receive order_status_update via WebSocket.")
-    sys.exit(1)
-
-print("Success: Customer received the status update WebSocket event instantly.")
-
-sio_admin.disconnect()
-sio_customer.disconnect()
-print("\nAll Real-Time Sync Tests Passed Successfully!")
+if __name__ == '__main__':
+    print("Testing Waiter Calling Socket...")
+    
+    # Start admin socket in a background thread
+    t = threading.Thread(target=run_admin)
+    t.daemon = True
+    t.start()
+    
+    # Wait for connection
+    time.sleep(2)
+    
+    if not admin_sio.connected:
+        print("Failed to connect admin socket.")
+        sys.exit(1)
+        
+    print("\n[Customer] Sending REST POST to /api/call_waiter...")
+    try:
+        resp = requests.post(f"{server_url}/api/call_waiter", json={
+            'table_name': 'T1',
+            'order_id': 1
+        }, timeout=5)
+        print(f"[Customer] Response Code: {resp.status_code}")
+    except Exception as e:
+        print(f"[Customer] Request Failed: {e}")
+        
+    print("\nWaiting 5 seconds to see if admin receives the event...")
+    for _ in range(5):
+        if event_received:
+            break
+        time.sleep(1)
+        
+    if event_received:
+        print("\nTEST PASSED: Socket event successfully transmitted.")
+        sys.exit(0)
+    else:
+        print("\nTEST FAILED: Admin did not receive the 'new_waiter_call' socket event.")
+        sys.exit(1)

@@ -177,7 +177,11 @@ async function openCustomerHistory(mobile) {
                     <div style="font-size: 0.8rem; color: var(--text-secondary);">Average Bill</div>
                     <div style="font-weight: 600; margin-top: 5px; color: var(--brand-orange);">₹${data.avg_bill}</div>
                 </div>
-                <div style="border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; grid-column: span 2;">
+                <div style="border: 1px solid var(--border-color); padding: 10px; border-radius: 6px;">
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Loyalty Points</div>
+                    <div style="font-weight: 600; margin-top: 5px; color: #10b981;">⭐ ${data.loyalty_points || 0}</div>
+                </div>
+                <div style="border: 1px solid var(--border-color); padding: 10px; border-radius: 6px;">
                     <div style="font-size: 0.8rem; color: var(--text-secondary);">Coming Since</div>
                     <div style="font-weight: 600; margin-top: 5px;">${data.coming_since}</div>
                 </div>

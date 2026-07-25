@@ -121,6 +121,16 @@
         <hr style="border: 1px dashed var(--border-color); margin: 20px 0;">
         
         <div class="form-group">
+            <!-- Loyalty Points -->
+            <div id="settle-loyalty-section" style="display:none; padding: 10px; background: #f0fdf4; border: 1px solid #10b981; border-radius: 6px; margin-top: 10px;">
+                <div style="font-size:0.9rem; color:#047857; margin-bottom:5px;">Available Loyalty Points: <strong id="settle-available-points">0</strong></div>
+                <label style="font-size:0.8rem; color:#047857;">Redeem Points</label>
+                <div style="display:flex; gap:5px;">
+                    <input type="number" id="settle-redeem-points" max="0" placeholder="Points to redeem" style="flex:1; border: 1px solid #6ee7b7; padding: 8px;">
+                    <button class="btn-primary" style="background-color: #10b981;" onclick="applyPointsDiscount()">Apply</button>
+                </div>
+            </div>
+
             <label>Coupon Code</label>
             <div style="display:flex; gap:10px;">
                 <input type="text" id="settle-coupon" placeholder="Enter coupon code" style="text-transform: uppercase;">
@@ -285,6 +295,8 @@
     let currentSettleOrderId = null;
     let currentSettleOrderTotal = 0;
     let currentSettleCoupon = '';
+    let currentSettleMobile = '';
+    let currentAvailablePoints = 0;
     
     // Discount variables
     let appliedDiscountType = null;
@@ -299,13 +311,11 @@
         }
     }
 
-    // Load order items data on page load for split logic
-    // We can fetch via API or inline. We'll fetch via API when opening split modal to be safe.
-
-    function openSettleModal(orderId, type, customerName, totalStr, coupon) {
+    async function openSettleModal(orderId, type, customerName, customerMobile, totalStr, coupon) {
         currentSettleOrderId = orderId;
         currentSettleOrderTotal = parseFloat(totalStr);
         currentSettleCoupon = coupon || '';
+        currentSettleMobile = customerMobile || '';
         
         appliedDiscountType = null;
         appliedDiscountValue = 0;
@@ -318,6 +328,22 @@
         document.getElementById('settle-customer-paid').value = '';
         document.getElementById('settle-return-display').innerText = '₹0';
         document.getElementById('settle-return-display').style.color = 'var(--text-color)';
+        document.getElementById('settle-coupon').value = '';
+        document.getElementById('settle-redeem-points').value = '';
+        document.getElementById('settle-loyalty-section').style.display = 'none';
+
+        if (currentSettleMobile) {
+            try {
+                const resp = await fetch('/api/customer/history?mobile=' + encodeURIComponent(currentSettleMobile));
+                const data = await resp.json();
+                if (data.success && data.loyalty_points > 0) {
+                    currentAvailablePoints = data.loyalty_points;
+                    document.getElementById('settle-available-points').innerText = data.loyalty_points;
+                    document.getElementById('settle-redeem-points').max = data.loyalty_points;
+                    document.getElementById('settle-loyalty-section').style.display = 'block';
+                }
+            } catch(e) { console.error('Error fetching loyalty points:', e); }
+        }
         
         document.getElementById('settle-modal').classList.add('active');
     }
@@ -334,7 +360,7 @@
     
     function calculateSettleChange() {
         const paidStr = document.getElementById('settle-customer-paid').value;
-        const total = currentSettleOrderTotal || 0;
+        const total = parseFloat(document.getElementById('settle-amount').value) || 0;
         const display = document.getElementById('settle-return-display');
         
         if (!paidStr) {
@@ -388,6 +414,38 @@
         closeModal('discount-modal');
     }
 
+    function applyPointsDiscount() {
+        const redeemInput = document.getElementById('settle-redeem-points').value;
+        const pts = parseInt(redeemInput);
+        if (!pts || pts <= 0) return;
+        
+        if (pts > currentAvailablePoints) {
+            alert('Cannot redeem more points than available!');
+            document.getElementById('settle-redeem-points').value = currentAvailablePoints;
+            return;
+        }
+
+        // Each point is Rs. 1 off (GST applies after discount)
+        const subtotal = currentSettleOrderTotal / 1.05; 
+        if (pts > subtotal) {
+            alert('Discount cannot exceed the order subtotal!');
+            return;
+        }
+
+        // Apply discount logic
+        const discountAmt = pts;
+        const newTotal = ((subtotal - discountAmt) * 1.05).toFixed(2);
+        
+        appliedDiscountType = 'loyalty';
+        appliedDiscountValue = pts;
+        appliedDiscountReason = `Redeemed ${pts} points`;
+
+        document.getElementById('settle-amount').value = newTotal;
+        document.getElementById('settle-total-display').innerText = newTotal + " (Points Redeemed)";
+        calculateSettleChange();
+        closeModal('discount-modal');
+    }
+
     let currentSplitType = 'portion';
     let splitItemCounter = 0;
     
@@ -410,7 +468,6 @@
     
     async function openSplitModal() {
         document.getElementById('split-modal').classList.add('active');
-        // Fetch items for this order
         try {
             const resp = await fetch(`/api/order_details/${currentSettleOrderId}`);
             const data = await resp.json();
@@ -426,7 +483,6 @@
         const list = document.getElementById('split-item-list');
         list.innerHTML = '';
         items.forEach((item, idx) => {
-            // Unroll quantities so they can be split individually
             for(let i=0; i<item.quantity; i++) {
                 splitItemCounter++;
                 list.innerHTML += `
@@ -451,9 +507,8 @@
         
         checked.forEach(chk => {
             const row = chk.closest('.split-item-row');
-            chk.checked = false; // uncheck it
-            chk.style.display = 'none'; // hide checkbox inside part
-            // move row
+            chk.checked = false;
+            chk.style.display = 'none';
             partBox.appendChild(row);
         });
     }
@@ -525,12 +580,14 @@
         const customerPaid = parseFloat(document.getElementById('settle-customer-paid').value) || 0;
         const tipAmount = parseFloat(document.getElementById('settle-tip').value) || 0;
         const coupon = document.getElementById('settle-coupon').value;
+        const redeemedPoints = (appliedDiscountType === 'loyalty') ? appliedDiscountValue : 0;
         const delivery = document.getElementById('settle-delivery') ? document.getElementById('settle-delivery').value : 0;
         
         // Calculate change for DB
+        const total = parseFloat(document.getElementById('settle-amount').value) || 0;
         let change = 0;
-        if (customerPaid > currentSettleOrderTotal) {
-            change = customerPaid - currentSettleOrderTotal;
+        if (customerPaid > total) {
+            change = customerPaid - total;
         }
         
         let payload = {
@@ -542,6 +599,7 @@
             change_returned: change,
             tip_amount: tipAmount,
             coupon_code: coupon,
+            redeemed_points: redeemedPoints,
             delivery_charge: delivery,
             discount_type: appliedDiscountType,
             discount_value: appliedDiscountValue,
@@ -588,7 +646,7 @@
         callCard.style = "background: #ef4444; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;";
         callCard.innerHTML = `
             <div>
-                <strong>🛎️ Table ${data.table_name}</strong><br>
+                <strong>🔔 Table ${data.table_name}</strong><br>
                 <small>${data.time}</small>
             </div>
             <button onclick="resolveCall(${data.id})" style="background: white; color: #ef4444; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">Resolve</button>

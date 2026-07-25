@@ -204,6 +204,7 @@ class CustomerProfile(db.Model):
     mobile = db.Column(db.String(15), primary_key=True)
     name = db.Column(db.String(100), nullable=True)
     notes = db.Column(db.Text, nullable=True)
+    loyalty_points = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class WaiterCall(db.Model):

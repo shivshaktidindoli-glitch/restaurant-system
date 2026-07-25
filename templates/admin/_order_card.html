@@ -45,7 +45,7 @@
                 {% set total = total + (item.price_at_order * item.quantity) %}
             {% endfor %}
             {% set total = (total * 1.05)|round(2) %}
-            <button class="btn-primary" style="width:100%; background:#dc2626;" onclick="openSettleModal({{ order.id }}, '{{ order.type }}', '{{ order.customer_name or '' }}', '{{ total }}', '{{ order.coupon_code or '' }}')">Settle Bill</button>
+            <button class="btn-primary" style="width:100%; background:#dc2626;" onclick="openSettleModal({{ order.id }}, '{{ order.type }}', '{{ order.customer_name or '' }}', '{{ order.customer_mobile or '' }}', '{{ total }}', '{{ order.coupon_code or '' }}')">Settle Bill</button>
         {% endif %}
     </div>
 </div>
