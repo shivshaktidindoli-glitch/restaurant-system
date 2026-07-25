@@ -40,6 +40,18 @@ def run_render_tests():
             t1 = Table.query.filter_by(name='T-1').first()
             from datetime import datetime
             t1.session_start_time = datetime.utcnow()
+            t1.status = 'occupied'
+            
+            # Make sure there is an active order
+            existing_order = Order.query.filter_by(table_id=t1.id).filter(Order.status.notin_(['completed', 'cancelled'])).first()
+            if not existing_order:
+                o1 = Order(branch_id=1, table_id=t1.id, type='dine-in', status='new')
+                db.session.add(o1)
+                db.session.commit()
+                m = MenuItem.query.first()
+                if m:
+                    oi = OrderItem(order_id=o1.id, menu_item_id=m.id, quantity=1, price_at_order=100.0)
+                    db.session.add(oi)
             db.session.commit()
             
             # Login

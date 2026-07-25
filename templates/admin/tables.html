@@ -66,7 +66,7 @@
                         <button class="btn-sm" onclick="showQR({{ table.id }}, '{{ table.name }}')">View QR</button>
                     </td>
                     <td>
-                        <button class="btn-sm" onclick="alert('Edit table logic coming soon')">Edit</button>
+                        <button class="btn-sm" onclick="editTable({{ table.id }}, '{{ table.name }}', '{{ table.section }}', {{ table.seats }})">Edit</button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -108,6 +108,32 @@
     </div>
 </div>
 
+<!-- Edit Table Modal -->
+<div class="modal" id="editModal">
+    <div class="modal-content" style="max-width: 400px; text-align: left;">
+        <h2 style="margin-bottom: 20px;">Edit Table</h2>
+        <form id="editForm" method="POST" action="">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="form-group">
+                <label>Table Name</label>
+                <input type="text" id="editName" name="name" required>
+            </div>
+            <div class="form-group">
+                <label>Section / Area</label>
+                <input type="text" id="editSection" name="section" required>
+            </div>
+            <div class="form-group">
+                <label>Seating Capacity</label>
+                <input type="number" id="editCapacity" name="capacity" min="1" required>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn-primary" style="flex: 1;">Save Changes</button>
+                <button type="button" class="btn-sm" style="flex: 1;" onclick="closeEdit()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -121,6 +147,18 @@
     
     function closeQR() {
         document.getElementById('qrModal').classList.remove('active');
+    }
+    
+    function editTable(id, name, section, seats) {
+        document.getElementById('editForm').action = '/admin/edit_table/' + id;
+        document.getElementById('editName').value = name;
+        document.getElementById('editSection').value = section;
+        document.getElementById('editCapacity').value = seats;
+        document.getElementById('editModal').classList.add('active');
+    }
+    
+    function closeEdit() {
+        document.getElementById('editModal').classList.remove('active');
     }
 </script>
 {% endblock %}

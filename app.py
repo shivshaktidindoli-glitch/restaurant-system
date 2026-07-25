@@ -669,6 +669,23 @@ def manage_tables():
     tables = Table.query.all()
     return render_template('admin/tables.html', tables=tables, active_page='tables')
 
+@app.route('/admin/edit_table/<int:table_id>', methods=['POST'])
+@login_required
+def edit_table(table_id):
+    table = Table.query.get_or_404(table_id)
+    name = request.form.get('name')
+    capacity = request.form.get('capacity', type=int)
+    section = request.form.get('section')
+    
+    if name and capacity:
+        table.name = name
+        table.seats = capacity
+        if section:
+            table.section = section
+        db.session.commit()
+        flash(f"Table {name} updated successfully!")
+    return redirect(url_for('manage_tables'))
+
 @app.route('/admin/qr/<int:table_id>')
 @login_required
 def get_qr(table_id):
