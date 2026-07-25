@@ -61,6 +61,7 @@
             <a href="/admin/invoices" class="nav-link {% if active_page == 'invoices' %}active{% endif %}"><i class="fa-solid fa-receipt"></i> Invoices</a>
             <a href="/admin/credit" class="nav-link {% if active_page == 'credit' %}active{% endif %}"><i class="fa-solid fa-book-open"></i> Credit / Udhar</a>
             <a href="/admin/refunds" class="nav-link {% if active_page == 'refunds' %}active{% endif %}"><i class="fa-solid fa-rotate-left"></i> Refunds</a>
+            <a href="/admin/day_end" class="nav-link {% if active_page == 'day_end' %}active{% endif %}"><i class="fa-solid fa-lock"></i> Day End Close</a>
             {% endif %}
             
             {% if current_user.role in ['admin', 'manager'] %}

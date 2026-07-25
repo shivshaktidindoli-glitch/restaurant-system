@@ -102,6 +102,9 @@
             <div style="font-weight: 600; margin-top: 5px;">Table: {{ order.table.name }}</div>
             {% endif %}
             <div style="margin-top: 5px;">Customer: {{ order.customer_name or 'N/A' }}</div>
+            <div style="margin-top: 5px; display: flex; align-items: center; gap: 10px;">
+                Guests/Covers: <input type="number" id="order-covers" value="{{ order.covers or 1 }}" min="1" style="width: 60px; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px;">
+            </div>
             <div style="margin-top: 5px;">Status: <span style="text-transform: capitalize; color: var(--brand-blue);">{{ order.status }}</span></div>
         </div>
     
@@ -285,9 +288,11 @@
             price: cart[id].price
         }));
         
+        const coversInput = document.getElementById('order-covers');
         const payload = {
             order_id: {{ order.id }},
-            items: items
+            items: items,
+            covers: coversInput ? coversInput.value : 1
         };
         
         try {

@@ -79,8 +79,11 @@ class Order(db.Model):
     delivery_staff_id = db.Column(db.Integer, db.ForeignKey('staff_users.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     has_new_items = db.Column(db.Boolean, default=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('staff_users.id'), nullable=True)
+    covers = db.Column(db.Integer, default=1)
     items = db.relationship('OrderItem', backref='order', lazy=True, cascade="all, delete-orphan")
     table = db.relationship('Table')
+    creator = db.relationship('User', foreign_keys=[created_by])
     delivery_staff = db.relationship('User', foreign_keys=[delivery_staff_id])
 
 class OrderItem(db.Model):
@@ -95,6 +98,19 @@ class OrderItem(db.Model):
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     menu_item = db.relationship('MenuItem')
+
+class DayEndRecord(db.Model):
+    __tablename__ = 'day_end_records'
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, nullable=False, default=datetime.utcnow().date)
+    closed_by = db.Column(db.Integer, db.ForeignKey('staff_users.id'), nullable=False)
+    closed_at = db.Column(db.DateTime, default=datetime.utcnow)
+    total_sales = db.Column(db.Float, default=0.0)
+    total_orders = db.Column(db.Integer, default=0)
+    expected_cash = db.Column(db.Float, default=0.0)
+    total_tips = db.Column(db.Float, default=0.0)
+
+    closer = db.relationship('User', foreign_keys=[closed_by])
 
 class Invoice(db.Model):
     __tablename__ = 'invoices'

@@ -1,0 +1,93 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Day End Close - Admin Panel{% endblock %}
+{% block page_title %}Day End Close{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); padding: 30px;">
+    {% if existing_close %}
+        <div style="text-align: center; padding: 20px;">
+            <i class="fa-solid fa-circle-check" style="font-size: 3rem; color: #10b981; margin-bottom: 20px;"></i>
+            <h2 style="color: #10b981;">Day Closed Successfully</h2>
+            <p style="color: var(--text-secondary); margin-top: 10px;">The business day has already been closed for today ({{ existing_close.date.strftime('%Y-%m-%d') }}).</p>
+            <p style="color: var(--text-secondary); margin-top: 5px;">Closed by: {{ existing_close.closer.name }} at {{ existing_close.closed_at.strftime('%H:%M') }}</p>
+            
+            <div style="margin-top: 30px; text-align: left; background: #f8fafc; padding: 20px; border-radius: 8px;">
+                <h4 style="margin-bottom: 15px; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Final Summary</h4>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: var(--text-secondary);">Total Sales:</span>
+                    <strong style="color: var(--brand-orange);">₹{{ "%.2f"|format(existing_close.total_sales) }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: var(--text-secondary);">Total Orders:</span>
+                    <strong>{{ existing_close.total_orders }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: var(--text-secondary);">Expected Cash:</span>
+                    <strong>₹{{ "%.2f"|format(existing_close.expected_cash) }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: var(--text-secondary);">Total Tips:</span>
+                    <strong>₹{{ "%.2f"|format(existing_close.total_tips) }}</strong>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div style="text-align: center; margin-bottom: 30px;">
+            <i class="fa-solid fa-lock" style="font-size: 2.5rem; color: var(--text-secondary); margin-bottom: 15px;"></i>
+            <h2>Close the Day</h2>
+            <p style="color: var(--text-secondary); margin-top: 5px;">Review the summary before finalizing today's records.</p>
+        </div>
+        
+        <div style="background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 30px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 1.1rem;">
+                <span style="color: var(--text-secondary);">Total Sales</span>
+                <strong style="color: var(--brand-orange);">₹{{ "%.2f"|format(total_sales) }}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 1.1rem;">
+                <span style="color: var(--text-secondary);">Total Orders</span>
+                <strong>{{ total_orders }}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 1.1rem;">
+                <span style="color: var(--text-secondary);">Total Tips Collected</span>
+                <strong>₹{{ "%.2f"|format(total_tips) }}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding-top: 15px; border-top: 1px dashed var(--border-color); font-size: 1.2rem;">
+                <span style="color: var(--text-secondary);">Expected Cash in Drawer</span>
+                <strong style="color: #10b981;">₹{{ "%.2f"|format(cash_expected) }}</strong>
+            </div>
+        </div>
+        
+        <button class="btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem; border-radius: 8px;" onclick="confirmDayEnd()">
+            <i class="fa-solid fa-check"></i> Confirm Day End
+        </button>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function confirmDayEnd() {
+        if (!confirm('Are you sure you want to close the day? This action will log the current totals and cannot be undone.')) {
+            return;
+        }
+        
+        try {
+            const resp = await fetch('/api/day_end_close', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}'}
+            });
+            const data = await resp.json();
+            
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'Error closing day');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('A network error occurred.');
+        }
+    }
+</script>
+{% endblock %}

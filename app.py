@@ -29,8 +29,7 @@ def role_required(*roles):
         return decorated_view
     return wrapper
 
-# Load models
-from models import db, User, Branch, Category, MenuItem, Table, Order, OrderItem, Invoice, CreditLedger, Refund, ActivityLog, Coupon, CustomerProfile, WaiterCall, Feedback
+from models import db, User, Branch, Category, MenuItem, Table, Order, OrderItem, Invoice, CreditLedger, Refund, ActivityLog, Coupon, CustomerProfile, WaiterCall, Feedback, DayEndRecord
 
 load_dotenv()
 
@@ -304,6 +303,7 @@ def place_order():
     table_name = data.get('table_name')
     customer_name = data.get('customer_name', '')
     customer_mobile = data.get('customer_mobile', '')
+    covers = int(data.get('covers', 1))
     coupon_code = data.get('coupon_code', None)
     delivery_address = data.get('delivery_address', None)
     landmark = data.get('landmark', None)
@@ -339,11 +339,13 @@ def place_order():
         status='new',
         customer_name=customer_name,
         customer_mobile=customer_mobile,
+        covers=covers,
         coupon_code=coupon_code,
         delivery_address=delivery_address,
         landmark=landmark,
         delivery_charge=delivery_charge,
-        delivery_staff_id=delivery_staff_id
+        delivery_staff_id=delivery_staff_id,
+        created_by=current_user.id if current_user.is_authenticated else None
     )
     db.session.add(new_order)
     db.session.commit() # commit to get order id
@@ -406,11 +408,18 @@ def update_order():
     data = request.json
     order_id = data.get('order_id')
     items = data.get('items', [])
+    covers = data.get('covers')
     
     order = Order.query.get_or_404(order_id)
     
     if order.status in ['completed', 'cancelled']:
         return jsonify({'error': 'Cannot edit a billed order'}), 400
+        
+    if covers is not None:
+        try:
+            order.covers = int(covers)
+        except ValueError:
+            pass
         
     if not items:
         # Cancel order
@@ -684,6 +693,7 @@ def update_table_status():
 def take_table_order():
     data = request.json
     table_id = data.get('table_id')
+    covers = int(data.get('covers', 1))
     t = Table.query.get(table_id)
     if not t:
         return jsonify({'success': False, 'message': 'Table not found'}), 404
@@ -700,7 +710,9 @@ def take_table_order():
         branch_id=branch.id,
         table_id=table_id,
         type='dine-in',
-        status='new'
+        status='new',
+        covers=covers,
+        created_by=current_user.id if current_user.is_authenticated else None
     )
     db.session.add(new_order)
     
@@ -1345,6 +1357,63 @@ def verify_coupon():
         'message': 'Coupon applied successfully!'
     })
 
+@app.route('/admin/day_end')
+@login_required
+@role_required('admin', 'manager')
+def day_end():
+    today = datetime.utcnow().date()
+    today_start = datetime(today.year, today.month, today.day)
+    
+    today_invoices = Invoice.query.filter(Invoice.created_at >= today_start).all()
+    total_sales = sum(i.total for i in today_invoices)
+    total_tips = sum(i.tip_amount for i in today_invoices)
+    cash_expected = sum(i.customer_paid - i.change_returned for i in today_invoices if i.payment_method == 'cash')
+    
+    today_orders = Order.query.filter(Order.created_at >= today_start).count()
+    
+    # Check if already closed today
+    existing_close = DayEndRecord.query.filter_by(date=today).first()
+    
+    return render_template('admin/day_end.html', 
+                           total_sales=total_sales, 
+                           total_orders=today_orders,
+                           total_tips=total_tips,
+                           cash_expected=cash_expected,
+                           existing_close=existing_close,
+                           active_page='day_end')
+
+@app.route('/api/day_end_close', methods=['POST'])
+@login_required
+@role_required('admin', 'manager')
+def day_end_close():
+    today = datetime.utcnow().date()
+    existing_close = DayEndRecord.query.filter_by(date=today).first()
+    if existing_close:
+        return jsonify({'success': False, 'message': 'Day is already closed for today.'})
+        
+    today_start = datetime(today.year, today.month, today.day)
+    
+    today_invoices = Invoice.query.filter(Invoice.created_at >= today_start).all()
+    total_sales = sum(i.total for i in today_invoices)
+    total_tips = sum(i.tip_amount for i in today_invoices)
+    cash_expected = sum(i.customer_paid - i.change_returned for i in today_invoices if i.payment_method == 'cash')
+    
+    today_orders = Order.query.filter(Order.created_at >= today_start).count()
+    
+    record = DayEndRecord(
+        date=today,
+        closed_by=current_user.id,
+        total_sales=total_sales,
+        total_orders=today_orders,
+        expected_cash=cash_expected,
+        total_tips=total_tips
+    )
+    db.session.add(record)
+    log_activity('day_end', f"{current_user.name} closed the day with sales ₹{total_sales}")
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
 @app.route('/admin/reports')
 @login_required
 @role_required('manager')
@@ -1507,6 +1576,63 @@ def get_report_data_raw(rtype, start_date=None, end_date=None):
             'Cancelled Orders': cancelled_orders,
             'Cancellation Rate (%)': round(rate, 2)
         }]
+
+    elif rtype == 'employee_sales':
+        q = db.session.query(
+            Order.created_by,
+            func.count(db.distinct(Order.id)).label('orders'),
+            func.sum(Invoice.total).label('sales')
+        ).join(Invoice, Invoice.order_id == Order.id).group_by(Order.created_by)
+        
+        q = apply_dates(q, Order.created_at)
+        stats = q.all()
+        
+        users = {u.id: u.name for u in User.query.all()}
+        
+        return [{
+            'Employee': users.get(row[0], 'Unknown/System') if row[0] else 'Unknown/System',
+            'Orders Handled': row[1],
+            'Total Sales': row[2] or 0
+        } for row in stats]
+        
+    elif rtype == 'covers':
+        q = Order.query
+        q = apply_dates(q, Order.created_at)
+        orders = q.all()
+        
+        daily = {}
+        for o in orders:
+            d = o.created_at.strftime('%Y-%m-%d')
+            if d not in daily:
+                daily[d] = {'orders': 0, 'covers': 0}
+            daily[d]['orders'] += 1
+            daily[d]['covers'] += (o.covers or 1)
+            
+        return [{
+            'Date': k,
+            'Total Orders': v['orders'],
+            'Total Guests (Covers)': v['covers'],
+            'Avg Guests/Order': round(v['covers'] / v['orders'], 2) if v['orders'] else 0
+        } for k, v in sorted(daily.items(), reverse=True)]
+        
+    elif rtype == 'tips':
+        q = Invoice.query.filter(Invoice.tip_amount > 0)
+        q = apply_dates(q, Invoice.created_at)
+        invs = q.all()
+        
+        daily = {}
+        for i in invs:
+            d = i.created_at.strftime('%Y-%m-%d')
+            if d not in daily:
+                daily[d] = {'count': 0, 'tips': 0}
+            daily[d]['count'] += 1
+            daily[d]['tips'] += i.tip_amount
+            
+        return [{
+            'Date': k,
+            'Invoices with Tips': v['count'],
+            'Total Tips Collected': v['tips']
+        } for k, v in sorted(daily.items(), reverse=True)]
 
     return []
 
@@ -1954,6 +2080,19 @@ def auto_migrate():
             
         try:
             db.session.execute(text('ALTER TABLE invoices ADD COLUMN split_metadata TEXT'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+        # Phase 22F Order Fields
+        try:
+            db.session.execute(text('ALTER TABLE orders ADD COLUMN created_by INTEGER'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+        try:
+            db.session.execute(text('ALTER TABLE orders ADD COLUMN covers INTEGER DEFAULT 1'))
             db.session.commit()
         except Exception:
             db.session.rollback()
