@@ -44,7 +44,8 @@ def seed_data():
         # Create Tables
         tables = []
         for i in range(1, 13):
-            tables.append(Table(branch_id=branch.id, name=f"T-{i}", seats=4, status="vacant"))
+            section = "Ground Floor" if i <= 8 else "Basement"
+            tables.append(Table(branch_id=branch.id, name=f"T-{i}", section=section, seats=4, status="vacant"))
         db.session.add_all(tables)
         db.session.commit()
 

@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}Admin Panel{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
     <!-- Socket.io -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
@@ -37,54 +38,54 @@
         <div class="sidebar-content">
             <div class="nav-section">
                 <div class="nav-section-title">Overview</div>
-                <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">Dashboard</a>
+                <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if active_page == 'dashboard' %}active{% endif %}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
             </div>
             
             {% if current_user.role in ['admin', 'manager', 'waiter'] %}
             <div class="nav-section">OPERATIONS</div>
-            <a href="/admin/live_orders" class="nav-link {% if active_page == 'live_orders' %}active{% endif %}">Live Orders</a>
-            <a href="/admin/new_parcel" class="nav-link {% if active_page == 'new_parcel' %}active{% endif %}">New Parcel Order</a>
-            <a href="/admin/live_tables" class="nav-link {% if active_page == 'live_tables' %}active{% endif %}">Live Tables</a>
+            <a href="/admin/live_orders" class="nav-link {% if active_page == 'live_orders' %}active{% endif %}"><i class="fa-solid fa-bell-concierge"></i> Live Orders</a>
+            <a href="/admin/new_parcel" class="nav-link {% if active_page == 'new_parcel' %}active{% endif %}"><i class="fa-solid fa-box"></i> New Parcel Order</a>
+            <a href="/admin/live_tables" class="nav-link {% if active_page == 'live_tables' %}active{% endif %}"><i class="fa-solid fa-utensils"></i> Live Tables</a>
             {% endif %}
             
             {% if current_user.role in ['admin', 'manager'] %}
-            <a href="/admin/tables" class="nav-link {% if active_page == 'tables' %}active{% endif %}">Tables Management</a>
-            <a href="{{ url_for('admin_customers') }}" class="nav-link {% if active_page == 'customers' %}active{% endif %}">Customers</a>
-            <a href="{{ url_for('admin_coupons') }}" class="nav-link {% if active_page == 'coupons' %}active{% endif %}">Coupons</a>
-            <a href="{{ url_for('admin_feedback') }}" class="nav-link {% if active_page == 'feedback' %}active{% endif %}">Feedback</a>
+            <a href="/admin/tables" class="nav-link {% if active_page == 'tables' %}active{% endif %}"><i class="fa-solid fa-chair"></i> Tables Management</a>
+            <a href="{{ url_for('admin_customers') }}" class="nav-link {% if active_page == 'customers' %}active{% endif %}"><i class="fa-solid fa-users"></i> Customers</a>
+            <a href="{{ url_for('admin_coupons') }}" class="nav-link {% if active_page == 'coupons' %}active{% endif %}"><i class="fa-solid fa-ticket"></i> Coupons</a>
+            <a href="{{ url_for('admin_feedback') }}" class="nav-link {% if active_page == 'feedback' %}active{% endif %}"><i class="fa-solid fa-star"></i> Feedback</a>
             {% endif %}
             
             {% if current_user.role in ['admin', 'manager', 'cashier'] %}
             <div class="nav-section">FINANCIALS</div>
-            <a href="/admin/billing" class="nav-link {% if active_page == 'billing' %}active{% endif %}">Billing</a>
-            <a href="/admin/invoices" class="nav-link {% if active_page == 'invoices' %}active{% endif %}">Invoices</a>
-            <a href="/admin/credit" class="nav-link {% if active_page == 'credit' %}active{% endif %}">Credit / Udhar</a>
-            <a href="/admin/refunds" class="nav-link {% if active_page == 'refunds' %}active{% endif %}">Refunds</a>
+            <a href="/admin/billing" class="nav-link {% if active_page == 'billing' %}active{% endif %}"><i class="fa-solid fa-file-invoice-dollar"></i> Billing</a>
+            <a href="/admin/invoices" class="nav-link {% if active_page == 'invoices' %}active{% endif %}"><i class="fa-solid fa-receipt"></i> Invoices</a>
+            <a href="/admin/credit" class="nav-link {% if active_page == 'credit' %}active{% endif %}"><i class="fa-solid fa-book-open"></i> Credit / Udhar</a>
+            <a href="/admin/refunds" class="nav-link {% if active_page == 'refunds' %}active{% endif %}"><i class="fa-solid fa-rotate-left"></i> Refunds</a>
             {% endif %}
             
             {% if current_user.role in ['admin', 'manager'] %}
             <div class="nav-section">MENU</div>
-            <a href="/admin/categories" class="nav-link {% if active_page == 'categories' %}active{% endif %}">Categories</a>
-            <a href="/admin/items" class="nav-link {% if active_page == 'items' %}active{% endif %}">Items</a>
+            <a href="/admin/categories" class="nav-link {% if active_page == 'categories' %}active{% endif %}"><i class="fa-solid fa-list"></i> Categories</a>
+            <a href="/admin/items" class="nav-link {% if active_page == 'items' %}active{% endif %}"><i class="fa-solid fa-burger"></i> Items</a>
             
             <div class="nav-section">INSIGHTS</div>
-            <a href="/admin/reports" class="nav-link {% if active_page == 'reports' %}active{% endif %}">Reports</a>
+            <a href="/admin/reports" class="nav-link {% if active_page == 'reports' %}active{% endif %}"><i class="fa-solid fa-chart-line"></i> Reports</a>
             {% endif %}
             
             {% if current_user.role == 'admin' %}
             <div class="nav-section">SYSTEM</div>
-            <a href="/admin/staff" class="nav-link {% if active_page == 'staff' %}active{% endif %}">Staff Management</a>
-            <a href="/admin/activity_log" class="nav-link {% if active_page == 'activity_log' %}active{% endif %}">Activity Log</a>
+            <a href="/admin/staff" class="nav-link {% if active_page == 'staff' %}active{% endif %}"><i class="fa-solid fa-user-tie"></i> Staff Management</a>
+            <a href="/admin/activity_log" class="nav-link {% if active_page == 'activity_log' %}active{% endif %}"><i class="fa-solid fa-clock-rotate-left"></i> Activity Log</a>
             {% endif %}
             
             {% if current_user.role == 'delivery' %}
             <div class="nav-section">DELIVERY</div>
-            <a href="{{ url_for('my_deliveries') }}" class="nav-link {% if active_page == 'my_deliveries' %}active{% endif %}">My Deliveries</a>
+            <a href="{{ url_for('my_deliveries') }}" class="nav-link {% if active_page == 'my_deliveries' %}active{% endif %}"><i class="fa-solid fa-motorcycle"></i> My Deliveries</a>
             {% endif %}
             
             {% if current_user.role in ['admin', 'manager', 'chef'] %}
             <div class="nav-section">KITCHEN</div>
-            <a href="/kitchen" class="nav-link" target="_blank">Open KDS ↗</a>
+            <a href="/kitchen" class="nav-link" target="_blank"><i class="fa-solid fa-fire-burner"></i> Open KDS ↗</a>
             {% endif %}
         </div>
     </div>
@@ -96,7 +97,8 @@
                 {% block page_title %}Dashboard{% endblock %}
             </div>
             <div class="topbar-right">
-                <div class="notification-bell">🔔</div>
+                {% block topbar_actions %}{% endblock %}
+                <div class="notification-bell"><i class="fa-regular fa-bell"></i></div>
                 <div class="profile-menu">
                     <div class="profile-circle" onclick="toggleDropdown('profileDropdown')">
                         {{ current_user.mobile[0] if current_user.is_authenticated else '?' }}
