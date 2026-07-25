@@ -292,6 +292,13 @@
     let appliedDiscountReason = '';
     let orderItemsMap = {}; // orderId -> items
 
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('active');
+        }
+    }
+
     // Load order items data on page load for split logic
     // We can fetch via API or inline. We'll fetch via API when opening split modal to be safe.
 
