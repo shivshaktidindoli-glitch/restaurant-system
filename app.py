@@ -668,6 +668,7 @@ def live_tables():
 
 @app.route('/api/update_table_status', methods=['POST'])
 @login_required
+@role_required('admin', 'manager', 'cashier')
 def update_table_status():
     data = request.json
     t = Table.query.get(data['table_id'])
@@ -676,6 +677,61 @@ def update_table_status():
         db.session.commit()
         return jsonify({'success': True})
     return jsonify({'success': False}), 404
+
+@app.route('/api/take_table_order', methods=['POST'])
+@login_required
+@role_required('admin', 'manager', 'cashier')
+def take_table_order():
+    data = request.json
+    table_id = data.get('table_id')
+    t = Table.query.get(table_id)
+    if not t:
+        return jsonify({'success': False, 'message': 'Table not found'}), 404
+        
+    # Check for active order
+    active_order = Order.query.filter_by(table_id=table_id, type='dine-in').filter(Order.status.in_(['new', 'preparing', 'served'])).first()
+    
+    if active_order:
+        return jsonify({'success': True, 'redirect_url': url_for('edit_order', order_id=active_order.id)})
+    
+    # Create new shell order
+    branch = Branch.query.first()
+    new_order = Order(
+        branch_id=branch.id,
+        table_id=table_id,
+        type='dine-in',
+        status='new'
+    )
+    db.session.add(new_order)
+    
+    t.status = 'occupied'
+    if not t.session_start_time:
+        t.session_start_time = datetime.utcnow()
+        
+    db.session.commit()
+    
+    # Emit websockets so it reflects instantly
+    socketio.emit('new_order', {'order_id': new_order.id}, namespace='/')
+    socketio.emit('table_update', {}, namespace='/')
+    
+    return jsonify({'success': True, 'redirect_url': url_for('edit_order', order_id=new_order.id)})
+
+@app.route('/admin/kot/print/<int:order_id>')
+@login_required
+@role_required('admin', 'manager', 'cashier')
+def kot_print(order_id):
+    order = Order.query.get_or_404(order_id)
+    kot_number = request.args.get('kot', type=int)
+    
+    # Filter items to only show the ones belonging to the specific KOT
+    if kot_number:
+        items = [item for item in order.items if item.kot_number == kot_number]
+    else:
+        # Default to highest KOT number if none specified (i.e. the one just added)
+        kot_number = max([item.kot_number for item in order.items]) if order.items else 1
+        items = [item for item in order.items if item.kot_number == kot_number]
+        
+    return render_template('admin/kot_print.html', order=order, items=items, kot_number=kot_number)
 
 @app.route('/admin/tables', methods=['GET', 'POST'])
 @login_required

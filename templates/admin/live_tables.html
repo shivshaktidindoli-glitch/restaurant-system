@@ -131,6 +131,9 @@
                     <option value="occupied" {% if table.status == 'occupied' %}selected{% endif %}>Occupied</option>
                     <option value="cleaning" {% if table.status == 'cleaning' %}selected{% endif %}>Needs Cleaning</option>
                 </select>
+                <button class="btn-primary" style="width: 100%; margin-bottom: 8px; font-weight: bold; padding: 8px;" onclick="takeTableOrder({{ table.id }})">
+                    Take Order
+                </button>
                 <button class="btn-qr" onclick="window.open('/menu?table={{ table.name }}', '_blank')">Simulate QR Scan</button>
             </div>
         </div>
@@ -193,6 +196,25 @@
         } catch (e) {
             console.error(e);
             alert("Error updating status");
+        }
+    }
+    
+    async function takeTableOrder(tableId) {
+        try {
+            const resp = await fetch('/api/take_table_order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '' },
+                body: JSON.stringify({ table_id: tableId })
+            });
+            const data = await resp.json();
+            if (data.success && data.redirect_url) {
+                window.location.href = data.redirect_url;
+            } else {
+                alert(data.message || "Failed to start order");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error taking table order");
         }
     }
 </script>

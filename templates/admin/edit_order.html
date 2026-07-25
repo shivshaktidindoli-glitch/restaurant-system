@@ -114,8 +114,12 @@
             <span>Total:</span>
             <span id="cart-total-amt">₹0</span>
         </div>
-        
-        <button class="btn-primary" style="width: 100%; margin-top: 10px;" onclick="saveOrder()" id="btnSaveOrder">Save Changes</button>
+        <div class="save-bar">
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="btn-primary" style="flex: 1;" onclick="saveOrder(false)" id="btnSaveOrder">Save Changes</button>
+                <button class="btn-primary" style="flex: 1; background: var(--brand-blue);" onclick="saveOrder(true)" id="btnSavePrintOrder">Save & Print KOT</button>
+            </div>
+        </div>
         <a href="{{ url_for('live_orders') }}" class="btn-secondary" style="display: block; text-align: center; width: 100%; margin-top: 10px; text-decoration: none; box-sizing: border-box;">Cancel</a>
     </div>
 </div>
@@ -245,6 +249,7 @@
         
         cartDiv.innerHTML = html;
         document.getElementById('cart-total-amt').innerText = '₹' + total;
+        return { newItems };
     }
     
     function searchMenu() {
@@ -256,7 +261,7 @@
         });
     }
     
-    async function saveOrder() {
+    async function saveOrder(printKOT = false) {
         const keys = Object.keys(cart);
         if (keys.length === 0) {
             if (!confirm('Cart is empty! Saving this will CANCEL the entire order. Continue?')) {
@@ -265,8 +270,14 @@
         }
         
         const btn = document.getElementById('btnSaveOrder');
+        const btnPrint = document.getElementById('btnSavePrintOrder');
         btn.disabled = true;
-        btn.innerText = 'Saving...';
+        btnPrint.disabled = true;
+        if(printKOT) {
+            btnPrint.innerText = 'Saving...';
+        } else {
+            btn.innerText = 'Saving...';
+        }
         
         const items = keys.map(id => ({
             id: parseInt(id),
@@ -287,18 +298,25 @@
             });
             
             if (resp.ok) {
+                if(printKOT) {
+                    window.open('/admin/kot/print/{{ order.id }}', '_blank');
+                }
                 window.location.href = '/admin/live_orders';
             } else {
                 const data = await resp.json();
                 alert('Failed to save order: ' + (data.error || 'Unknown error'));
                 btn.disabled = false;
+                btnPrint.disabled = false;
                 btn.innerText = 'Save Changes';
+                btnPrint.innerText = 'Save & Print KOT';
             }
         } catch (e) {
             console.error(e);
             alert('Network error');
             btn.disabled = false;
+            btnPrint.disabled = false;
             btn.innerText = 'Save Changes';
+            btnPrint.innerText = 'Save & Print KOT';
         }
     }
 </script>
