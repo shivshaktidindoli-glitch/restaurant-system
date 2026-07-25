@@ -199,23 +199,8 @@
         }
     }
     
-    async function takeTableOrder(tableId) {
-        try {
-            const resp = await fetch('/api/take_table_order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '' },
-                body: JSON.stringify({ table_id: tableId })
-            });
-            const data = await resp.json();
-            if (data.success && data.redirect_url) {
-                window.location.href = data.redirect_url;
-            } else {
-                alert(data.message || "Failed to start order");
-            }
-        } catch (e) {
-            console.error(e);
-            alert("Error taking table order");
-        }
+    function takeTableOrder(tableId) {
+        window.location.href = '/admin/new_dinein/' + tableId;
     }
 </script>
 {% endblock %}

@@ -599,10 +599,10 @@ def live_orders():
     # Only show completed orders for today
     today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     
-    orders_new = Order.query.filter_by(status='new').order_by(Order.created_at.desc()).all()
-    orders_preparing = Order.query.filter_by(status='preparing').order_by(Order.created_at.desc()).all()
-    orders_served = Order.query.filter_by(status='served').order_by(Order.created_at.desc()).all()
-    orders_completed = Order.query.filter(Order.status == 'completed', Order.created_at >= today_start).order_by(Order.created_at.desc()).all()
+    orders_new = [o for o in Order.query.filter_by(status='new').order_by(Order.created_at.desc()).all() if len(o.items) > 0]
+    orders_preparing = [o for o in Order.query.filter_by(status='preparing').order_by(Order.created_at.desc()).all() if len(o.items) > 0]
+    orders_served = [o for o in Order.query.filter_by(status='served').order_by(Order.created_at.desc()).all() if len(o.items) > 0]
+    orders_completed = [o for o in Order.query.filter(Order.status == 'completed', Order.created_at >= today_start).order_by(Order.created_at.desc()).all() if len(o.items) > 0]
     
     branches = Branch.query.all()
     
@@ -822,6 +822,20 @@ def new_parcel():
     categories = Category.query.order_by(Category.sort_order).all()
     items = MenuItem.query.filter_by(is_available=True).all()
     return render_template('admin/new_parcel.html', categories=categories, items=items, active_page='new_parcel')
+
+@app.route('/admin/new_dinein/<int:table_id>')
+@login_required
+@role_required('admin', 'manager', 'cashier', 'waiter')
+def new_dinein(table_id):
+    table = Table.query.get_or_404(table_id)
+    # Check if table is occupied and redirect to edit order if so
+    active_order = Order.query.filter_by(table_id=table_id, type='dine-in').filter(Order.status.in_(['new', 'preparing', 'served'])).first()
+    if active_order:
+        return redirect(url_for('edit_order', order_id=active_order.id))
+        
+    categories = Category.query.order_by(Category.sort_order).all()
+    items = MenuItem.query.filter_by(is_available=True).all()
+    return render_template('admin/new_dinein.html', table=table, categories=categories, items=items, active_page='live_tables')
 
 @app.route('/admin/new_delivery')
 @login_required
