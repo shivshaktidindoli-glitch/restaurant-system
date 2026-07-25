@@ -419,38 +419,65 @@ def update_order():
         socketio.emit('order_status_update', {'order_id': order.id, 'status': 'cancelled'}, namespace='/')
         return jsonify({'success': True})
         
-    # Compare items
-    old_items = {i.menu_item_id: i for i in order.items}
+    # KOT Logic: Calculate next KOT number if there are new additions
+    current_kots = [i.kot_number for i in order.items if i.kot_number is not None]
+    next_kot = max(current_kots) + 1 if current_kots else 1
+    
+    # Calculate total existing quantities per menu_item_id
+    existing_items_by_menu_id = {}
+    for item in order.items:
+        if item.menu_item_id not in existing_items_by_menu_id:
+            existing_items_by_menu_id[item.menu_item_id] = []
+        existing_items_by_menu_id[item.menu_item_id].append(item)
+        
     new_items_dict = {i['id']: i for i in items}
     
     changes = []
     has_added = False
     
-    # Check for removed or updated
-    for old_id, old_item in list(old_items.items()):
-        if old_id not in new_items_dict:
-            changes.append(f"Removed {old_item.menu_item.name}")
-            db.session.delete(old_item)
-        else:
-            new_qty = new_items_dict[old_id]['quantity']
-            if old_item.quantity != new_qty:
-                changes.append(f"Changed {old_item.menu_item.name} qty: {old_item.quantity} -> {new_qty}")
-                old_item.quantity = new_qty
-    
-    # Check for new items
+    # Check for removed or quantity-decreased items
+    for menu_id, existing_records in existing_items_by_menu_id.items():
+        existing_total = sum(r.quantity for r in existing_records)
+        new_qty = new_items_dict[menu_id]['quantity'] if menu_id in new_items_dict else 0
+        
+        if new_qty < existing_total:
+            # Need to remove items. Remove from highest KOT first.
+            diff = existing_total - new_qty
+            changes.append(f"Reduced qty of {existing_records[0].menu_item.name} by {diff}")
+            
+            # Sort descending by kot_number so we delete newest first
+            existing_records.sort(key=lambda x: x.kot_number or 0, reverse=True)
+            for r in existing_records:
+                if diff <= 0:
+                    break
+                if r.quantity <= diff:
+                    diff -= r.quantity
+                    db.session.delete(r)
+                else:
+                    r.quantity -= diff
+                    diff = 0
+                    
+    # Check for increased or brand new items
     for new_id, new_item_data in new_items_dict.items():
-        if new_id not in old_items:
+        new_qty = new_item_data['quantity']
+        existing_records = existing_items_by_menu_id.get(new_id, [])
+        existing_total = sum(r.quantity for r in existing_records)
+        
+        if new_qty > existing_total:
+            diff = new_qty - existing_total
             menu_item = MenuItem.query.get(new_id)
             if menu_item:
                 new_oi = OrderItem(
                     order_id=order.id,
                     menu_item_id=menu_item.id,
                     variant=menu_item.variant_name,
-                    quantity=new_item_data['quantity'],
-                    price_at_order=menu_item.price
+                    quantity=diff,
+                    price_at_order=menu_item.price,
+                    kot_number=next_kot,
+                    added_at=datetime.utcnow()
                 )
                 db.session.add(new_oi)
-                changes.append(f"Added {menu_item.name} (x{new_item_data['quantity']})")
+                changes.append(f"Added {menu_item.name} (x{diff}) [KOT-{next_kot}]")
                 has_added = True
                 
     if changes:

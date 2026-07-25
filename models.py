@@ -88,6 +88,8 @@ class OrderItem(db.Model):
     variant = db.Column(db.String(50))
     quantity = db.Column(db.Integer, nullable=False, default=1)
     price_at_order = db.Column(db.Float, nullable=False)
+    kot_number = db.Column(db.Integer, default=1)
+    added_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     menu_item = db.relationship('MenuItem')
 

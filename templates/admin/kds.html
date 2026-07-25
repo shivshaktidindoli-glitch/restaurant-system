@@ -45,17 +45,29 @@
                     <span>#{{ order.id }}</span>
                     <span>{{ order.created_at.strftime('%I:%M %p') }}</span>
                 </div>
-                {% if order.has_new_items %}
-                <div style="background-color: #ef4444; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-bottom: 12px; display: inline-block;">
-                    NEW ITEMS ADDED
-                </div>
-                {% endif %}
-                <div class="kds-card-table">
-                    {% if order.table %}Table {{ order.table.name }}{% else %}Parcel{% endif %}
-                </div>
                 <div>
+                    <div class="kds-card-table">
+                        {% if order.table %}Table {{ order.table.name }}{% else %}Parcel{% endif %}
+                    </div>
+                    {% set kots = [] %}
                     {% for item in order.items %}
-                        <div class="kds-item">{{ item.quantity }}x {{ item.menu_item.name }}</div>
+                        {% if item.kot_number not in kots %}
+                            {% set _ = kots.append(item.kot_number) %}
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% for kot in kots|sort %}
+                        <div style="background: rgba(255,255,255,0.05); padding: 5px; margin-top: 10px; border-radius: 4px; border-left: 3px solid var(--brand-orange); font-size: 0.85rem; font-weight: bold; color: #94a3b8; text-transform: uppercase;">
+                            KOT - {{ kot }}
+                            {% if order.has_new_items and kot == kots|max %}
+                                <span style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-left: 8px;">NEW</span>
+                            {% endif %}
+                        </div>
+                        {% for item in order.items %}
+                            {% if item.kot_number == kot %}
+                                <div class="kds-item">{{ item.quantity }}x {{ item.menu_item.name }}</div>
+                            {% endif %}
+                        {% endfor %}
                     {% endfor %}
                 </div>
             </div>

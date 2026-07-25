@@ -8,9 +8,20 @@
         <a href="{{ url_for('edit_order', order_id=order.id) }}" style="color: var(--brand-blue); text-decoration: none; font-size: 0.9rem; padding: 2px 6px; border: 1px solid var(--brand-blue); border-radius: 4px;" title="Edit Order">Edit</a>
         {% endif %}
     </div>
-    <div class="order-table">
-        {% if order.table %}Table {{ order.table.name }}{% else %}Parcel{% endif %}
-        {% if order.customer_name %}<span style="font-weight:normal; font-size:0.85rem; display:block;">{{ order.customer_name }}</span>{% endif %}
+    <div class="order-table" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            {% if order.table %}Table {{ order.table.name }}{% else %}Parcel{% endif %}
+            {% if order.customer_name %}<span style="font-weight:normal; font-size:0.85rem; display:block;">{{ order.customer_name }}</span>{% endif %}
+        </div>
+        {% set kots = [] %}
+        {% for item in order.items %}
+            {% if item.kot_number not in kots %}{% set _ = kots.append(item.kot_number) %}{% endif %}
+        {% endfor %}
+        {% if kots|length > 0 %}
+        <div style="font-size: 0.8rem; background: var(--border-color); padding: 2px 6px; border-radius: 12px; color: var(--text-secondary);">
+            {{ kots|length }} KOT{{ 's' if kots|length > 1 else '' }}
+        </div>
+        {% endif %}
     </div>
     <div class="order-items-summary">
         {% for item in order.items %}

@@ -128,11 +128,16 @@
     
     // Initialize cart with existing order items
     {% for item in order.items %}
-    cart[{{ item.menu_item_id }}] = { 
-        name: '{{ item.menu_item.name|replace("'", "\\'") }}', 
-        price: {{ item.price_at_order }}, 
-        qty: {{ item.quantity }} 
-    };
+    if (!cart[{{ item.menu_item_id }}]) {
+        cart[{{ item.menu_item_id }}] = { 
+            name: '{{ item.menu_item.name|replace("'", "\\'") }}', 
+            price: {{ item.price_at_order }}, 
+            qty: 0,
+            original_kots: {}
+        };
+    }
+    cart[{{ item.menu_item_id }}].qty += {{ item.quantity }};
+    cart[{{ item.menu_item_id }}].original_kots[{{ item.kot_number }}] = (cart[{{ item.menu_item_id }}].original_kots[{{ item.kot_number }}] || 0) + {{ item.quantity }};
     {% endfor %}
     
     document.addEventListener('DOMContentLoaded', () => {
@@ -146,7 +151,7 @@
     
     function updateCart(itemId, name, price, delta) {
         if (!cart[itemId]) {
-            cart[itemId] = { name: name, price: price, qty: 0 };
+            cart[itemId] = { name: name, price: price, qty: 0, original_kots: {} };
         }
         
         cart[itemId].qty += delta;
@@ -175,17 +180,68 @@
             return;
         }
         
+        // Group items by KOT
+        const kotGroups = {};
+        const newItems = [];
+        
         keys.forEach(id => {
             const item = cart[id];
-            const lineTotal = item.qty * item.price;
-            total += lineTotal;
-            html += `
-                <div class="cart-item">
-                    <div>${item.name} <span style="color: var(--text-secondary)">x${item.qty}</span></div>
-                    <div style="font-weight: 500;">₹${lineTotal}</div>
-                </div>
-            `;
+            total += item.qty * item.price;
+            
+            // Distribute qty across original_kots, and put the rest in newItems
+            let remainingQty = item.qty;
+            
+            // We iterate through original_kots in descending order (highest KOT first)
+            // wait, if we are reducing, we should reduce from highest KOT first to match backend.
+            const sortedKots = Object.keys(item.original_kots).map(Number).sort((a,b) => b - a);
+            
+            // Actually, we want to build what is left.
+            // Backend removes from highest KOT.
+            // So we fill from lowest KOT up to remainingQty.
+            const ascKots = [...sortedKots].sort((a,b) => a - b);
+            
+            for (let kot of ascKots) {
+                let originalQty = item.original_kots[kot];
+                if (remainingQty > 0) {
+                    let take = Math.min(originalQty, remainingQty);
+                    if (!kotGroups[kot]) kotGroups[kot] = [];
+                    kotGroups[kot].push({ name: item.name, price: item.price, qty: take });
+                    remainingQty -= take;
+                }
+            }
+            
+            // If there's still remainingQty, it's a new addition!
+            if (remainingQty > 0) {
+                newItems.push({ name: item.name, price: item.price, qty: remainingQty });
+            }
         });
+        
+        // Render KOTs
+        const sortedGroupKeys = Object.keys(kotGroups).map(Number).sort((a,b) => a - b);
+        sortedGroupKeys.forEach(kot => {
+            html += `<div style="background: #f8fafc; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <h4 style="margin: 0 0 10px 0; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">KOT - ${kot}</h4>`;
+            kotGroups[kot].forEach(i => {
+                html += `<div class="cart-item" style="margin-bottom: 5px; padding-bottom: 0; border: none;">
+                            <div>${i.name} <span style="color: var(--text-secondary)">x${i.qty}</span></div>
+                            <div style="font-weight: 500;">₹${i.qty * i.price}</div>
+                        </div>`;
+            });
+            html += `</div>`;
+        });
+        
+        // Render New Additions
+        if (newItems.length > 0) {
+            html += `<div style="background: #fffaf5; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: 1px dashed var(--brand-orange);">
+                        <h4 style="margin: 0 0 10px 0; color: var(--brand-orange); font-size: 0.85rem; text-transform: uppercase;">⭐ New Additions (Next KOT)</h4>`;
+            newItems.forEach(i => {
+                html += `<div class="cart-item" style="margin-bottom: 5px; padding-bottom: 0; border: none;">
+                            <div>${i.name} <span style="color: var(--text-secondary)">x${i.qty}</span></div>
+                            <div style="font-weight: 500;">₹${i.qty * i.price}</div>
+                        </div>`;
+            });
+            html += `</div>`;
+        }
         
         cartDiv.innerHTML = html;
         document.getElementById('cart-total-amt').innerText = '₹' + total;
