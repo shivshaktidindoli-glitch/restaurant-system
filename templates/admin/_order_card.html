@@ -29,12 +29,23 @@
         {% endfor %}
     </div>
     <div class="order-actions">
-        {% if order.status == 'new' %}
-            <button class="btn-status" onclick="updateStatus({{ order.id }}, 'preparing')">Start Preparing</button>
-        {% elif order.status == 'preparing' %}
-            <button class="btn-status" onclick="updateStatus({{ order.id }}, 'served')">Mark Served</button>
-        {% elif order.status == 'served' %}
-            <button class="btn-status" onclick="updateStatus({{ order.id }}, 'completed')">Complete</button>
-        {% endif %}
+        <div style="display: flex; gap: 8px;">
+            {% if order.status == 'new' %}
+                <button class="btn-status" style="flex:1;" onclick="updateStatus({{ order.id }}, 'preparing')">Start Preparing</button>
+            {% elif order.status == 'preparing' %}
+                <button class="btn-status" style="flex:1;" onclick="updateStatus({{ order.id }}, 'served')">Mark Served</button>
+            {% elif order.status == 'served' %}
+                <button class="btn-status" style="flex:1;" onclick="updateStatus({{ order.id }}, 'completed')">Complete</button>
+            {% endif %}
+            
+            {% if order.status != 'cancelled' %}
+                {% set total = 0 %}
+                {% for item in order.items %}
+                    {% set total = total + (item.price_at_order * item.quantity) %}
+                {% endfor %}
+                {% set total = (total * 1.05)|round(2) %}
+                <button class="btn-primary" style="flex:1; background:#dc2626;" onclick="openSettleModal({{ order.id }}, '{{ order.type }}', '{{ order.customer_name or '' }}', '{{ total }}', '{{ order.coupon_code or '' }}')">Settle</button>
+            {% endif %}
+        </div>
     </div>
 </div>
