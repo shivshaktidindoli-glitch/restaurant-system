@@ -7,7 +7,7 @@ import zipfile
 import smtplib
 from email.message import EmailMessage
 from datetime import datetime, timedelta
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, session
 from flask_socketio import SocketIO
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from dotenv import load_dotenv
@@ -35,13 +35,25 @@ from models import db, User, Branch, Category, MenuItem, Table, Order, OrderItem
 load_dotenv()
 
 app = Flask(__name__)
+basedir = os.path.abspath(os.path.dirname(__file__))
+
 secret_key = os.environ.get('SECRET_KEY')
 if not secret_key:
+    import secrets
     import warnings
-    warnings.warn("No SECRET_KEY set in .env. A random one has been generated, but sessions will be invalidated on restart!")
-    secret_key = os.urandom(24)
+    new_key = secrets.token_hex(24)
+    env_path = os.path.join(basedir, '.env')
+    try:
+        with open(env_path, 'a') as f:
+            f.write(f"\nSECRET_KEY={new_key}\n")
+        print("WARNING: New SECRET_KEY auto-generated, please verify .env is persistent")
+        secret_key = new_key
+    except Exception as e:
+        warnings.warn(f"Failed to write SECRET_KEY to .env: {e}. Sessions will invalidate on restart!")
+        secret_key = os.urandom(24)
 app.config['SECRET_KEY'] = secret_key
-basedir = os.path.abspath(os.path.dirname(__file__))
+app.permanent_session_lifetime = timedelta(minutes=30)
+
 db_dir = os.path.join(basedir, 'database')
 os.makedirs(db_dir, exist_ok=True)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(db_dir, 'restaurant.db')
@@ -73,6 +85,14 @@ def load_user(user_id):
 # Create tables before first request if they don't exist
 with app.app_context():
     db.create_all()
+    
+    # License Key Sync
+    client_license = os.environ.get('CLIENT_LICENSE_KEY')
+    if client_license:
+        first_branch = Branch.query.first()
+        if first_branch and first_branch.license_key != client_license:
+            first_branch.license_key = client_license
+            db.session.commit()
     
     # Safe auto-migration for Phase 20 (Coupons & Delivery)
     try:
@@ -154,6 +174,8 @@ def send_whatsapp_message(mobile, text):
 @app.after_request
 def add_security_headers(response):
     response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Server'] = 'Protected'
+    response.headers.pop('X-Powered-By', None)
     response.headers['X-Frame-Options'] = 'DENY'
     return response
 
@@ -282,6 +304,7 @@ def index():
     return redirect(url_for('menu'))
 
 @app.route('/menu')
+@limiter.limit("100 per minute")
 def menu():
     table_name = request.args.get('table')
     categories = Category.query.order_by(Category.sort_order.asc()).all()
@@ -517,6 +540,7 @@ def update_order():
     return jsonify({'success': True})
 
 @app.route('/order/<int:order_id>')
+@limiter.limit("20 per minute")
 def order_status(order_id):
     order = Order.query.get_or_404(order_id)
     total_amount = sum(item.price_at_order * item.quantity for item in order.items)
@@ -546,6 +570,7 @@ def admin_login():
             flash('Invalid mobile number or password')
             return redirect(url_for('admin_login'))
             
+        session.permanent = True
         login_user(user, remember=remember)
         log_activity('staff_login', f"User {user.name} ({user.role}) logged in.")
         return redirect(url_for('admin_dashboard'))

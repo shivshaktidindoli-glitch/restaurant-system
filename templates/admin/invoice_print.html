@@ -146,6 +146,10 @@
             Thank you for dining with us!<br>
             Please visit again.
         </div>
+        
+        <div style="text-align: center; font-size: 0.6em; color: #666; margin-top: 15px;">
+            &copy; 2026 Raj / ShivShaktiSystem.<br>All rights reserved. Unauthorized copying prohibited.
+        </div>
     </div>
     
     <script>
@@ -154,6 +158,14 @@
             const paper = document.getElementById('invoicePaper');
             paper.className = 'invoice-paper ' + val;
         }
+        
+        // Anti-DevTools Deterrent
+        document.addEventListener('keydown', event => {
+            if (event.keyCode === 123 || (event.ctrlKey && event.shiftKey && (event.keyCode === 73 || event.keyCode === 74 || event.keyCode === 67)) || (event.ctrlKey && event.keyCode === 85)) {
+                event.preventDefault();
+                console.warn("Unauthorized access prohibited.");
+            }
+        });
         
         // Auto trigger print on load in real scenario, but omitted here for testing
     </script>

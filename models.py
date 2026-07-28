@@ -12,6 +12,7 @@ class Branch(db.Model):
     name = db.Column(db.String(100), nullable=False)
     address = db.Column(db.String(255))
     phone = db.Column(db.String(20))
+    license_key = db.Column(db.String(255), nullable=True) # Per-client watermark
     tables = db.relationship('Table', backref='branch', lazy=True)
     users = db.relationship('User', backref='branch', lazy=True)
 

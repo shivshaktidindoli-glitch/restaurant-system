@@ -9,6 +9,20 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/customer.css') }}">
     <!-- Socket.io -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        // Anti-DevTools Deterrent
+        document.addEventListener('contextmenu', event => {
+            if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
+                event.preventDefault();
+            }
+        });
+        document.addEventListener('keydown', event => {
+            if (event.keyCode === 123 || (event.ctrlKey && event.shiftKey && (event.keyCode === 73 || event.keyCode === 74 || event.keyCode === 67)) || (event.ctrlKey && event.keyCode === 85)) {
+                event.preventDefault();
+                console.warn("Unauthorized access prohibited.");
+            }
+        });
+    </script>
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -34,8 +48,12 @@
 
     <div class="app-container">
         {% block content %}{% endblock %}
+        
+        <div style="text-align: center; font-size: 0.75rem; color: var(--text-secondary); margin-top: 30px; padding: 10px 0;">
+            &copy; 2026 Raj / ShivShaktiSystem. All rights reserved. Unauthorized copying prohibited.
+        </div>
     </div>
-    <script src="{{ url_for('static', filename='js/customer.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/customer.min.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

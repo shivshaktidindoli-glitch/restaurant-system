@@ -6,6 +6,15 @@
     <title>Login - ShivShaktiSystem Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <script>
+        // Anti-DevTools Deterrent
+        document.addEventListener('keydown', event => {
+            if (event.keyCode === 123 || (event.ctrlKey && event.shiftKey && (event.keyCode === 73 || event.keyCode === 74 || event.keyCode === 67)) || (event.ctrlKey && event.keyCode === 85)) {
+                event.preventDefault();
+                console.warn("Unauthorized access prohibited.");
+            }
+        });
+    </script>
 </head>
 <body>
     <div class="login-page">
@@ -38,6 +47,10 @@
                 </div>
                 <button type="submit" class="btn-primary">Sign in</button>
             </form>
+        </div>
+        
+        <div style="text-align: center; font-size: 0.75rem; color: var(--text-secondary); margin-top: 20px;">
+            &copy; 2026 Raj / ShivShaktiSystem. All rights reserved. Unauthorized copying prohibited.
         </div>
     </div>
 </body>

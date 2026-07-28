@@ -25,6 +25,14 @@
                 }
             }
         }
+        
+        // Anti-DevTools Deterrent
+        document.addEventListener('keydown', event => {
+            if (event.keyCode === 123 || (event.ctrlKey && event.shiftKey && (event.keyCode === 73 || event.keyCode === 74 || event.keyCode === 67)) || (event.ctrlKey && event.keyCode === 85)) {
+                event.preventDefault();
+                console.warn("Unauthorized access prohibited.");
+            }
+        });
     </script>
     {% block head %}{% endblock %}
 </head>
@@ -127,6 +135,10 @@
             {% else %}
                 {% block content %}{% endblock %}
             {% endif %}
+        </div>
+        
+        <div style="text-align: center; font-size: 0.75rem; color: var(--text-secondary); margin-top: auto; padding: 10px 0;">
+            &copy; 2026 Raj / ShivShaktiSystem. All rights reserved. Unauthorized copying prohibited.
         </div>
     </div>
     
