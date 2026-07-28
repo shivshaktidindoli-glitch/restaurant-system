@@ -11,4 +11,5 @@ reportlab==4.1.0
 gunicorn
 gevent-websocket
 Flask-Limiter
-Flask-WTFrjsmin==1.2.5
+Flask-WTF
+rjsmin==1.2.5
