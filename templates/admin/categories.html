@@ -27,7 +27,7 @@
         
         <ul class="cat-list" id="sortable">
             {% for cat in categories %}
-            <li class="cat-item" data-id="{{ cat.id }}" draggable="true">
+            <li class="cat-item" data-id="{{ cat.id }}">
                 <div style="display: flex; flex-direction: column;">
                     <span style="font-weight: 600;">{{ cat.name }}</span>
                     {% if cat.name_hi or cat.name_gu %}
@@ -67,27 +67,19 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script>
     const list = document.getElementById('sortable');
-    let draggedItem = null;
-    let orderChanged = false;
-
-    list.addEventListener('dragstart', e => {
-        draggedItem = e.target;
-        e.dataTransfer.effectAllowed = 'move';
-    });
-
-    list.addEventListener('dragover', e => {
-        e.preventDefault();
-        const target = e.target.closest('li');
-        if (target && target !== draggedItem) {
-            const rect = target.getBoundingClientRect();
-            const next = (e.clientY - rect.top)/(rect.bottom - rect.top) > .5;
-            list.insertBefore(draggedItem, next && target.nextSibling || target);
-            orderChanged = true;
-            document.getElementById('btn-save-order').style.display = 'block';
-        }
-    });
+    
+    if (list) {
+        new Sortable(list, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            onEnd: function (evt) {
+                document.getElementById('btn-save-order').style.display = 'block';
+            }
+        });
+    }
     
     async function saveOrder() {
         const btn = document.getElementById('btn-save-order');
@@ -107,7 +99,6 @@
                 btn.style.display = 'none';
                 btn.disabled = false;
                 btn.innerText = 'Save New Order';
-                orderChanged = false;
             }
         } catch (e) {
             alert('Error saving order');
