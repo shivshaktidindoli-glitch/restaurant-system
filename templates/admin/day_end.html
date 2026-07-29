@@ -58,20 +58,80 @@
             </div>
         </div>
         
-        <button class="btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem; border-radius: 8px;" onclick="confirmDayEnd()">
-            <i class="fa-solid fa-check"></i> Confirm Day End
+        <button class="btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem; border-radius: 8px;" onclick="showDownloadModal()">
+            <i class="fa-solid fa-check"></i> Close Day
         </button>
     {% endif %}
+</div>
+
+<!-- Download/Close Modal -->
+<div id="downloadConfirmModal" class="modal-overlay" style="display: none;">
+    <div class="modal" style="max-width: 450px;">
+        <div class="modal-header">
+            <h3>Finalize Day End</h3>
+            <button class="close-modal" onclick="closeDownloadModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="color: var(--text-secondary); margin-bottom: 15px;">Are you sure you want to close the day? This will lock today's records.</p>
+            
+            <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: var(--text-secondary);">Total Sales</span>
+                    <strong style="color: var(--brand-orange);">₹{{ "%.2f"|format(total_sales|default(0)) }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-secondary);">Total Orders</span>
+                    <strong>{{ total_orders|default(0) }}</strong>
+                </div>
+            </div>
+            
+            <p style="margin-bottom: 15px; font-weight: 500; font-size: 0.9rem;">It is highly recommended to download today's data backup for your local records before closing.</p>
+            
+            <button id="btnDownloadClose" class="btn-primary" style="width: 100%; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; gap: 10px; padding: 12px;" onclick="downloadAndClose()">
+                <i class="fa-solid fa-download"></i> Download Today's Data & Close
+            </button>
+            <button id="btnJustClose" class="btn-secondary" style="width: 100%;" onclick="justClose()">
+                Skip, Just Close Day
+            </button>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    async function confirmDayEnd() {
-        if (!confirm('Are you sure you want to close the day? This action will log the current totals and cannot be undone.')) {
-            return;
-        }
+    function showDownloadModal() {
+        document.getElementById('downloadConfirmModal').style.display = 'flex';
+    }
+    
+    function closeDownloadModal() {
+        document.getElementById('downloadConfirmModal').style.display = 'none';
+    }
+    
+    function downloadAndClose() {
+        window.location.href = '{{ url_for("download_today_data") }}';
         
+        const btn = document.getElementById('btnDownloadClose');
+        const btn2 = document.getElementById('btnJustClose');
+        btn.disabled = true;
+        btn2.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Closing...';
+        
+        setTimeout(() => {
+            executeClose();
+        }, 1500);
+    }
+    
+    function justClose() {
+        const btn = document.getElementById('btnDownloadClose');
+        const btn2 = document.getElementById('btnJustClose');
+        btn.disabled = true;
+        btn2.disabled = true;
+        btn2.innerText = 'Closing...';
+        executeClose();
+    }
+    
+    async function executeClose() {
         try {
             const resp = await fetch('/api/day_end_close', {
                 method: 'POST',
@@ -83,10 +143,12 @@
                 location.reload();
             } else {
                 alert(data.message || 'Error closing day');
+                location.reload();
             }
         } catch (e) {
             console.error(e);
             alert('A network error occurred.');
+            location.reload();
         }
     }
 </script>

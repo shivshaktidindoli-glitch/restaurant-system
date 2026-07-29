@@ -188,12 +188,13 @@ def internal_error(error):
 def not_found_error(error):
     return render_template('404.html'), 404
 
-def export_model_to_csv(model):
+def export_model_to_csv(model, records=None):
     si = io.StringIO()
     cw = csv.writer(si)
     columns = [column.name for column in model.__mapper__.columns]
     cw.writerow(columns)
-    records = model.query.all()
+    if records is None:
+        records = model.query.all()
     for record in records:
         cw.writerow([getattr(record, col) for col in columns])
     return si.getvalue()
@@ -282,6 +283,33 @@ def trigger_backup():
         return jsonify({'success': True, 'message': 'Backup generated', 'email_sent': email_sent})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/download_today_data')
+@login_required
+@role_required('admin', 'manager')
+def download_today_data():
+    today = datetime.utcnow().date()
+    today_start = datetime(today.year, today.month, today.day)
+    
+    today_orders = Order.query.filter(Order.created_at >= today_start).all()
+    today_invoices = Invoice.query.filter(Invoice.created_at >= today_start).all()
+    
+    order_ids = [o.id for o in today_orders]
+    today_order_items = OrderItem.query.filter(OrderItem.order_id.in_(order_ids)).all() if order_ids else []
+
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr('today_orders.csv', export_model_to_csv(Order, today_orders))
+        zf.writestr('today_invoices.csv', export_model_to_csv(Invoice, today_invoices))
+        zf.writestr('today_order_items.csv', export_model_to_csv(OrderItem, today_order_items))
+        
+    zip_buffer.seek(0)
+    return send_file(
+        zip_buffer,
+        mimetype='application/zip',
+        as_attachment=True,
+        download_name=f"today_data_{today.strftime('%Y%m%d')}.zip"
+    )
 
 @app.route('/admin/download_backup')
 @login_required
