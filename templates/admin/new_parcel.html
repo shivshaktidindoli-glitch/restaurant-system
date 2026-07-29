@@ -40,7 +40,17 @@
     <div class="col-menu">
         <input type="text" id="searchInput" placeholder="Search menu items..." style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px;" onkeyup="searchMenu()">
         
-        <div class="category-section" id="cat-favorites">
+        <!-- Mobile Category Tabs -->
+        <div class="category-tabs-wrapper">
+            <div class="category-tab-btn active" onclick="switchCategory('cat-favorites', this)">⭐ Favorites</div>
+            {% for cat in categories %}
+            {% if cat.items %}
+            <div class="category-tab-btn" onclick="switchCategory('cat-{{ cat.id }}', this)">{{ cat.name }}</div>
+            {% endif %}
+            {% endfor %}
+        </div>
+        
+        <div class="category-section active" id="cat-favorites">
             <div class="category-title" style="color: var(--brand-orange);">⭐ Favorite Items</div>
             <div class="menu-grid">
                 {% for item in items %}
@@ -128,6 +138,11 @@
         </div>
         
         <button class="btn-primary" style="width: 100%; margin-top: 10px;" onclick="placeParcelOrder()" id="btnPlaceOrder">Create Parcel Order</button>
+    <div class="mobile-cart-toggle">
+        <div style="font-size: 1.1rem; font-weight: bold;">
+            <span id="mobile-cart-count">0</span> items | <span id="mobile-cart-total" style="color:var(--brand-orange);">₹0</span>
+        </div>
+        <button class="cart-toggle-btn" onclick="toggleMobileCart()">View Cart</button>
     </div>
 </div>
 
@@ -135,6 +150,37 @@
 
 {% block scripts %}
 <script>
+    function switchCategory(catId, btnEl) {
+        document.querySelectorAll('.category-tab-btn').forEach(btn => btn.classList.remove('active'));
+        btnEl.classList.add('active');
+        
+        if (window.innerWidth <= 768) {
+            document.querySelectorAll('.category-section').forEach(sec => sec.classList.remove('active'));
+            const target = document.getElementById(catId);
+            if (target) target.classList.add('active');
+        } else {
+            const target = document.getElementById(catId);
+            if (target) {
+                const offset = 80;
+                const bodyRect = document.body.getBoundingClientRect().top;
+                const elementRect = target.getBoundingClientRect().top;
+                const elementPosition = elementRect - bodyRect;
+                const offsetPosition = elementPosition - offset;
+                window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+            }
+        }
+    }
+    
+    function toggleMobileCart() {
+        document.querySelector('.col-cart').classList.toggle('active');
+        const btn = document.querySelector('.cart-toggle-btn');
+        if(document.querySelector('.col-cart').classList.contains('active')){
+            btn.innerText = 'Close Cart';
+        } else {
+            btn.innerText = 'View Cart';
+        }
+    }
+
     let cart = {};
     
     function updateCart(itemId, name, price, delta) {
@@ -165,6 +211,11 @@
         if (keys.length === 0) {
             cartDiv.innerHTML = '<div style="color: var(--text-secondary); text-align: center; margin-top: 20px;">Cart is empty</div>';
             document.getElementById('cart-total-amt').innerText = '₹0';
+            const mcCount = document.getElementById('mobile-cart-count');
+            if (mcCount) {
+                mcCount.innerText = '0';
+                document.getElementById('mobile-cart-total').innerText = '₹0';
+            }
             return;
         }
         
@@ -182,6 +233,14 @@
         
         cartDiv.innerHTML = html;
         document.getElementById('cart-total-amt').innerText = '₹' + total;
+        
+        let itemCount = 0;
+        keys.forEach(id => itemCount += cart[id].qty);
+        const mcCount = document.getElementById('mobile-cart-count');
+        if (mcCount) {
+            mcCount.innerText = itemCount;
+            document.getElementById('mobile-cart-total').innerText = '₹' + total;
+        }
     }
     
     function searchMenu() {

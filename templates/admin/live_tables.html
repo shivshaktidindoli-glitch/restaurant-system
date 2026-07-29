@@ -76,6 +76,27 @@
         background: var(--brand-orange);
         color: white;
     }
+    
+    @media (max-width: 768px) {
+        .tables-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .table-stats {
+            flex-wrap: wrap;
+        }
+        .table-stat {
+            flex: 1 1 45%;
+        }
+        .table-search input {
+            width: 100%;
+        }
+        .tables-top {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 15px;
+        }
+    }
 </style>
 
 <div class="tables-top">

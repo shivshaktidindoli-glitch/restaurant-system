@@ -26,6 +26,10 @@
             }
         }
         
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('active');
+        }
+
         // Anti-DevTools Deterrent
         document.addEventListener('keydown', event => {
             if (event.keyCode === 123 || (event.ctrlKey && event.shiftKey && (event.keyCode === 73 || event.keyCode === 74 || event.keyCode === 67)) || (event.ctrlKey && event.keyCode === 85)) {
@@ -102,7 +106,10 @@
     <!-- Main Content -->
     <div class="main-area">
         <div class="topbar">
-            <div class="topbar-left">
+            <div class="topbar-left" style="display: flex; align-items: center; gap: 15px;">
+                <button class="mobile-menu-btn" onclick="toggleSidebar()" style="background:none; border:none; color:var(--text-primary); font-size:1.2rem; cursor:pointer; display:none;">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
                 {% block page_title %}Dashboard{% endblock %}
             </div>
             <div class="topbar-right">
