@@ -219,11 +219,11 @@
 {% block scripts %}
 <script>
     function openModal(id) {
-        document.getElementById(id).style.display = 'block';
+        document.getElementById(id).classList.add('active');
     }
     
     function closeModal(id) {
-        document.getElementById(id).style.display = 'none';
+        document.getElementById(id).classList.remove('active');
     }
     
     function openEntryModal(id, name, unit) {
@@ -253,7 +253,7 @@
     // Close modal if clicked outside
     window.onclick = function(event) {
         if (event.target.classList.contains('modal')) {
-            event.target.style.display = "none";
+            event.target.classList.remove('active');
         }
         
         // Retain original base.html dropdown close logic
