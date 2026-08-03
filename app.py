@@ -82,10 +82,6 @@ login_manager.init_app(app)
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Create tables before first request if they don't exist
-with app.app_context():
-    db.create_all()
-
 @app.context_processor
 def inject_inventory_alerts():
     try:
@@ -95,6 +91,11 @@ def inject_inventory_alerts():
     except Exception as e:
         print(f"Error in inject_inventory_alerts: {e}")
     return dict(low_stock_items=[])
+
+
+# Create tables before first request if they don't exist
+with app.app_context():
+    db.create_all()
     
     # License Key Sync
     client_license = os.environ.get('CLIENT_LICENSE_KEY')
