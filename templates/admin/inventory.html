@@ -132,6 +132,7 @@
             <span class="close" onclick="closeModal('newMaterialModal')">&times;</span>
         </div>
         <form method="POST" action="{{ url_for('add_raw_material') }}" class="standard-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             
             <div class="form-group">
@@ -179,6 +180,7 @@
             <span class="close" onclick="closeModal('entryModal')">&times;</span>
         </div>
         <form method="POST" action="{{ url_for('add_inventory_entry') }}" class="standard-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="material_id" id="entryMaterialId">
             
