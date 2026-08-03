@@ -56,7 +56,17 @@ app.permanent_session_lifetime = timedelta(minutes=30)
 
 db_dir = os.path.join(basedir, 'database')
 os.makedirs(db_dir, exist_ok=True)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(db_dir, 'restaurant.db')
+
+# Use DATABASE_URL for Neon Postgres if available, otherwise fallback to local SQLite
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    # Render and some providers use postgres:// which is deprecated in SQLAlchemy 1.4+
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(db_dir, 'restaurant.db')
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Security configs
