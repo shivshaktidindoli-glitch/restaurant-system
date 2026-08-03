@@ -88,9 +88,12 @@ with app.app_context():
 
 @app.context_processor
 def inject_inventory_alerts():
-    if current_user.is_authenticated and current_user.role in ['admin', 'manager']:
-        low_stock_items = RawMaterial.query.filter(RawMaterial.current_stock <= RawMaterial.low_stock_threshold).all()
-        return dict(low_stock_items=low_stock_items)
+    try:
+        if current_user.is_authenticated and current_user.role in ['admin', 'manager']:
+            low_stock_items = RawMaterial.query.filter(RawMaterial.current_stock <= RawMaterial.low_stock_threshold).all()
+            return dict(low_stock_items=low_stock_items)
+    except Exception as e:
+        print(f"Error in inject_inventory_alerts: {e}")
     return dict(low_stock_items=[])
     
     # License Key Sync
@@ -2243,6 +2246,12 @@ from sqlalchemy import text
 
 def auto_migrate():
     with app.app_context():
+        # Ensure new tables are created robustly
+        try:
+            db.create_all()
+        except Exception as e:
+            print(f"Error creating tables in auto_migrate: {e}")
+        
         # Phase 22C
         try:
             db.session.execute(text('ALTER TABLE order_items ADD COLUMN kot_number INTEGER DEFAULT 1'))
