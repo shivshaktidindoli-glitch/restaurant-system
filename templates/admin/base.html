@@ -58,6 +58,7 @@
             <a href="/admin/live_orders" class="nav-link {% if active_page == 'live_orders' %}active{% endif %}"><i class="fa-solid fa-bell-concierge"></i> Live Orders</a>
             <a href="/admin/new_parcel" class="nav-link {% if active_page == 'new_parcel' %}active{% endif %}"><i class="fa-solid fa-box"></i> New Parcel Order</a>
             <a href="/admin/live_tables" class="nav-link {% if active_page == 'live_tables' %}active{% endif %}"><i class="fa-solid fa-utensils"></i> Live Tables</a>
+            <a href="/admin/inventory" class="nav-link {% if active_page == 'inventory' %}active{% endif %}"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a>
             {% endif %}
             
             {% if current_user.role in ['admin', 'manager'] %}
@@ -114,7 +115,14 @@
             </div>
             <div class="topbar-right">
                 {% block topbar_actions %}{% endblock %}
-                <div class="notification-bell"><i class="fa-regular fa-bell"></i></div>
+                <div class="notification-bell" style="position: relative; display: inline-block;">
+                    <i class="fa-regular fa-bell"></i>
+                    {% if low_stock_items|length > 0 %}
+                    <span style="position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; border-radius: 50%; font-size: 0.65rem; padding: 2px 5px; font-weight: bold;">
+                        {{ low_stock_items|length }}
+                    </span>
+                    {% endif %}
+                </div>
                 <div class="profile-menu">
                     <div class="profile-circle" onclick="toggleDropdown('profileDropdown')">
                         {{ current_user.mobile[0] if current_user.is_authenticated else '?' }}

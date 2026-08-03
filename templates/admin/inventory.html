@@ -1,0 +1,268 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Inventory Management - Admin Panel{% endblock %}
+{% block page_title %}Inventory Management{% endblock %}
+
+{% block topbar_actions %}
+<button class="btn-primary" onclick="openModal('newMaterialModal')" style="display: flex; align-items: center; gap: 8px;">
+    <i class="fa-solid fa-plus"></i> New Material
+</button>
+{% endblock %}
+
+{% block content %}
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div style="margin-bottom: 20px;">
+    {% for category, message in messages %}
+      <div style="padding: 12px 16px; border-radius: var(--radius-md); margin-bottom: 10px; font-weight: 500; font-size: 0.9rem;
+           {% if category == 'success' %}background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;
+           {% elif category == 'danger' %}background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;
+           {% elif category == 'warning' %}background: #fef9c3; color: #854d0e; border: 1px solid #fef08a;
+           {% else %}background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb;{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<!-- Inventory Status Table -->
+<div class="card" style="margin-bottom: 30px;">
+    <div style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">Current Stock</h3>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Item Name</th>
+                    <th>Current Stock</th>
+                    <th>Unit</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mat in materials %}
+                <tr>
+                    <td style="font-weight: 500; color: var(--text-primary);">{{ mat.name }}</td>
+                    <td style="font-weight: bold; {% if mat.current_stock <= mat.low_stock_threshold %}color: var(--danger);{% endif %}">
+                        {{ mat.current_stock }}
+                    </td>
+                    <td style="color: var(--text-secondary);">{{ mat.unit }}</td>
+                    <td>
+                        {% if mat.current_stock <= mat.low_stock_threshold %}
+                        <span style="background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">Low Stock</span>
+                        {% else %}
+                        <span style="background: rgba(34, 197, 94, 0.1); color: #16a34a; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">Normal</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button class="btn-primary" onclick="openEntryModal({{ mat.id }}, '{{ mat.name|replace("'", "\\'") }}', '{{ mat.unit|replace("'", "\\'") }}')" style="padding: 6px 12px; font-size: 0.8rem;">
+                            <i class="fa-solid fa-pen-to-square"></i> Update Stock
+                        </button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 30px; color: var(--text-secondary);">
+                        No raw materials found. Add your first material to start tracking inventory.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Inventory History -->
+<div class="card">
+    <div style="padding: 20px; border-bottom: 1px solid var(--border-color);">
+        <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">Recent Inventory Activity</h3>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date & Time</th>
+                    <th>Material</th>
+                    <th>Type</th>
+                    <th>Quantity</th>
+                    <th>Reason</th>
+                    <th>User</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td style="color: var(--text-secondary); font-size: 0.9rem;">
+                        {{ log.created_at.strftime('%d %b %Y, %I:%M %p') }}
+                    </td>
+                    <td style="font-weight: 500;">{{ log.raw_material.name }}</td>
+                    <td>
+                        {% if log.type == 'add' %}
+                        <span style="color: #16a34a; font-weight: bold;"><i class="fa-solid fa-arrow-up"></i> Add</span>
+                        {% elif log.type == 'deduct' %}
+                        <span style="color: var(--danger); font-weight: bold;"><i class="fa-solid fa-arrow-down"></i> Deduct</span>
+                        {% else %}
+                        <span style="color: #ca8a04; font-weight: bold;"><i class="fa-solid fa-arrows-rotate"></i> {{ log.type|capitalize }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight: 500;">{{ log.quantity }} {{ log.raw_material.unit }}</td>
+                    <td style="color: var(--text-secondary);">{{ log.reason or '-' }}</td>
+                    <td style="color: var(--text-secondary); font-size: 0.9rem;">{{ log.user.name if log.user else 'System' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 30px; color: var(--text-secondary);">No history found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add New Material Modal -->
+<div id="newMaterialModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h2>Add New Raw Material</h2>
+            <span class="close" onclick="closeModal('newMaterialModal')">&times;</span>
+        </div>
+        <form method="POST" action="{{ url_for('add_raw_material') }}" class="standard-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="form-group">
+                <label>Material Name</label>
+                <input type="text" name="name" required placeholder="e.g. Burger Bun, Paneer">
+            </div>
+            
+            <div class="form-group">
+                <label>Unit of Measurement</label>
+                <select name="unit" required>
+                    <option value="kg">Kilograms (kg)</option>
+                    <option value="g">Grams (g)</option>
+                    <option value="litre">Litre (L)</option>
+                    <option value="ml">Millilitre (ml)</option>
+                    <option value="pieces">Pieces / Units</option>
+                    <option value="packet">Packets</option>
+                </select>
+            </div>
+            
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>Initial Stock</label>
+                    <input type="number" name="initial_stock" step="0.01" value="0" required min="0">
+                </div>
+                <div class="form-group">
+                    <label>Low Stock Threshold</label>
+                    <input type="number" name="low_stock_threshold" step="0.01" value="10" required min="0">
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">Alerts when stock drops below this.</div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeModal('newMaterialModal')">Cancel</button>
+                <button type="submit" class="btn-primary">Add Material</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Add Stock Entry Modal -->
+<div id="entryModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h2 id="entryModalTitle">Update Stock</h2>
+            <span class="close" onclick="closeModal('entryModal')">&times;</span>
+        </div>
+        <form method="POST" action="{{ url_for('add_inventory_entry') }}" class="standard-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="material_id" id="entryMaterialId">
+            
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>Action</label>
+                    <select name="type" required id="entryType" onchange="updateEntryLabel()">
+                        <option value="add">Add Stock (Receive)</option>
+                        <option value="deduct">Deduct Stock (Use/Waste)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label id="entryQuantityLabel">Quantity to Add</label>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="number" name="quantity" step="0.01" min="0.01" required placeholder="0.0">
+                        <span id="entryUnitLabel" style="color: var(--text-secondary); font-weight: 500;"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Reason / Note</label>
+                <input type="text" name="reason" placeholder="e.g. Received from vendor, Spoiled, Kitchen use" required>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeModal('entryModal')">Cancel</button>
+                <button type="submit" class="btn-primary" id="entrySubmitBtn">Add Stock</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function openModal(id) {
+        document.getElementById(id).style.display = 'block';
+    }
+    
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+    
+    function openEntryModal(id, name, unit) {
+        document.getElementById('entryMaterialId').value = id;
+        document.getElementById('entryModalTitle').innerText = 'Update Stock: ' + name;
+        document.getElementById('entryUnitLabel').innerText = unit;
+        openModal('entryModal');
+        updateEntryLabel();
+    }
+    
+    function updateEntryLabel() {
+        const type = document.getElementById('entryType').value;
+        const btn = document.getElementById('entrySubmitBtn');
+        const label = document.getElementById('entryQuantityLabel');
+        
+        if(type === 'add') {
+            btn.innerText = 'Add Stock';
+            btn.style.backgroundColor = '#16a34a';
+            label.innerText = 'Quantity to Add';
+        } else {
+            btn.innerText = 'Deduct Stock';
+            btn.style.backgroundColor = '#dc2626';
+            label.innerText = 'Quantity to Deduct';
+        }
+    }
+    
+    // Close modal if clicked outside
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = "none";
+        }
+        
+        // Retain original base.html dropdown close logic
+        if (!event.target.matches('.profile-circle') && !event.target.closest('.modal')) {
+            var dropdowns = document.getElementsByClassName("dropdown");
+            for (var i = 0; i < dropdowns.length; i++) {
+                if (dropdowns[i].classList.contains('active')) {
+                    dropdowns[i].classList.remove('active');
+                }
+            }
+        }
+    }
+</script>
+{% endblock %}

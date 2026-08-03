@@ -225,3 +225,26 @@ class Feedback(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     order = db.relationship('Order')
+
+class RawMaterial(db.Model):
+    __tablename__ = 'raw_materials'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    unit = db.Column(db.String(20), nullable=False) # kg, litre, pieces, packet
+    current_stock = db.Column(db.Float, default=0.0)
+    low_stock_threshold = db.Column(db.Float, default=10.0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    logs = db.relationship('InventoryLog', backref='raw_material', lazy=True, cascade="all, delete-orphan")
+
+class InventoryLog(db.Model):
+    __tablename__ = 'inventory_logs'
+    id = db.Column(db.Integer, primary_key=True)
+    raw_material_id = db.Column(db.Integer, db.ForeignKey('raw_materials.id'), nullable=False)
+    type = db.Column(db.String(20), nullable=False) # add, deduct, adjustment
+    quantity = db.Column(db.Float, nullable=False)
+    reason = db.Column(db.String(255))
+    user_id = db.Column(db.Integer, db.ForeignKey('staff_users.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User')

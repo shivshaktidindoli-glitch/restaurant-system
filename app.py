@@ -30,7 +30,7 @@ def role_required(*roles):
         return decorated_view
     return wrapper
 
-from models import db, User, Branch, Category, MenuItem, Table, Order, OrderItem, Invoice, CreditLedger, Refund, ActivityLog, Coupon, CustomerProfile, WaiterCall, Feedback, DayEndRecord
+from models import db, User, Branch, Category, MenuItem, Table, Order, OrderItem, Invoice, CreditLedger, Refund, ActivityLog, Coupon, CustomerProfile, WaiterCall, Feedback, DayEndRecord, RawMaterial, InventoryLog
 
 load_dotenv()
 
@@ -85,6 +85,13 @@ def load_user(user_id):
 # Create tables before first request if they don't exist
 with app.app_context():
     db.create_all()
+
+@app.context_processor
+def inject_inventory_alerts():
+    if current_user.is_authenticated and current_user.role in ['admin', 'manager']:
+        low_stock_items = RawMaterial.query.filter(RawMaterial.current_stock <= RawMaterial.low_stock_threshold).all()
+        return dict(low_stock_items=low_stock_items)
+    return dict(low_stock_items=[])
     
     # License Key Sync
     client_license = os.environ.get('CLIENT_LICENSE_KEY')
@@ -574,6 +581,71 @@ def order_status(order_id):
     total_amount = sum(item.price_at_order * item.quantity for item in order.items)
     has_feedback = Feedback.query.filter_by(order_id=order_id).first() is not None
     return render_template('customer/status.html', order=order, total_amount=total_amount, has_feedback=has_feedback)
+
+@app.route('/admin/inventory')
+@login_required
+def admin_inventory():
+    if current_user.role not in ['admin', 'manager']:
+        flash('Access Denied', 'danger')
+        return redirect(url_for('admin_index'))
+    materials = RawMaterial.query.all()
+    logs = InventoryLog.query.order_by(InventoryLog.created_at.desc()).limit(100).all()
+    return render_template('admin/inventory.html', materials=materials, logs=logs)
+
+@app.route('/admin/inventory/material', methods=['POST'])
+@login_required
+def add_raw_material():
+    if current_user.role not in ['admin', 'manager']:
+        return "Unauthorized", 403
+    name = request.form.get('name')
+    unit = request.form.get('unit')
+    initial_stock = float(request.form.get('initial_stock', 0.0))
+    threshold = float(request.form.get('low_stock_threshold', 10.0))
+    
+    mat = RawMaterial(name=name, unit=unit, current_stock=initial_stock, low_stock_threshold=threshold)
+    db.session.add(mat)
+    db.session.commit()
+    
+    if initial_stock > 0:
+        log = InventoryLog(raw_material_id=mat.id, type='add', quantity=initial_stock, reason='Initial Stock', user_id=current_user.id)
+        db.session.add(log)
+        db.session.commit()
+        
+    flash(f"Material {name} added successfully.", "success")
+    return redirect(url_for('admin_inventory'))
+
+@app.route('/admin/inventory/entry', methods=['POST'])
+@login_required
+def add_inventory_entry():
+    if current_user.role not in ['admin', 'manager']:
+        return "Unauthorized", 403
+    
+    material_id = int(request.form.get('material_id'))
+    entry_type = request.form.get('type') # add, deduct
+    quantity = float(request.form.get('quantity', 0.0))
+    reason = request.form.get('reason')
+    
+    mat = RawMaterial.query.get(material_id)
+    if not mat:
+        flash("Invalid material.", "danger")
+        return redirect(url_for('admin_inventory'))
+        
+    if entry_type == 'deduct':
+        if quantity > mat.current_stock:
+            quantity = mat.current_stock
+            flash(f"Deduction capped at current stock ({mat.current_stock} {mat.unit}). Cannot deduct more than available.", "warning")
+        else:
+            flash(f"Deducted {quantity} {mat.unit} of {mat.name}.", "success")
+        mat.current_stock -= quantity
+    else:
+        mat.current_stock += quantity
+        flash(f"Added {quantity} {mat.unit} of {mat.name}.", "success")
+        
+    log = InventoryLog(raw_material_id=mat.id, type=entry_type, quantity=quantity, reason=reason, user_id=current_user.id)
+    db.session.add(log)
+    db.session.commit()
+    
+    return redirect(url_for('admin_inventory'))
 
 @app.route('/admin')
 def admin_index():

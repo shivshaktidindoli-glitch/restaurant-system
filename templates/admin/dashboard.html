@@ -59,4 +59,41 @@
         <i class="fa-solid fa-crown" style="position: absolute; right: -10px; bottom: -10px; font-size: 5rem; color: rgba(249,115,22,0.05); transform: rotate(-15deg);"></i>
     </div>
 </div>
+
+
+{% if low_stock_items|length > 0 %}
+<div style="margin-top: 30px;">
+    <h2 style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-triangle-exclamation" style="color: var(--danger);"></i> Low Stock Alerts
+    </h2>
+    <div style="background: white; border-radius: var(--radius-lg); border: 1px solid var(--border-color); overflow: hidden; box-shadow: var(--shadow-sm);">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Item Name</th>
+                    <th>Current Stock</th>
+                    <th>Threshold</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in low_stock_items %}
+                <tr>
+                    <td style="font-weight: 500;">{{ item.name }}</td>
+                    <td style="color: var(--danger); font-weight: bold;">
+                        {{ item.current_stock }} {{ item.unit }}
+                    </td>
+                    <td style="color: var(--text-secondary);">
+                        {{ item.low_stock_threshold }} {{ item.unit }}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('admin_inventory') }}" class="btn-primary" style="padding: 4px 10px; font-size: 0.8rem; text-decoration: none;">Restock</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
