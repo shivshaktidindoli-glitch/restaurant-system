@@ -60,8 +60,11 @@
             <li onclick="loadReport('covers', this)">Cover Size Summary</li>
             <li onclick="loadReport('tips', this)">Tip Summary</li>
             <li onclick="loadReport('orders', this)">Order History</li>
-            <li onclick="loadReport('customers', this)">Customer Insights</li>
+            <li onclick="loadReport('customers', this)">Customer Insights &amp; Loyalty</li>
             <li onclick="loadReport('cancellations', this)">Cancellations</li>
+            <li onclick="loadReport('day_end_summary', this)">Day-End Close (Z-Reports)</li>
+            <li onclick="loadReport('expense_summary', this)">Daily Expense Breakdown</li>
+            <li onclick="loadReport('cashflow_summary', this)">Cash Drawer / Cash Flow</li>
         </ul>
     </div>
     
@@ -132,7 +135,7 @@
                 keys.forEach(k => {
                     let val = row[k];
                     // Formatting currency for specific columns
-                    if (['Revenue', 'Subtotal', 'Total', 'Tax', 'Discount', 'Average Order Value', 'Total Value', 'Lifetime Value', 'Total Sales'].includes(k)) {
+                    if (['Revenue', 'Subtotal', 'Total', 'Tax', 'Discount', 'Average Order Value', 'Total Value', 'Lifetime Value', 'Total Sales', 'Cash In Hand', 'Tips', 'Amount', 'Total Tips Collected'].includes(k)) {
                         val = '₹' + parseFloat(val).toFixed(2);
                     }
                     tbody += `<td>${val}</td>`;

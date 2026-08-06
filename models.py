@@ -248,3 +248,33 @@ class InventoryLog(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     user = db.relationship('User')
+
+class Expense(db.Model):
+    __tablename__ = 'expenses'
+    id = db.Column(db.Integer, primary_key=True)
+    category = db.Column(db.String(100), nullable=False) # e.g. Grocery, Vegetables, Maintenance, Salary, Petty Cash
+    amount = db.Column(db.Float, nullable=False)
+    payment_mode = db.Column(db.String(20), default='cash') # cash, upi, card, bank
+    note = db.Column(db.Text, nullable=True)
+    recorded_by = db.Column(db.Integer, db.ForeignKey('staff_users.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    recorder = db.relationship('User', foreign_keys=[recorded_by])
+
+class CashFlow(db.Model):
+    __tablename__ = 'cash_flow'
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(30), nullable=False) # opening_cash, cash_top_up, withdrawal, closing_cash
+    amount = db.Column(db.Float, nullable=False)
+    reason = db.Column(db.String(255), nullable=True)
+    recorded_by = db.Column(db.Integer, db.ForeignKey('staff_users.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    recorder = db.relationship('User', foreign_keys=[recorded_by])
+
+class OutletSetting(db.Model):
+    __tablename__ = 'outlet_settings'
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(100), unique=True, nullable=False)
+    value = db.Column(db.Text, nullable=False) # JSON or string
+    description = db.Column(db.String(255), nullable=True)

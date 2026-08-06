@@ -1,0 +1,116 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Expenses - Petpooja POSS{% endblock %}
+{% block page_title %}Petty Cash & Expenses{% endblock %}
+
+{% block content %}
+<div class="operations-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+        <div>
+            <h2 style="font-size: 1.25rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-hand-holding-dollar" style="color:#ea580c;"></i> Daily Petty Cash &amp; Expense Tracking
+            </h2>
+            <p style="font-size: 0.82rem; color: #64748b; margin-top: 2px;">Record raw material purchase, utility bills, staff advance, maintenance &amp; petty payouts</p>
+        </div>
+        <button class="btn-primary" onclick="openModal('addExpenseModal')" style="padding: 8px 16px; font-size:0.85rem; background:#ea580c; border-color:#ea580c; display:flex; align-items:center; gap:6px;">
+            <i class="fa-solid fa-plus"></i> Record Expense
+        </button>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="dashboard-grid" style="margin-bottom: 24px;">
+        <div class="stat-card">
+            <div class="stat-title">Total Today's Expenses</div>
+            <div class="stat-value" style="color: #dc2626;">₹{{ total_today_expense }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Total Expense Entries</div>
+            <div class="stat-value">{{ expenses|length }}</div>
+        </div>
+    </div>
+
+    <!-- Expense Table -->
+    <div style="background: white; border-radius: 8px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+        <table class="data-table">
+            <thead>
+                <tr style="background:#f8fafc;">
+                    <th>Date &amp; Time</th>
+                    <th>Category</th>
+                    <th>Description / Notes</th>
+                    <th>Payment Mode</th>
+                    <th>Recorded By</th>
+                    <th style="text-align:right;">Amount (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if expenses|length > 0 %}
+                    {% for exp in expenses %}
+                    <tr>
+                        <td style="color:#64748b; font-size:0.85rem;">{{ exp.created_at.strftime('%d %b %Y, %I:%M %p') }}</td>
+                        <td><span style="background:#f1f5f9; color:#334155; padding:3px 8px; border-radius:4px; font-size:0.75rem; font-weight:600;">{{ exp.category }}</span></td>
+                        <td style="font-weight:500; color:#1e293b;">{{ exp.note }}</td>
+                        <td><span style="text-transform:uppercase; font-size:0.8rem; font-weight:600; color:#64748b;">{{ exp.payment_mode }}</span></td>
+                        <td style="color:#64748b; font-size:0.85rem;">{{ exp.recorder.name if exp.recorder else 'Admin' }}</td>
+                        <td style="text-align:right; font-weight:700; color:#dc2626;">₹{{ "%.2f"|format(exp.amount) }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align:center; padding:40px 0; color:#94a3b8;">
+                            <i class="fa-solid fa-receipt" style="font-size:2rem; margin-bottom:8px; display:block;"></i>
+                            No expenses recorded for today.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODAL: RECORD EXPENSE -->
+<div class="pos-modal-overlay" id="addExpenseModal">
+    <div class="pos-modal-container" style="max-width:480px;">
+        <div class="pos-modal-header">
+            <h3><i class="fa-solid fa-hand-holding-dollar" style="color:#ea580c;"></i> Record Daily Expense</h3>
+            <button class="pos-modal-close" onclick="closeModal('addExpenseModal')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form method="POST" action="/admin/expenses/add">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="pos-modal-body" style="display:flex; flex-direction:column; gap:14px;">
+                <div>
+                    <label style="font-size:0.82rem; font-weight:600; color:#334155; margin-bottom:4px; display:block;">Category</label>
+                    <select name="category" required style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:6px;">
+                        <option value="Raw Materials / Grocery">Raw Materials / Grocery</option>
+                        <option value="Vegetables & Dairy">Vegetables &amp; Dairy</option>
+                        <option value="Gas / Cylinder">Gas / Cylinder</option>
+                        <option value="Staff Advance / Salary">Staff Advance / Salary</option>
+                        <option value="Maintenance / Repairs">Maintenance / Repairs</option>
+                        <option value="Cleaning / Packaging">Cleaning / Packaging</option>
+                        <option value="Petty Cash / Misc">Petty Cash / Misc</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:0.82rem; font-weight:600; color:#334155; margin-bottom:4px; display:block;">Amount (₹)</label>
+                    <input type="number" step="0.01" name="amount" required placeholder="0.00" style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:6px; font-weight:700; font-size:1.1rem; color:#dc2626;">
+                </div>
+                <div>
+                    <label style="font-size:0.82rem; font-weight:600; color:#334155; margin-bottom:4px; display:block;">Payment Mode</label>
+                    <select name="payment_mode" required style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:6px;">
+                        <option value="cash">Cash Drawer (Petty Cash)</option>
+                        <option value="upi">UPI / Online</option>
+                        <option value="card">Card / Bank</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:0.82rem; font-weight:600; color:#334155; margin-bottom:4px; display:block;">Notes / Vendor Description</label>
+                    <textarea name="description" rows="2" placeholder="e.g. 5kg Paneer purchased from Amul dairy..." style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-family:inherit;"></textarea>
+                </div>
+            </div>
+            <div class="pos-modal-footer">
+                <button type="button" class="btn-primary" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;" onclick="closeModal('addExpenseModal')">Cancel</button>
+                <button type="submit" class="btn-primary" style="background:#ea580c; border-color:#ea580c;">Save Expense</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -44,51 +44,52 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
-            <div class="dot"></div>
-            <h2>ADMIN PANEL</h2>
+            <div class="dot" style="background:#dc2626;"></div>
+            <h2>PETPOOJA POSS</h2>
         </div>
         <div class="sidebar-content">
             <div class="nav-section">
-                <div class="nav-section-title">Overview</div>
-                <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if active_page == 'dashboard' %}active{% endif %}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+                <div class="nav-section-title">Operations</div>
+                <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if active_page == 'dashboard' %}active{% endif %}"><i class="fa-solid fa-grid-2"></i> Operations Hub</a>
             </div>
             
             {% if current_user.role in ['admin', 'manager', 'waiter'] %}
-            <div class="nav-section">OPERATIONS</div>
-            <a href="/admin/live_orders" class="nav-link {% if active_page == 'live_orders' %}active{% endif %}"><i class="fa-solid fa-bell-concierge"></i> Live Orders</a>
+            <div class="nav-section">ORDERS & BILLING</div>
+            <a href="/admin/live_orders" class="nav-link {% if active_page == 'live_orders' %}active{% endif %}"><i class="fa-solid fa-bell-concierge"></i> Live Orders / KDS</a>
             <a href="/admin/new_parcel" class="nav-link {% if active_page == 'new_parcel' %}active{% endif %}"><i class="fa-solid fa-box"></i> New Parcel Order</a>
-            <a href="/admin/live_tables" class="nav-link {% if active_page == 'live_tables' %}active{% endif %}"><i class="fa-solid fa-utensils"></i> Live Tables</a>
-            <a href="/admin/inventory" class="nav-link {% if active_page == 'inventory' %}active{% endif %}"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a>
-            {% endif %}
-            
-            {% if current_user.role in ['admin', 'manager'] %}
+            <a href="/admin/live_tables" class="nav-link {% if active_page == 'live_tables' %}active{% endif %}"><i class="fa-solid fa-utensils"></i> Tables View</a>
             <a href="/admin/tables" class="nav-link {% if active_page == 'tables' %}active{% endif %}"><i class="fa-solid fa-chair"></i> Tables Management</a>
-            <a href="{{ url_for('admin_customers') }}" class="nav-link {% if active_page == 'customers' %}active{% endif %}"><i class="fa-solid fa-users"></i> Customers</a>
-            <a href="{{ url_for('admin_coupons') }}" class="nav-link {% if active_page == 'coupons' %}active{% endif %}"><i class="fa-solid fa-ticket"></i> Coupons</a>
-            <a href="{{ url_for('admin_feedback') }}" class="nav-link {% if active_page == 'feedback' %}active{% endif %}"><i class="fa-solid fa-star"></i> Feedback</a>
             {% endif %}
             
             {% if current_user.role in ['admin', 'manager', 'cashier'] %}
             <div class="nav-section">FINANCIALS</div>
-            <a href="/admin/billing" class="nav-link {% if active_page == 'billing' %}active{% endif %}"><i class="fa-solid fa-file-invoice-dollar"></i> Billing</a>
+            <a href="/admin/billing" class="nav-link {% if active_page == 'billing' %}active{% endif %}"><i class="fa-solid fa-file-invoice-dollar"></i> Billing Screen</a>
             <a href="/admin/invoices" class="nav-link {% if active_page == 'invoices' %}active{% endif %}"><i class="fa-solid fa-receipt"></i> Invoices</a>
-            <a href="/admin/credit" class="nav-link {% if active_page == 'credit' %}active{% endif %}"><i class="fa-solid fa-book-open"></i> Credit / Udhar</a>
+            <a href="/admin/credit" class="nav-link {% if active_page == 'credit' %}active{% endif %}"><i class="fa-solid fa-book-open"></i> Due / Credit Ledger</a>
             <a href="/admin/refunds" class="nav-link {% if active_page == 'refunds' %}active{% endif %}"><i class="fa-solid fa-rotate-left"></i> Refunds</a>
+            <a href="/admin/cashflow" class="nav-link {% if active_page == 'cashflow' %}active{% endif %}"><i class="fa-solid fa-money-bill-transfer"></i> Cash Flow</a>
+            <a href="/admin/expenses" class="nav-link {% if active_page == 'expenses' %}active{% endif %}"><i class="fa-solid fa-hand-holding-dollar"></i> Expenses</a>
             <a href="/admin/day_end" class="nav-link {% if active_page == 'day_end' %}active{% endif %}"><i class="fa-solid fa-lock"></i> Day End Close</a>
             {% endif %}
             
             {% if current_user.role in ['admin', 'manager'] %}
-            <div class="nav-section">MENU</div>
+            <div class="nav-section">MENU & INVENTORY</div>
             <a href="/admin/categories" class="nav-link {% if active_page == 'categories' %}active{% endif %}"><i class="fa-solid fa-list"></i> Categories</a>
-            <a href="/admin/items" class="nav-link {% if active_page == 'items' %}active{% endif %}"><i class="fa-solid fa-burger"></i> Items</a>
+            <a href="/admin/items" class="nav-link {% if active_page == 'items' %}active{% endif %}"><i class="fa-solid fa-burger"></i> Menu Items</a>
+            <a href="javascript:void(0)" onclick="openItemOnOffModal()" class="nav-link"><i class="fa-solid fa-toggle-on"></i> Item Quick On/Off</a>
+            <a href="/admin/inventory" class="nav-link {% if active_page == 'inventory' %}active{% endif %}"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a>
+            <a href="{{ url_for('admin_customers') }}" class="nav-link {% if active_page == 'customers' %}active{% endif %}"><i class="fa-solid fa-users"></i> Customers (CRM)</a>
+            <a href="{{ url_for('admin_coupons') }}" class="nav-link {% if active_page == 'coupons' %}active{% endif %}"><i class="fa-solid fa-ticket"></i> Discounts & Coupons</a>
+            <a href="{{ url_for('admin_feedback') }}" class="nav-link {% if active_page == 'feedback' %}active{% endif %}"><i class="fa-solid fa-star"></i> Feedback</a>
             
-            <div class="nav-section">INSIGHTS</div>
-            <a href="/admin/reports" class="nav-link {% if active_page == 'reports' %}active{% endif %}"><i class="fa-solid fa-chart-line"></i> Reports</a>
+            <div class="nav-section">REPORTS</div>
+            <a href="/admin/reports" class="nav-link {% if active_page == 'reports' %}active{% endif %}"><i class="fa-solid fa-chart-line"></i> Analytics & Reports</a>
             {% endif %}
             
             {% if current_user.role == 'admin' %}
-            <div class="nav-section">SYSTEM</div>
-            <a href="/admin/staff" class="nav-link {% if active_page == 'staff' %}active{% endif %}"><i class="fa-solid fa-user-tie"></i> Staff Management</a>
+            <div class="nav-section">SETTINGS</div>
+            <a href="/admin/settings/outlet" class="nav-link {% if active_page == 'outlet_settings' %}active{% endif %}"><i class="fa-solid fa-sliders"></i> Outlet Settings</a>
+            <a href="/admin/staff" class="nav-link {% if active_page == 'staff' %}active{% endif %}"><i class="fa-solid fa-user-tie"></i> Staff / User Profiles</a>
             <a href="/admin/activity_log" class="nav-link {% if active_page == 'activity_log' %}active{% endif %}"><i class="fa-solid fa-clock-rotate-left"></i> Activity Log</a>
             {% endif %}
             
@@ -106,38 +107,67 @@
 
     <!-- Main Content -->
     <div class="main-area">
-        <div class="topbar">
-            <div class="topbar-left" style="display: flex; align-items: center; gap: 15px;">
-                <button class="mobile-menu-btn" onclick="toggleSidebar()" style="background:none; border:none; color:var(--text-primary); font-size:1.2rem; cursor:pointer; display:none;">
+        <!-- PETPOOJA TOPBAR -->
+        <div class="petpooja-topbar">
+            <div class="petpooja-left">
+                <button class="mobile-menu-btn" onclick="toggleSidebar()" style="background:none; border:none; color:#334155; font-size:1.1rem; cursor:pointer; display:none;">
                     <i class="fa-solid fa-bars"></i>
                 </button>
-                {% block page_title %}Dashboard{% endblock %}
+                <div class="pos-brand-logo">
+                    <i class="fa-solid fa-utensils"></i> POSS
+                </div>
+                <div class="brand-outlet-title" title="Shiv Shakti Restaurant & Banquet">
+                    Shiv Shakti Restaurant &amp; Banquet (R393522)
+                </div>
+                <button class="btn-new-order-red" onclick="openNewOrderModal()">
+                    <i class="fa-solid fa-plus"></i> New Order
+                </button>
+                <div class="topbar-search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="topBillSearchInput" placeholder="Q Bill No" onkeydown="handleTopBillSearch(event)">
+                </div>
+                <div class="topbar-search-box">
+                    <i class="fa-solid fa-receipt"></i>
+                    <input type="text" id="topKotSearchInput" placeholder="Q KOT No." onkeydown="handleTopKotSearch(event)">
+                </div>
             </div>
-            <div class="topbar-right">
-                {% block topbar_actions %}{% endblock %}
-                <div class="notification-bell" style="position: relative; display: inline-block;">
+
+            <div class="petpooja-right-tools">
+                <button class="petpooja-tool-item" onclick="openItemOnOffModal()" title="Item Quick On/Off">
+                    <i class="fa-solid fa-toggle-on"></i>
+                    <span>Item On/Off</span>
+                </button>
+                <a href="/admin/live_tables" class="petpooja-tool-item" title="Store / Tables">
+                    <i class="fa-solid fa-store"></i>
+                    <span>Store</span>
+                </a>
+                <a href="/admin/live_orders" class="petpooja-tool-item" title="Live KDS View">
+                    <i class="fa-solid fa-tower-broadcast"></i>
+                    <span>Live View</span>
+                </a>
+                <a href="/admin/invoices" class="petpooja-tool-item" title="Orders History">
+                    <i class="fa-solid fa-file-invoice"></i>
+                    <span>Orders</span>
+                </a>
+                <button class="petpooja-tool-item" onclick="openRecentInvoicesModal()" title="Recent Bills">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Recent</span>
+                </button>
+                <button class="petpooja-tool-item" onclick="openHoldOrdersModal()" title="Hold Orders">
+                    <i class="fa-solid fa-pause"></i>
+                    <span>Hold</span>
+                </button>
+                <button class="petpooja-tool-item" onclick="openAlertsModal()" title="Alerts">
                     <i class="fa-regular fa-bell"></i>
+                    <span>Alerts</span>
                     {% if low_stock_items|length > 0 %}
-                    <span style="position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; border-radius: 50%; font-size: 0.65rem; padding: 2px 5px; font-weight: bold;">
-                        {{ low_stock_items|length }}
-                    </span>
+                    <span class="tool-badge">{{ low_stock_items|length }}</span>
                     {% endif %}
-                </div>
-                <div class="profile-menu">
-                    <div class="profile-circle" onclick="toggleDropdown('profileDropdown')">
-                        {{ current_user.mobile[0] if current_user.is_authenticated else '?' }}
-                    </div>
-                    <div class="dropdown" id="profileDropdown">
-                        <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-size: 0.8rem; color: var(--text-secondary);">
-                            Logged in as<br>
-                            <strong style="color:var(--text-primary);">{{ current_user.mobile if current_user.is_authenticated else '' }}</strong><br>
-                            {{ current_user.role|capitalize if current_user.is_authenticated else '' }}
-                        </div>
-                        <a href="#" class="dropdown-item">Change password</a>
-                        <a href="#" class="dropdown-item">Subscription</a>
-                        <a href="{{ url_for('admin_logout') }}" class="dropdown-item" style="color: #ef4444;">Sign out</a>
-                    </div>
-                </div>
+                </button>
+                <a href="{{ url_for('admin_logout') }}" class="petpooja-tool-item" title="Logout">
+                    <i class="fa-solid fa-arrow-right-from-bracket" style="color:#ef4444;"></i>
+                    <span style="color:#ef4444;">Logout</span>
+                </a>
             </div>
         </div>
 
@@ -152,11 +182,392 @@
             {% endif %}
         </div>
         
-        <div style="text-align: center; font-size: 0.75rem; color: var(--text-secondary); margin-top: auto; padding: 10px 0;">
-            &copy; 2026 Raj / ShivShaktiSystem. All rights reserved. Unauthorized copying prohibited.
+        <div style="text-align: center; font-size: 0.75rem; color: #94a3b8; margin-top: auto; padding: 12px 0;">
+            &copy; 2026 Shiv Shakti Restaurant &amp; Banquet &bull; Powered by Petpooja POSS Architecture
         </div>
     </div>
-    
-    {% block scripts %}{% endblock %}
+
+    <!-- MODAL: NEW ORDER -->
+    <div class="pos-modal-overlay" id="newOrderModal">
+        <div class="pos-modal-container" style="max-width: 500px;">
+            <div class="pos-modal-header">
+                <h3><i class="fa-solid fa-plus-circle" style="color:#dc2626;"></i> Create New Order</h3>
+                <button class="pos-modal-close" onclick="closeModal('newOrderModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="pos-modal-body">
+                <p style="font-size:0.9rem; color:#64748b; margin-bottom:18px;">Select the type of order you want to create:</p>
+                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px;">
+                    <a href="/admin/live_tables" style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:18px 12px; text-align:center; text-decoration:none; color:#1e293b; display:flex; flex-direction:column; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-utensils" style="font-size:1.8rem; color:#dc2626;"></i>
+                        <span style="font-weight:700; font-size:0.9rem;">Dine-In</span>
+                        <span style="font-size:0.75rem; color:#64748b;">Pick Table</span>
+                    </a>
+                    <a href="/admin/new_parcel" style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:18px 12px; text-align:center; text-decoration:none; color:#1e293b; display:flex; flex-direction:column; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-box" style="font-size:1.8rem; color:#16a34a;"></i>
+                        <span style="font-weight:700; font-size:0.9rem;">Parcel</span>
+                        <span style="font-size:0.75rem; color:#64748b;">Takeaway</span>
+                    </a>
+                    <a href="/admin/new_parcel" style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:18px 12px; text-align:center; text-decoration:none; color:#1e293b; display:flex; flex-direction:column; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-motorcycle" style="font-size:1.8rem; color:#2563eb;"></i>
+                        <span style="font-weight:700; font-size:0.9rem;">Delivery</span>
+                        <span style="font-size:0.75rem; color:#64748b;">Home Delivery</span>
+                    </a>
+                </div>
+            </div>
+            <div class="pos-modal-footer">
+                <button class="btn-primary" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;" onclick="closeModal('newOrderModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: QUICK BILL LOOKUP -->
+    <div class="pos-modal-overlay" id="billSearchModal">
+        <div class="pos-modal-container">
+            <div class="pos-modal-header">
+                <h3><i class="fa-solid fa-magnifying-glass" style="color:#2563eb;"></i> Bill / Invoice Lookup</h3>
+                <button class="pos-modal-close" onclick="closeModal('billSearchModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="pos-modal-body">
+                <div style="display:flex; gap:10px; margin-bottom:16px;">
+                    <input type="text" id="modalBillQueryInput" placeholder="Enter Bill / Invoice Number (e.g. MB-00001)..." style="flex:1; padding:10px 14px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.95rem;">
+                    <button class="btn-primary" onclick="performBillSearch()"><i class="fa-solid fa-search"></i> Search</button>
+                </div>
+                <div id="billSearchResults" style="min-height:120px;">
+                    <p style="color:#94a3b8; text-align:center; padding:30px 0;">Search results will appear here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: QUICK KOT LOOKUP -->
+    <div class="pos-modal-overlay" id="kotSearchModal">
+        <div class="pos-modal-container">
+            <div class="pos-modal-header">
+                <h3><i class="fa-solid fa-receipt" style="color:#ea580c;"></i> KOT Ticket Lookup</h3>
+                <button class="pos-modal-close" onclick="closeModal('kotSearchModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="pos-modal-body">
+                <div style="display:flex; gap:10px; margin-bottom:16px;">
+                    <input type="text" id="modalKotQueryInput" placeholder="Enter KOT Number or Table Name..." style="flex:1; padding:10px 14px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.95rem;">
+                    <button class="btn-primary" onclick="performKotSearch()"><i class="fa-solid fa-search"></i> Search</button>
+                </div>
+                <div id="kotSearchResults" style="min-height:120px;">
+                    <p style="color:#94a3b8; text-align:center; padding:30px 0;">Search results will appear here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ITEM QUICK ON/OFF -->
+    <div class="pos-modal-overlay" id="itemOnOffModal">
+        <div class="pos-modal-container" style="max-width:750px;">
+            <div class="pos-modal-header">
+                <h3><i class="fa-solid fa-toggle-on" style="color:#16a34a;"></i> Menu Item Quick On / Off</h3>
+                <button class="pos-modal-close" onclick="closeModal('itemOnOffModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="pos-modal-body">
+                <input type="text" id="itemFilterInput" placeholder="Type to filter menu items..." onkeyup="filterModalItems()" style="width:100%; padding:10px 14px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.9rem; margin-bottom:16px;">
+                <div style="max-height:400px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px;">
+                    <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.88rem;" id="itemOnOffTable">
+                        <thead style="background:#f8fafc; position:sticky; top:0; border-bottom:1px solid #e2e8f0;">
+                            <tr>
+                                <th style="padding:10px 14px;">Item Name</th>
+                                <th style="padding:10px 14px;">Category</th>
+                                <th style="padding:10px 14px;">Price</th>
+                                <th style="padding:10px 14px; text-align:center;">Status</th>
+                                <th style="padding:10px 14px; text-align:center;">Toggle</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemOnOffTableBody">
+                            <tr><td colspan="5" style="text-align:center; padding:30px; color:#94a3b8;">Loading menu items...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="pos-modal-footer">
+                <button class="btn-primary" onclick="closeModal('itemOnOffModal')">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: RECENT INVOICES -->
+    <div class="pos-modal-overlay" id="recentInvoicesModal">
+        <div class="pos-modal-container">
+            <div class="pos-modal-header">
+                <h3><i class="fa-solid fa-clock-rotate-left" style="color:#6366f1;"></i> Recent Settled Invoices</h3>
+                <button class="pos-modal-close" onclick="closeModal('recentInvoicesModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="pos-modal-body" id="recentInvoicesBody">
+                <p style="text-align:center; color:#94a3b8; padding:30px;">Loading recent invoices...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: HOLD ORDERS -->
+    <div class="pos-modal-overlay" id="holdOrdersModal">
+        <div class="pos-modal-container">
+            <div class="pos-modal-header">
+                <h3><i class="fa-solid fa-pause" style="color:#eab308;"></i> Held / Active Table Orders</h3>
+                <button class="pos-modal-close" onclick="closeModal('holdOrdersModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="pos-modal-body" id="holdOrdersBody">
+                <p style="text-align:center; color:#94a3b8; padding:30px;">Loading held orders...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ALERTS -->
+    <div class="pos-modal-overlay" id="alertsModal">
+        <div class="pos-modal-container">
+            <div class="pos-modal-header">
+                <h3><i class="fa-regular fa-bell" style="color:#ef4444;"></i> Restaurant Alerts</h3>
+                <button class="pos-modal-close" onclick="closeModal('alertsModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="pos-modal-body" id="alertsModalBody">
+                {% if low_stock_items|length > 0 %}
+                <h4 style="font-size:0.9rem; color:#dc2626; margin-bottom:10px;"><i class="fa-solid fa-triangle-exclamation"></i> Low Stock Alerts</h4>
+                <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;">
+                    {% for itm in low_stock_items %}
+                    <div style="background:#fef2f2; border:1px solid #fecaca; padding:10px 14px; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <strong>{{ itm.name }}</strong>
+                            <div style="font-size:0.78rem; color:#64748b;">Current: <span style="color:#dc2626; font-weight:700;">{{ itm.current_stock }} {{ itm.unit }}</span> (Threshold: {{ itm.low_stock_threshold }})</div>
+                        </div>
+                        <a href="/admin/inventory" class="btn-primary" style="padding:4px 10px; font-size:0.78rem; text-decoration:none;">Restock</a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="text-align:center; color:#16a34a; padding:20px 0;"><i class="fa-solid fa-circle-check"></i> No inventory alerts. All stock is optimal.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- PETPOOJA POSS SCRIPTS -->
+    <script>
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function openNewOrderModal() {
+            openModal('newOrderModal');
+        }
+
+        function handleTopBillSearch(e) {
+            if (e.key === 'Enter') {
+                const val = document.getElementById('topBillSearchInput').value.trim();
+                if (val) {
+                    document.getElementById('modalBillQueryInput').value = val;
+                    openModal('billSearchModal');
+                    performBillSearch();
+                }
+            }
+        }
+
+        function handleTopKotSearch(e) {
+            if (e.key === 'Enter') {
+                const val = document.getElementById('topKotSearchInput').value.trim();
+                if (val) {
+                    document.getElementById('modalKotQueryInput').value = val;
+                    openModal('kotSearchModal');
+                    performKotSearch();
+                }
+            }
+        }
+
+        async function performBillSearch() {
+            const query = document.getElementById('modalBillQueryInput').value.trim();
+            const container = document.getElementById('billSearchResults');
+            if (!query) return;
+            container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">Searching...</p>';
+            try {
+                const res = await fetch(`/api/search_bill?q=${encodeURIComponent(query)}`);
+                const data = await res.json();
+                if (!data.invoices || data.invoices.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px;">No invoices found matching query.</p>';
+                    return;
+                }
+                let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
+                data.invoices.forEach(inv => {
+                    html += `
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px 16px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-weight:700; color:#1e293b;">#${inv.invoice_number} <span style="font-weight:400; color:#64748b; font-size:0.8rem;">(${inv.date})</span></div>
+                            <div style="font-size:0.8rem; color:#475569; margin-top:2px;">Customer: ${inv.customer || 'Walk-in'} &bull; Payment: <span style="text-transform:uppercase; font-weight:600;">${inv.payment_method}</span></div>
+                            <div style="font-size:0.95rem; font-weight:700; color:#dc2626; margin-top:4px;">₹${inv.total}</div>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <a href="/admin/invoice/print/${inv.id}" target="_blank" class="btn-primary" style="padding:6px 12px; font-size:0.8rem; text-decoration:none; display:flex; align-items:center; gap:5px;"><i class="fa-solid fa-print"></i> Print</a>
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } catch (err) {
+                container.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px;">Error searching bills.</p>';
+            }
+        }
+
+        async function performKotSearch() {
+            const query = document.getElementById('modalKotQueryInput').value.trim();
+            const container = document.getElementById('kotSearchResults');
+            if (!query) return;
+            container.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">Searching KOTs...</p>';
+            try {
+                const res = await fetch(`/api/search_kot?q=${encodeURIComponent(query)}`);
+                const data = await res.json();
+                if (!data.kots || data.kots.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px;">No KOT tickets found.</p>';
+                    return;
+                }
+                let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
+                data.kots.forEach(k => {
+                    html += `
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px 16px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-weight:700; color:#1e293b;">KOT #${k.kot_number} &bull; Table: ${k.table_name || 'Parcel'}</div>
+                            <div style="font-size:0.8rem; color:#64748b; margin-top:2px;">Order ID: #${k.order_id} &bull; Items: ${k.items_summary}</div>
+                            <div style="font-size:0.8rem; font-weight:600; color:#16a34a; margin-top:4px;">Status: ${k.status}</div>
+                        </div>
+                        <div>
+                            <a href="/admin/kot/print/${k.order_id}?kot=${k.kot_number}" target="_blank" class="btn-primary" style="padding:6px 12px; font-size:0.8rem; text-decoration:none; background:#ea580c; border-color:#ea580c; display:flex; align-items:center; gap:5px;"><i class="fa-solid fa-print"></i> Print KOT</a>
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } catch (err) {
+                container.innerHTML = '<p style="text-align:center; color:#ef4444; padding:20px;">Error searching KOTs.</p>';
+            }
+        }
+
+        async function openItemOnOffModal() {
+            openModal('itemOnOffModal');
+            const tbody = document.getElementById('itemOnOffTableBody');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:#94a3b8;">Loading items...</td></tr>';
+            try {
+                const res = await fetch('/api/all_items_status');
+                const data = await res.json();
+                let html = '';
+                data.items.forEach(itm => {
+                    html += `
+                    <tr class="item-row" data-name="${itm.name.toLowerCase()}" data-cat="${itm.category.toLowerCase()}" style="border-bottom:1px solid #e2e8f0;">
+                        <td style="padding:10px 14px; font-weight:600; color:#1e293b;">${itm.name}</td>
+                        <td style="padding:10px 14px; color:#64748b;">${itm.category}</td>
+                        <td style="padding:10px 14px; font-weight:600;">₹${itm.price}</td>
+                        <td style="padding:10px 14px; text-align:center;">
+                            <span id="badge-${itm.id}" style="padding:3px 8px; border-radius:12px; font-size:0.72rem; font-weight:700; background:${itm.is_available ? '#dcfce7' : '#fee2e2'}; color:${itm.is_available ? '#166534' : '#991b1b'};">
+                                ${itm.is_available ? 'Available' : 'Unavailable'}
+                            </span>
+                        </td>
+                        <td style="padding:10px 14px; text-align:center;">
+                            <input type="checkbox" ${itm.is_available ? 'checked' : ''} onchange="toggleItemAvailability(${itm.id}, this.checked)" style="transform:scale(1.3); cursor:pointer; accent-color:#16a34a;">
+                        </td>
+                    </tr>`;
+                });
+                tbody.innerHTML = html;
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#ef4444; padding:20px;">Failed to load items.</td></tr>';
+            }
+        }
+
+        function filterModalItems() {
+            const q = document.getElementById('itemFilterInput').value.toLowerCase();
+            document.querySelectorAll('#itemOnOffTableBody .item-row').forEach(row => {
+                const name = row.getAttribute('data-name');
+                const cat = row.getAttribute('data-cat');
+                if (name.includes(q) || cat.includes(q)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        async function toggleItemAvailability(itemId, isAvailable) {
+            const badge = document.getElementById(`badge-${itemId}`);
+            if (badge) {
+                badge.style.background = isAvailable ? '#dcfce7' : '#fee2e2';
+                badge.style.color = isAvailable ? '#166534' : '#991b1b';
+                badge.innerText = isAvailable ? 'Available' : 'Unavailable';
+            }
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            await fetch('/api/toggle_item', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': token },
+                body: JSON.stringify({ item_id: itemId, is_available: isAvailable })
+            });
+        }
+
+        async function openRecentInvoicesModal() {
+            openModal('recentInvoicesModal');
+            const body = document.getElementById('recentInvoicesBody');
+            body.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:30px;">Loading recent invoices...</p>';
+            try {
+                const res = await fetch('/api/recent_invoices');
+                const data = await res.json();
+                if (!data.invoices || data.invoices.length === 0) {
+                    body.innerHTML = '<p style="text-align:center; color:#64748b; padding:30px;">No recent invoices today.</p>';
+                    return;
+                }
+                let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
+                data.invoices.forEach(inv => {
+                    html += `
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px 16px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-weight:700; color:#1e293b;">#${inv.invoice_number} &bull; ₹${inv.total}</div>
+                            <div style="font-size:0.8rem; color:#64748b; margin-top:2px;">Paid via <strong style="text-transform:uppercase;">${inv.payment_method}</strong> &bull; ${inv.time_ago}</div>
+                        </div>
+                        <a href="/admin/invoice/print/${inv.id}" target="_blank" class="btn-primary" style="padding:6px 12px; font-size:0.8rem; text-decoration:none;"><i class="fa-solid fa-print"></i> Print</a>
+                    </div>`;
+                });
+                html += '</div>';
+                body.innerHTML = html;
+            } catch (err) {
+                body.innerHTML = '<p style="text-align:center; color:#ef4444; padding:30px;">Error loading recent invoices.</p>';
+            }
+        }
+
+        async function openHoldOrdersModal() {
+            openModal('holdOrdersModal');
+            const body = document.getElementById('holdOrdersBody');
+            body.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:30px;">Loading active orders...</p>';
+            try {
+                const res = await fetch('/api/hold_orders');
+                const data = await res.json();
+                if (!data.orders || data.orders.length === 0) {
+                    body.innerHTML = '<p style="text-align:center; color:#64748b; padding:30px;">No active held table orders.</p>';
+                    return;
+                }
+                let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
+                data.orders.forEach(o => {
+                    html += `
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px 16px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-weight:700; color:#1e293b;">Table ${o.table_name} &bull; Order #${o.id}</div>
+                            <div style="font-size:0.8rem; color:#64748b; margin-top:2px;">Status: <span style="font-weight:600; color:#ea580c; text-transform:uppercase;">${o.status}</span> &bull; Items: ${o.items_count}</div>
+                            <div style="font-size:0.9rem; font-weight:700; color:#1e293b; margin-top:2px;">Amount: ₹${o.total_amount}</div>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <a href="/admin/edit_order/${o.id}" class="btn-primary" style="padding:6px 12px; font-size:0.8rem; text-decoration:none;"><i class="fa-solid fa-pen"></i> Edit</a>
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+                body.innerHTML = html;
+            } catch (err) {
+                body.innerHTML = '<p style="text-align:center; color:#ef4444; padding:30px;">Error loading hold orders.</p>';
+            }
+        }
+
+        function openAlertsModal() {
+            openModal('alertsModal');
+        }
+    </script>
 </body>
 </html>
+

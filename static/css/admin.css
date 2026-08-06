@@ -743,3 +743,480 @@ body {
     cursor: pointer;
 }
 
+/* ========================================================
+   PETPOOJA POSS SUITE - OPERATIONS HUB & TOPBAR STYLES
+   ======================================================== */
+
+.petpooja-topbar {
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+    padding: 8px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.petpooja-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: nowrap;
+}
+
+.pos-brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #f1f5f9;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: #0f172a;
+    letter-spacing: 0.5px;
+}
+
+.pos-brand-logo i {
+    color: #ef4444;
+}
+
+.brand-outlet-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #334155;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 320px;
+}
+
+.btn-new-order-red {
+    background: #dc2626;
+    color: #ffffff !important;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.25);
+    white-space: nowrap;
+}
+
+.btn-new-order-red:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+}
+
+.topbar-search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.topbar-search-box i {
+    position: absolute;
+    left: 10px;
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+.topbar-search-box input {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 6px 10px 6px 30px;
+    font-size: 0.82rem;
+    width: 120px;
+    transition: width 0.2s ease, border-color 0.2s ease;
+    font-family: inherit;
+}
+
+.topbar-search-box input:focus {
+    outline: none;
+    width: 170px;
+    border-color: #ef4444;
+    background: #ffffff;
+}
+
+.petpooja-right-tools {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.petpooja-tool-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    color: #475569;
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: color 0.15s, background 0.15s;
+    position: relative;
+    background: none;
+    border: none;
+}
+
+.petpooja-tool-item i {
+    font-size: 1.05rem;
+    color: #475569;
+}
+
+.petpooja-tool-item:hover, .petpooja-tool-item.active {
+    color: #dc2626;
+    background: #fef2f2;
+}
+
+.petpooja-tool-item:hover i, .petpooja-tool-item.active i {
+    color: #dc2626;
+}
+
+.tool-badge {
+    position: absolute;
+    top: -2px;
+    right: 2px;
+    background: #dc2626;
+    color: white;
+    border-radius: 10px;
+    padding: 1px 5px;
+    font-size: 0.65rem;
+    font-weight: 700;
+}
+
+/* ========================================================
+   OPERATIONS DASHBOARD GRID
+   ======================================================== */
+
+.operations-container {
+    padding: 20px 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.operations-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.operations-header h1 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.operations-version-tag {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+}
+
+.operations-section-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 12px;
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.operations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+}
+
+.op-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    color: #1e293b;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.op-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+    border-color: #cbd5e1;
+}
+
+.op-card-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    color: #475569;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+.op-card:hover .op-card-icon {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+.op-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.op-card-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.op-card-desc {
+    font-size: 0.74rem;
+    color: #64748b;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.op-card-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 12px;
+    background: #ef4444;
+    color: white;
+}
+
+/* ========================================================
+   OUTLET SETTINGS CARDS
+   ======================================================== */
+
+.outlet-setting-section {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.outlet-setting-section h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.setting-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+}
+
+.setting-action-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    color: inherit;
+}
+
+.setting-action-card:hover {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+}
+
+.setting-card-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.setting-card-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: #64748b;
+}
+
+.setting-action-card:hover .setting-card-icon {
+    color: #dc2626;
+}
+
+.setting-card-title {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.setting-card-sub {
+    font-size: 0.76rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.setting-card-arrow {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    transition: transform 0.15s;
+}
+
+.setting-action-card:hover .setting-card-arrow {
+    transform: translateX(3px);
+    color: #dc2626;
+}
+
+/* ========================================================
+   QUICK MODALS & POPUPS
+   ======================================================== */
+
+.pos-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(3px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.pos-modal-overlay.active {
+    display: flex;
+}
+
+.pos-modal-container {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 20px 30px rgba(0,0,0,0.15);
+    width: 100%;
+    max-width: 650px;
+    max-height: 88vh;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    animation: modalPopIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalPopIn {
+    from { opacity: 0; transform: scale(0.96) translateY(8px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.pos-modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8fafc;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.pos-modal-header h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pos-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.pos-modal-close:hover {
+    color: #0f172a;
+    background: #e2e8f0;
+}
+
+.pos-modal-body {
+    padding: 20px;
+}
+
+.pos-modal-footer {
+    padding: 14px 20px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+

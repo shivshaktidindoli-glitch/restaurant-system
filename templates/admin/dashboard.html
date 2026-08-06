@@ -1,99 +1,303 @@
 {% extends "admin/base.html" %}
 
-{% block title %}Dashboard - Admin Panel{% endblock %}
-{% block page_title %}Dashboard Overview{% endblock %}
+{% block title %}Operations Hub - Petpooja POSS{% endblock %}
+{% block page_title %}Operations Hub{% endblock %}
 
 {% block topbar_actions %}
-    <a href="{{ url_for('download_backup') }}" class="btn-primary" style="text-decoration: none; display: flex; align-items: center; gap: 8px; background: white; color: var(--text-primary); border: 1px solid var(--border-color); padding: 8px 16px; font-size: 0.85rem; box-shadow: var(--shadow-sm);">
-        <i class="fa-solid fa-cloud-arrow-down" style="color: var(--brand-orange);"></i> Backup DB
+    <a href="{{ url_for('download_backup') }}" class="btn-primary" style="text-decoration: none; display: flex; align-items: center; gap: 8px; background: white; color: var(--text-primary); border: 1px solid #cbd5e1; padding: 7px 14px; font-size: 0.82rem; border-radius:6px;">
+        <i class="fa-solid fa-cloud-arrow-down" style="color: #dc2626;"></i> Backup DB
     </a>
 {% endblock %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; margin-bottom: 24px; align-items: center;">
-    <div>
-        <h2 style="font-size: 1.1rem; color: var(--text-secondary);">Today's Overview</h2>
+<div class="operations-container">
+    <!-- Top Summary Banner -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+        <div>
+            <h2 style="font-size: 1.25rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-store" style="color:#dc2626;"></i> Shiv Shakti Restaurant &amp; Banquet
+                <span class="operations-version-tag">Petpooja POSS v2.4</span>
+            </h2>
+            <p style="font-size: 0.82rem; color: #64748b; margin-top: 2px;">Real-time restaurant operations, billing engine, table turnover &amp; drawer management</p>
+        </div>
+        <form method="GET" action="{{ url_for('admin_dashboard') }}" style="display:flex; gap:8px;">
+            <input type="date" name="date" value="{{ date_str }}" style="padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; font-family: inherit;">
+            <button type="submit" class="btn-primary" style="padding: 6px 14px; font-size:0.85rem; background:#dc2626; border-color:#dc2626;">Filter</button>
+        </form>
     </div>
-    <form method="GET" action="{{ url_for('admin_dashboard') }}" style="display:flex; gap:10px;">
-        <input type="date" name="date" value="{{ date_str }}" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-family: inherit;">
-        <button type="submit" class="btn-primary" style="padding: 8px 16px; width: auto;">Filter</button>
-    </form>
-</div>
 
-<div class="dashboard-grid">
-    <div class="stat-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-            <div class="stat-title" style="margin-bottom: 0;">Today's Sales</div>
+    <!-- Quick Stats Cards -->
+    <div class="dashboard-grid" style="margin-bottom: 24px;">
+        <div class="stat-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div class="stat-title">Today's Total Sales</div>
+                <i class="fa-solid fa-indian-rupee-sign" style="color:#16a34a; font-size:1.1rem;"></i>
+            </div>
+            <div class="stat-value" style="color:#16a34a;">₹{{ stats.today_sales }}</div>
         </div>
-        <div class="stat-value">₹{{ stats.today_sales }}</div>
-        <i class="fa-solid fa-indian-rupee-sign" style="position: absolute; right: -10px; bottom: -10px; font-size: 5rem; color: rgba(249,115,22,0.05); transform: rotate(-15deg);"></i>
-    </div>
-    
-    <div class="stat-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-            <div class="stat-title" style="margin-bottom: 0;">Today's Orders</div>
+        
+        <div class="stat-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div class="stat-title">Today's Orders</div>
+                <i class="fa-solid fa-receipt" style="color:#2563eb; font-size:1.1rem;"></i>
+            </div>
+            <div class="stat-value">{{ stats.today_orders }}</div>
         </div>
-        <div class="stat-value">{{ stats.today_orders }}</div>
-        <i class="fa-solid fa-receipt" style="position: absolute; right: -10px; bottom: -10px; font-size: 5rem; color: rgba(249,115,22,0.05); transform: rotate(-15deg);"></i>
+        
+        <div class="stat-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div class="stat-title">Active / Live Orders</div>
+                <span style="background: #fef2f2; color: #dc2626; padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">Live Now</span>
+            </div>
+            <div class="stat-value" style="color: #dc2626;">{{ stats.live_orders }}</div>
+        </div>
+        
+        <div class="stat-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div class="stat-title">Top Item Today</div>
+                <i class="fa-solid fa-crown" style="color:#eab308; font-size:1.1rem;"></i>
+            </div>
+            <div class="stat-value" style="font-size: 1.15rem; color:#334155;">{{ stats.best_seller }}</div>
+        </div>
     </div>
-    
-    <div class="stat-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-            <div class="stat-title" style="margin-bottom: 0;">Live Orders</div>
-            <div style="background: rgba(249, 115, 22, 0.1); color: var(--brand-orange); padding: 4px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
-                Active Now
+
+    <!-- MODULE 1: DINE IN / TAKE AWAY / DELIVERY OPERATIONS -->
+    <div class="operations-section-title">
+        <i class="fa-solid fa-utensils" style="color:#dc2626;"></i> 1. Dine In, Take Away &amp; Delivery Hub
+    </div>
+    <div class="operations-grid">
+        <a href="/admin/live_tables" class="op-card">
+            <div class="op-card-icon"><i class="fa-solid fa-chair"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Dine In (Tables)</div>
+                <div class="op-card-desc">Live table occupancy &amp; KOT</div>
+            </div>
+        </a>
+        <a href="/admin/new_parcel" class="op-card">
+            <div class="op-card-icon"><i class="fa-solid fa-box"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Take Away / Parcel</div>
+                <div class="op-card-desc">Quick takeaway order &amp; token</div>
+            </div>
+        </a>
+        <a href="/admin/new_parcel" class="op-card">
+            <div class="op-card-icon"><i class="fa-solid fa-motorcycle"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Home Delivery</div>
+                <div class="op-card-desc">Address dispatch &amp; tracking</div>
+            </div>
+        </a>
+        <a href="/admin/live_orders" class="op-card">
+            <div class="op-card-icon"><i class="fa-solid fa-bell-concierge"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Live Orders</div>
+                <div class="op-card-desc">Real-time KDS tickets &amp; prep</div>
+            </div>
+            {% if stats.live_orders > 0 %}
+            <span class="op-card-badge">{{ stats.live_orders }}</span>
+            {% endif %}
+        </a>
+        <a href="/admin/invoices" class="op-card">
+            <div class="op-card-icon"><i class="fa-solid fa-receipt"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Orders &amp; Bills</div>
+                <div class="op-card-desc">Invoice lookup &amp; reprint</div>
+            </div>
+        </a>
+        <a href="/admin/billing" class="op-card">
+            <div class="op-card-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Billing &amp; Settle</div>
+                <div class="op-card-desc">Fast checkout, split &amp; change</div>
+            </div>
+        </a>
+    </div>
+
+    <!-- MODULE 2: CUSTOMER / CRM & LOYALTY -->
+    <div class="operations-section-title">
+        <i class="fa-solid fa-users" style="color:#2563eb;"></i> 2. Customer CRM, Loyalty &amp; Credit Ledger
+    </div>
+    <div class="operations-grid">
+        <a href="/admin/customers" class="op-card">
+            <div class="op-card-icon" style="color:#2563eb;"><i class="fa-solid fa-id-card"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Customer Profiles</div>
+                <div class="op-card-desc">Directory &amp; order history</div>
+            </div>
+        </a>
+        <a href="/admin/customers" class="op-card">
+            <div class="op-card-icon" style="color:#eab308;"><i class="fa-solid fa-coins"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Loyalty Points</div>
+                <div class="op-card-desc">Point balances &amp; redemptions</div>
+            </div>
+        </a>
+        <a href="/admin/coupons" class="op-card">
+            <div class="op-card-icon" style="color:#16a34a;"><i class="fa-solid fa-ticket"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Discount Coupons</div>
+                <div class="op-card-desc">Flat / percentage promo rules</div>
+            </div>
+        </a>
+        <a href="/admin/credit" class="op-card">
+            <div class="op-card-icon" style="color:#dc2626;"><i class="fa-solid fa-book-open"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Due / Credit (Udhar)</div>
+                <div class="op-card-desc">Customer credit ledger &amp; dues</div>
+            </div>
+        </a>
+        <a href="/admin/refunds" class="op-card">
+            <div class="op-card-icon" style="color:#9333ea;"><i class="fa-solid fa-rotate-left"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Refunds &amp; Reversals</div>
+                <div class="op-card-desc">Bill refund tracking &amp; audit</div>
+            </div>
+        </a>
+        <a href="/admin/feedback" class="op-card">
+            <div class="op-card-icon" style="color:#f59e0b;"><i class="fa-solid fa-star"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Guest Feedback</div>
+                <div class="op-card-desc">Ratings &amp; customer reviews</div>
+            </div>
+        </a>
+    </div>
+
+    <!-- MODULE 3: KITCHEN, MENU & INVENTORY -->
+    <div class="operations-section-title">
+        <i class="fa-solid fa-boxes-stacked" style="color:#16a34a;"></i> 3. Kitchen, Menu &amp; Inventory Management
+    </div>
+    <div class="operations-grid">
+        <a href="/kitchen" target="_blank" class="op-card">
+            <div class="op-card-icon" style="color:#ea580c;"><i class="fa-solid fa-fire-burner"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Kitchen Display (KDS) ↗</div>
+                <div class="op-card-desc">Live chef queue &amp; prep timers</div>
+            </div>
+        </a>
+        <a href="/admin/items" class="op-card">
+            <div class="op-card-icon" style="color:#16a34a;"><i class="fa-solid fa-burger"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Menu &amp; Pricing</div>
+                <div class="op-card-desc">Items, combos &amp; categories</div>
+            </div>
+        </a>
+        <div onclick="openItemOnOffModal()" class="op-card">
+            <div class="op-card-icon" style="color:#2563eb;"><i class="fa-solid fa-toggle-on"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Item Quick On / Off</div>
+                <div class="op-card-desc">86 item stock toggle</div>
             </div>
         </div>
-        <div class="stat-value" style="color: var(--brand-orange);">{{ stats.live_orders }}</div>
-        <i class="fa-solid fa-bell-concierge" style="position: absolute; right: -10px; bottom: -10px; font-size: 5rem; color: rgba(249,115,22,0.05); transform: rotate(-15deg);"></i>
-    </div>
-    
-    <div class="stat-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-            <div class="stat-title" style="margin-bottom: 0;">Best Seller</div>
-            <div style="background: rgba(234, 179, 8, 0.1); color: #eab308; padding: 4px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
-                <i class="fa-solid fa-star"></i> Top
+        <a href="/admin/inventory" class="op-card">
+            <div class="op-card-icon" style="color:#64748b;"><i class="fa-solid fa-warehouse"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Raw Stock &amp; Inventory</div>
+                <div class="op-card-desc">Track ingredients &amp; logs</div>
             </div>
+            {% if low_stock_items|length > 0 %}
+            <span class="op-card-badge">{{ low_stock_items|length }} low</span>
+            {% endif %}
+        </a>
+        <a href="/admin/categories" class="op-card">
+            <div class="op-card-icon" style="color:#0284c7;"><i class="fa-solid fa-list"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Menu Categories</div>
+                <div class="op-card-desc">Reorder &amp; organize menu</div>
+            </div>
+        </a>
+        <a href="/admin/tables" class="op-card">
+            <div class="op-card-icon" style="color:#475569;"><i class="fa-solid fa-table-cells-large"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Table Layout Setup</div>
+                <div class="op-card-desc">Sections, seating &amp; QR codes</div>
+            </div>
+        </a>
+    </div>
+
+    <!-- MODULE 4: DAILY SHIFT, CASH FLOW & SYSTEM SETTINGS -->
+    <div class="operations-section-title">
+        <i class="fa-solid fa-lock" style="color:#6366f1;"></i> 4. Shift, Cash Drawer &amp; Outlet Control
+    </div>
+    <div class="operations-grid">
+        <a href="/admin/day_end" class="op-card">
+            <div class="op-card-icon" style="color:#dc2626;"><i class="fa-solid fa-calendar-check"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Day End Close</div>
+                <div class="op-card-desc">Z-Report, sales &amp; cash audit</div>
+            </div>
+        </a>
+        <a href="/admin/cashflow" class="op-card">
+            <div class="op-card-icon" style="color:#16a34a;"><i class="fa-solid fa-money-bill-transfer"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Cash Flow &amp; Drawer</div>
+                <div class="op-card-desc">Opening cash, topup, withdrawal</div>
+            </div>
+        </a>
+        <a href="/admin/expenses" class="op-card">
+            <div class="op-card-icon" style="color:#ea580c;"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Daily Expenses</div>
+                <div class="op-card-desc">Petty cash &amp; vendor payouts</div>
+            </div>
+        </a>
+        <a href="/admin/reports" class="op-card">
+            <div class="op-card-icon" style="color:#2563eb;"><i class="fa-solid fa-chart-pie"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Reports Suite (15 Summaries)</div>
+                <div class="op-card-desc">Executive, Category, Item, Sales</div>
+            </div>
+        </a>
+        <a href="/admin/settings/outlet" class="op-card">
+            <div class="op-card-icon" style="color:#6366f1;"><i class="fa-solid fa-sliders"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Outlet Settings</div>
+                <div class="op-card-desc">Tax, print rules &amp; service charge</div>
+            </div>
+        </a>
+        <a href="/admin/staff" class="op-card">
+            <div class="op-card-icon" style="color:#475569;"><i class="fa-solid fa-user-gear"></i></div>
+            <div class="op-card-info">
+                <div class="op-card-title">Staff &amp; Activity Log</div>
+                <div class="op-card-desc">Role access &amp; security trail</div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Low Stock Alert Banner -->
+    {% if low_stock_items|length > 0 %}
+    <div style="margin-top: 30px;">
+        <h3 style="font-size: 1rem; color: #dc2626; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-triangle-exclamation"></i> Low Stock Alert Center ({{ low_stock_items|length }} Items)
+        </h3>
+        <div style="background: white; border-radius: 8px; border: 1px solid #fecaca; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+            <table class="data-table">
+                <thead>
+                    <tr style="background:#fef2f2;">
+                        <th>Raw Material</th>
+                        <th>Current Stock</th>
+                        <th>Threshold</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in low_stock_items %}
+                    <tr>
+                        <td style="font-weight: 600; color:#1e293b;">{{ item.name }}</td>
+                        <td style="color: #dc2626; font-weight: bold;">
+                            {{ item.current_stock }} {{ item.unit }}
+                        </td>
+                        <td style="color: #64748b;">
+                            {{ item.low_stock_threshold }} {{ item.unit }}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin_inventory') }}" class="btn-primary" style="padding: 4px 10px; font-size: 0.78rem; text-decoration: none; background:#dc2626; border-color:#dc2626;">Restock</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        <div class="stat-value" style="font-size: 1.2rem; line-height: 1.3; align-content: center; z-index: 1;">{{ stats.best_seller }}</div>
-        <i class="fa-solid fa-crown" style="position: absolute; right: -10px; bottom: -10px; font-size: 5rem; color: rgba(249,115,22,0.05); transform: rotate(-15deg);"></i>
     </div>
+    {% endif %}
 </div>
-
-
-{% if low_stock_items|length > 0 %}
-<div style="margin-top: 30px;">
-    <h2 style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-        <i class="fa-solid fa-triangle-exclamation" style="color: var(--danger);"></i> Low Stock Alerts
-    </h2>
-    <div style="background: white; border-radius: var(--radius-lg); border: 1px solid var(--border-color); overflow: hidden; box-shadow: var(--shadow-sm);">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Item Name</th>
-                    <th>Current Stock</th>
-                    <th>Threshold</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in low_stock_items %}
-                <tr>
-                    <td style="font-weight: 500;">{{ item.name }}</td>
-                    <td style="color: var(--danger); font-weight: bold;">
-                        {{ item.current_stock }} {{ item.unit }}
-                    </td>
-                    <td style="color: var(--text-secondary);">
-                        {{ item.low_stock_threshold }} {{ item.unit }}
-                    </td>
-                    <td>
-                        <a href="{{ url_for('admin_inventory') }}" class="btn-primary" style="padding: 4px 10px; font-size: 0.8rem; text-decoration: none;">Restock</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-{% endif %}
 {% endblock %}

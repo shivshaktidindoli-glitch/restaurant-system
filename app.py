@@ -30,7 +30,7 @@ def role_required(*roles):
         return decorated_view
     return wrapper
 
-from models import db, User, Branch, Category, MenuItem, Table, Order, OrderItem, Invoice, CreditLedger, Refund, ActivityLog, Coupon, CustomerProfile, WaiterCall, Feedback, DayEndRecord, RawMaterial, InventoryLog
+from models import db, User, Branch, Category, MenuItem, Table, Order, OrderItem, Invoice, CreditLedger, Refund, ActivityLog, Coupon, CustomerProfile, WaiterCall, Feedback, DayEndRecord, RawMaterial, InventoryLog, Expense, CashFlow, OutletSetting
 
 load_dotenv()
 
@@ -107,18 +107,11 @@ def inject_inventory_alerts():
 with app.app_context():
     db.create_all()
     
-    # License Key Sync
-    client_license = os.environ.get('CLIENT_LICENSE_KEY')
-    if client_license:
-        first_branch = Branch.query.first()
-        if first_branch and first_branch.license_key != client_license:
-            first_branch.license_key = client_license
-            db.session.commit()
-    
-    # Safe auto-migration for Phase 20 (Coupons & Delivery)
+    # Safe auto-migration for Phase 20 & POSS
     try:
         from sqlalchemy import text
         queries = [
+            "ALTER TABLE branches ADD COLUMN license_key VARCHAR(100)",
             "ALTER TABLE orders ADD COLUMN has_new_items BOOLEAN DEFAULT 0",
             "ALTER TABLE orders ADD COLUMN coupon_code VARCHAR(50)",
             "ALTER TABLE orders ADD COLUMN delivery_address TEXT",
@@ -136,6 +129,17 @@ with app.app_context():
                 db.session.rollback()
     except Exception:
         pass
+
+    # License Key Sync
+    client_license = os.environ.get('CLIENT_LICENSE_KEY')
+    if client_license:
+        try:
+            first_branch = Branch.query.first()
+            if first_branch and first_branch.license_key != client_license:
+                first_branch.license_key = client_license
+                db.session.commit()
+        except Exception:
+            db.session.rollback()
     # Auto-seed logic for fresh deployments
     if User.query.count() == 0:
         print("Empty database detected. Running auto-seed...")
@@ -725,8 +729,8 @@ def admin_dashboard():
 
     stats = {
         'today_sales': f"{today_sales:.2f}",
-        'today_orders': str(today_orders),
-        'live_orders': str(live_orders),
+        'today_orders': today_orders,
+        'live_orders': live_orders,
         'best_seller': best_seller
     }
     return render_template('admin/dashboard.html', stats=stats, active_page='dashboard')
@@ -1882,6 +1886,44 @@ def get_report_data_raw(rtype, start_date=None, end_date=None):
             'Total Tips Collected': v['tips']
         } for k, v in sorted(daily.items(), reverse=True)]
 
+    elif rtype == 'day_end_summary':
+        q = DayEndRecord.query
+        q = apply_dates(q, DayEndRecord.date)
+        records = q.order_by(DayEndRecord.date.desc()).all()
+        return [{
+            'Date': r.date.strftime('%Y-%m-%d'),
+            'Total Orders': r.total_orders,
+            'Total Sales': r.total_sales,
+            'Cash In Hand': r.expected_cash,
+            'Tips': r.total_tips,
+            'Closed At': r.closed_at.strftime('%I:%M %p') if r.closed_at else 'N/A'
+        } for r in records]
+
+    elif rtype == 'expense_summary':
+        q = Expense.query
+        q = apply_dates(q, Expense.created_at)
+        exps = q.order_by(Expense.created_at.desc()).all()
+        return [{
+            'Date': e.created_at.strftime('%Y-%m-%d %H:%M'),
+            'Category': e.category,
+            'Description': e.description or 'N/A',
+            'Payment Mode': e.payment_mode.upper(),
+            'Recorded By': e.recorded_by,
+            'Amount': e.amount
+        } for e in exps]
+
+    elif rtype == 'cashflow_summary':
+        q = CashFlow.query
+        q = apply_dates(q, CashFlow.created_at)
+        cfs = q.order_by(CashFlow.created_at.desc()).all()
+        return [{
+            'Timestamp': c.created_at.strftime('%Y-%m-%d %H:%M'),
+            'Type': c.flow_type.upper(),
+            'Reason': c.reason,
+            'Staff': c.recorded_by,
+            'Amount': c.amount
+        } for c in cfs]
+
     return []
 
 @app.route('/api/report_data')
@@ -2245,6 +2287,226 @@ def admin_feedback():
     if feedbacks:
         avg = sum(f.rating for f in feedbacks) / len(feedbacks)
     return render_template('admin/feedback.html', feedbacks=feedbacks, average_rating=round(avg, 1), active_page='feedback')
+
+# --- PETPOOJA POSS APIS & ROUTES ---
+
+@app.route('/admin/settings/outlet')
+@login_required
+@role_required('admin')
+def outlet_settings():
+    all_settings = OutletSetting.query.all()
+    settings_dict = {s.key: s.value for s in all_settings}
+    return render_template('admin/outlet_settings.html', settings=settings_dict, active_page='outlet_settings')
+
+@app.route('/api/settings/outlet/save', methods=['POST'])
+@login_required
+@role_required('admin')
+def save_outlet_settings():
+    data = request.json or {}
+    for k, v in data.items():
+        s = OutletSetting.query.filter_by(key=k).first()
+        if not s:
+            s = OutletSetting(key=k, value=str(v))
+            db.session.add(s)
+        else:
+            s.value = str(v)
+            s.updated_at = datetime.utcnow()
+    log_activity('outlet_settings', f"{current_user.name} updated outlet POS configurations")
+    db.session.commit()
+    return jsonify({'success': True})
+
+@app.route('/admin/expenses')
+@login_required
+@role_required('admin', 'manager', 'cashier')
+def admin_expenses():
+    today = datetime.utcnow().date()
+    today_start = datetime(today.year, today.month, today.day)
+    expenses = Expense.query.order_by(Expense.created_at.desc()).all()
+    today_expenses = [e for e in expenses if e.created_at >= today_start]
+    total_today_expense = sum(e.amount for e in today_expenses)
+    return render_template('admin/expenses.html', expenses=expenses, total_today_expense=total_today_expense, active_page='expenses')
+
+@app.route('/admin/expenses/add', methods=['POST'])
+@login_required
+@role_required('admin', 'manager', 'cashier')
+def add_expense():
+    category = request.form.get('category')
+    amount = float(request.form.get('amount', 0))
+    payment_mode = request.form.get('payment_mode', 'cash')
+    note = request.form.get('description', '') or request.form.get('note', '')
+    
+    if amount > 0:
+        exp = Expense(
+            category=category,
+            amount=amount,
+            payment_mode=payment_mode,
+            note=note,
+            recorded_by=current_user.id
+        )
+        db.session.add(exp)
+        log_activity('expense', f"Recorded expense ₹{amount} for {category} by {current_user.name}")
+        db.session.commit()
+        flash('Expense recorded successfully!')
+    return redirect(url_for('admin_expenses'))
+
+@app.route('/admin/cashflow')
+@login_required
+@role_required('admin', 'manager', 'cashier')
+def admin_cashflow():
+    cashflows = CashFlow.query.order_by(CashFlow.created_at.desc()).all()
+    today = datetime.utcnow().date()
+    today_start = datetime(today.year, today.month, today.day)
+    today_cf = [c for c in cashflows if c.created_at >= today_start]
+    
+    opening_rec = next((c for c in today_cf if c.type in ['opening', 'opening_cash']), None)
+    opening_balance = opening_rec.amount if opening_rec else 0.0
+    
+    total_cash_in = sum(c.amount for c in today_cf if c.type in ['in', 'cash_top_up'])
+    total_cash_out = sum(c.amount for c in today_cf if c.type in ['out', 'withdrawal'])
+    net_drawer_balance = opening_balance + total_cash_in - total_cash_out
+    
+    return render_template('admin/cashflow.html', 
+                           cashflows=cashflows, 
+                           opening_balance=opening_balance, 
+                           total_cash_in=total_cash_in, 
+                           total_cash_out=total_cash_out, 
+                           net_drawer_balance=net_drawer_balance,
+                           active_page='cashflow')
+
+@app.route('/admin/cashflow/add', methods=['POST'])
+@login_required
+@role_required('admin', 'manager', 'cashier')
+def add_cashflow():
+    flow_type = request.form.get('flow_type', 'in')
+    amount = float(request.form.get('amount', 0))
+    reason = request.form.get('reason', '')
+    
+    if amount > 0:
+        cf = CashFlow(
+            type=flow_type,
+            amount=amount,
+            reason=reason,
+            recorded_by=current_user.id
+        )
+        db.session.add(cf)
+        log_activity('cashflow', f"{current_user.name} recorded drawer {flow_type.upper()} ₹{amount} ({reason})")
+        db.session.commit()
+        flash('Cash flow transaction recorded successfully!')
+    return redirect(url_for('admin_cashflow'))
+
+@app.route('/api/search_bill')
+@login_required
+def api_search_bill():
+    q = request.args.get('q', '').strip()
+    if not q:
+        return jsonify({'invoices': []})
+    
+    invs = Invoice.query.filter(
+        (Invoice.invoice_number.ilike(f'%{q}%')) | 
+        (Invoice.customer_name.ilike(f'%{q}%')) | 
+        (Invoice.customer_phone.ilike(f'%{q}%'))
+    ).order_by(Invoice.created_at.desc()).limit(15).all()
+    
+    result = [{
+        'id': i.id,
+        'invoice_number': i.invoice_number,
+        'date': i.created_at.strftime('%d %b %Y, %I:%M %p'),
+        'customer': i.customer_name or i.customer_phone or 'Walk-in',
+        'payment_method': i.payment_method,
+        'total': f"{i.total:.2f}"
+    } for i in invs]
+    return jsonify({'invoices': result})
+
+@app.route('/api/search_kot')
+@login_required
+def api_search_kot():
+    q = request.args.get('q', '').strip()
+    if not q:
+        return jsonify({'kots': []})
+    
+    # Search OrderItems with kot_number or Table name or Order id
+    orders = Order.query.join(Table, Order.table_id == Table.id, isouter=True).filter(
+        (Table.name.ilike(f'%{q}%')) | 
+        (Order.id == int(q) if q.isdigit() else False)
+    ).order_by(Order.created_at.desc()).limit(15).all()
+    
+    res = []
+    for o in orders:
+        kot_nums = set(item.kot_number for item in o.items if item.kot_number)
+        if not kot_nums:
+            kot_nums = {1}
+        for kn in sorted(kot_nums, reverse=True):
+            items_summary = ", ".join([f"{it.item.name} x{it.quantity}" for it in o.items if it.kot_number == kn])
+            res.append({
+                'order_id': o.id,
+                'kot_number': kn,
+                'table_name': o.table.name if o.table else 'Parcel',
+                'status': o.status.upper(),
+                'items_summary': items_summary or 'No items'
+            })
+    return jsonify({'kots': res})
+
+@app.route('/api/all_items_status')
+@login_required
+def api_all_items_status():
+    items = MenuItem.query.join(Category).order_by(Category.name, MenuItem.name).all()
+    return jsonify({
+        'items': [{
+            'id': itm.id,
+            'name': itm.name,
+            'category': itm.category.name if itm.category else 'General',
+            'price': itm.price,
+            'is_available': itm.is_available
+        } for itm in items]
+    })
+
+@app.route('/api/toggle_item', methods=['POST'])
+@login_required
+def api_toggle_item():
+    data = request.json or {}
+    item_id = data.get('item_id')
+    is_available = data.get('is_available', True)
+    itm = MenuItem.query.get(item_id)
+    if itm:
+        itm.is_available = bool(is_available)
+        db.session.commit()
+        log_activity('item_toggle', f"{current_user.name} toggled '{itm.name}' availability to {is_available}")
+        return jsonify({'success': True})
+    return jsonify({'success': False, 'message': 'Item not found'})
+
+@app.route('/api/recent_invoices')
+@login_required
+def api_recent_invoices():
+    invs = Invoice.query.order_by(Invoice.created_at.desc()).limit(8).all()
+    now = datetime.utcnow()
+    res = []
+    for i in invs:
+        diff_mins = int((now - i.created_at).total_seconds() / 60)
+        time_ago = f"{diff_mins}m ago" if diff_mins < 60 else f"{diff_mins // 60}h ago"
+        res.append({
+            'id': i.id,
+            'invoice_number': i.invoice_number,
+            'total': f"{i.total:.2f}",
+            'payment_method': i.payment_method,
+            'time_ago': time_ago
+        })
+    return jsonify({'invoices': res})
+
+@app.route('/api/hold_orders')
+@login_required
+def api_hold_orders():
+    orders = Order.query.filter(Order.status.in_(['new', 'preparing', 'served'])).order_by(Order.created_at.desc()).all()
+    res = []
+    for o in orders:
+        total = sum(it.price_at_order * it.quantity for it in o.items)
+        res.append({
+            'id': o.id,
+            'table_name': o.table.name if o.table else (o.customer_name or 'Parcel'),
+            'status': o.status,
+            'items_count': sum(it.quantity for it in o.items),
+            'total_amount': f"{total:.2f}"
+        })
+    return jsonify({'orders': res})
 
 # --- SOCKET EVENTS ---
 
