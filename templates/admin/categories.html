@@ -34,7 +34,15 @@
                     <span style="font-size: 0.8rem; color: var(--text-secondary);">{{ cat.name_hi or '' }} | {{ cat.name_gu or '' }}</span>
                     {% endif %}
                 </div>
-                <span style="color: var(--text-secondary); font-size: 0.8rem;">☰ Drag</span>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <form method="POST" action="/admin/categories/delete/{{ cat.id }}" onsubmit="return confirm('Are you sure you want to delete category \'{{ cat.name }}\' and all items in it?');" style="margin: 0;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" style="background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;" title="Delete Category">
+                            🗑️ Delete
+                        </button>
+                    </form>
+                    <span style="color: var(--text-secondary); font-size: 0.8rem; cursor: grab;">☰ Drag</span>
+                </div>
             </li>
             {% endfor %}
             {% if not categories %}

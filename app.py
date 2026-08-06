@@ -1400,6 +1400,62 @@ def toggle_item():
         return jsonify({'success': True})
     return jsonify({'success': False})
 
+@app.route('/admin/items/delete/<int:item_id>', methods=['POST'])
+@login_required
+@role_required('admin', 'manager')
+def delete_item(item_id):
+    item = MenuItem.query.get_or_404(item_id)
+    item_name = item.name
+    try:
+        OrderItem.query.filter_by(menu_item_id=item_id).delete()
+        db.session.delete(item)
+        db.session.commit()
+        socketio.emit('menu_update', namespace='/')
+        log_activity('item_deleted', f"Menu item '{item_name}' was deleted.")
+        flash(f"Item '{item_name}' deleted successfully.", 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error deleting item: {str(e)}", 'error')
+    return redirect(url_for('items'))
+
+@app.route('/admin/categories/delete/<int:cat_id>', methods=['POST'])
+@login_required
+@role_required('admin', 'manager')
+def delete_category(cat_id):
+    cat = Category.query.get_or_404(cat_id)
+    cat_name = cat.name
+    try:
+        items = MenuItem.query.filter_by(category_id=cat_id).all()
+        for itm in items:
+            OrderItem.query.filter_by(menu_item_id=itm.id).delete()
+            db.session.delete(itm)
+        db.session.delete(cat)
+        db.session.commit()
+        socketio.emit('menu_update', namespace='/')
+        log_activity('category_deleted', f"Category '{cat_name}' and all its items were deleted.")
+        flash(f"Category '{cat_name}' deleted successfully.", 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error deleting category: {str(e)}", 'error')
+    return redirect(url_for('categories'))
+
+@app.route('/admin/menu/clear_all', methods=['POST'])
+@login_required
+@role_required('admin', 'manager')
+def clear_all_menu():
+    try:
+        OrderItem.query.delete()
+        MenuItem.query.delete()
+        Category.query.delete()
+        db.session.commit()
+        socketio.emit('menu_update', namespace='/')
+        log_activity('menu_cleared', "All menu categories and items were deleted.")
+        flash("All menu items and categories have been deleted successfully.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error clearing menu: {str(e)}", "error")
+    return redirect(url_for('items'))
+
 @app.route('/admin/customers')
 @login_required
 def admin_customers():

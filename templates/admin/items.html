@@ -27,6 +27,18 @@
 
 <div class="layout-row">
     <div class="col-main">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div style="font-weight: 600; color: var(--text-secondary);">Total Items: {{ items|length }}</div>
+            {% if items %}
+            <form method="POST" action="/admin/menu/clear_all" onsubmit="return confirm('⚠️ WARNING: Are you sure you want to delete the ENTIRE menu (all categories and items)? This action cannot be undone.');" style="margin: 0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn-danger" style="padding: 6px 14px; font-size: 0.85rem; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                    🗑️ Delete All Menu Items
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
         <table class="data-table">
             <thead>
                 <tr>
@@ -37,6 +49,7 @@
                     <th>Food Type</th>
                     <th>Favorite</th>
                     <th>Available (Live)</th>
+                    <th style="text-align: center;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -71,11 +84,19 @@
                             <div class="slider"></div>
                         </label>
                     </td>
+                    <td style="text-align: center;">
+                        <form method="POST" action="/admin/items/delete/{{ item.id }}" onsubmit="return confirm('Are you sure you want to delete \'{{ item.name }}\'?');" style="display: inline-block; margin: 0;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" style="background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.85rem;" title="Delete Item">
+                                🗑️ Delete
+                            </button>
+                        </form>
+                    </td>
                 </tr>
                 {% endfor %}
                 {% if not items %}
                 <tr>
-                    <td colspan="5" style="text-align: center; padding: 30px; color: var(--text-secondary);">No items added yet.</td>
+                    <td colspan="8" style="text-align: center; padding: 30px; color: var(--text-secondary);">No items added yet.</td>
                 </tr>
                 {% endif %}
             </tbody>
