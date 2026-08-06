@@ -2344,7 +2344,7 @@ def admin_feedback():
         avg = sum(f.rating for f in feedbacks) / len(feedbacks)
     return render_template('admin/feedback.html', feedbacks=feedbacks, average_rating=round(avg, 1), active_page='feedback')
 
-# --- PETPOOJA POSS APIS & ROUTES ---
+# --- RADHA POSS APIS & ROUTES ---
 
 @app.route('/admin/settings/outlet')
 @login_required
