@@ -13,7 +13,7 @@ def seed_data():
 
         # Create Branch
         branch = Branch(
-            name="Shiv Shakti Restaurant & Banquet",
+            name="Soul Sip Cafe",
             address="Shop no. 8 & 9, Green Residency, Commercial Shopping Center, Opp. Madhav Crest, Surat",
             phone="9876543210"
         )
@@ -22,7 +22,7 @@ def seed_data():
 
         # Add admin user
         admin = User(name='Admin User', mobile='7999620244', role='admin', branch_id=branch.id)
-        admin.set_password('shivshakti@2000')
+        admin.set_password('soulsip@2000')
         db.session.add(admin)
         
         manager = User(name='Manager User', mobile='8888888888', role='manager', branch_id=branch.id)
@@ -93,7 +93,7 @@ def seed_data():
         print("-" * 30)
         print("Test Login Credentials:")
         print("Mobile: 7999620244")
-        print("Password: shivshakti@2000")
+        print("Password: soulsip@2000")
         print("-" * 30)
 
 if __name__ == "__main__":

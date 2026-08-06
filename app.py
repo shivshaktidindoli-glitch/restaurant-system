@@ -256,16 +256,16 @@ def send_backup_email(zip_buffer):
         return False
         
     msg = EmailMessage()
-    msg['Subject'] = f"Shiv Shakti System Database Backup - {datetime.now().strftime('%Y-%m-%d')}"
+    msg['Subject'] = f"Soul Sip Cafe Database Backup - {datetime.now().strftime('%Y-%m-%d')}"
     msg['From'] = smtp_username
-    msg['To'] = 'shivshaktidindoli@gmail.com'
+    msg['To'] = os.environ.get('BACKUP_TO_EMAIL', 'soulsipcafe@gmail.com')
     msg.set_content("Please find attached the daily database backup (CSV format).")
     
     msg.add_attachment(
         zip_buffer.read(),
         maintype='application',
         subtype='zip',
-        filename=f"shivshakti_backup_{datetime.now().strftime('%Y%m%d')}.zip"
+        filename=f"soulsip_backup_{datetime.now().strftime('%Y%m%d')}.zip"
     )
     zip_buffer.seek(0)
     
@@ -346,7 +346,7 @@ def download_backup():
             zip_buffer,
             mimetype='application/zip',
             as_attachment=True,
-            download_name=f"shivshakti_backup_{datetime.now().strftime('%Y%m%d')}.zip"
+            download_name=f"soulsip_backup_{datetime.now().strftime('%Y%m%d')}.zip"
         )
     except Exception as e:
         flash(f"Failed to generate backup: {e}")

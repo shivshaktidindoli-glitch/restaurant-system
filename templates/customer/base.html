@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{% block title %}ShivShaktiSystem Menu{% endblock %}</title>
+    <title>{% block title %}Soul Sip Cafe Menu{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/customer.css') }}">
     <!-- Socket.io -->
@@ -50,7 +50,7 @@
         {% block content %}{% endblock %}
         
         <div style="text-align: center; font-size: 0.75rem; color: var(--text-secondary); margin-top: 30px; padding: 10px 0;">
-            &copy; 2026 Raj / ShivShaktiSystem. All rights reserved. Unauthorized copying prohibited.
+            &copy; 2026 Soul Sip Cafe. All rights reserved. Unauthorized copying prohibited.
         </div>
     </div>
     <script src="{{ url_for('static', filename='js/customer.min.js') }}"></script>
