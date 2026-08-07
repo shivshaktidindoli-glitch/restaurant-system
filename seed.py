@@ -49,45 +49,8 @@ def seed_data():
         db.session.add_all(tables)
         db.session.commit()
 
-        # Read CSV and create categories & menu items
-        csv_path = os.path.join(os.path.dirname(__file__), 'menu_data.csv')
-        
-        if os.path.exists(csv_path):
-            with open(csv_path, 'r', encoding='utf-8-sig') as f:
-                reader = csv.DictReader(f)
-                
-                categories_map = {}
-                sort_counter = 1
-                
-                for row in reader:
-                    cat_name = row['csvcategory'].strip()
-                    
-                    if cat_name not in categories_map:
-                        new_cat = Category(name=cat_name, sort_order=sort_counter)
-                        db.session.add(new_cat)
-                        db.session.commit()
-                        categories_map[cat_name] = new_cat
-                        sort_counter += 1
-                        
-                    cat_obj = categories_map[cat_name]
-                    
-                    item_name = row['item_name'].strip()
-                    item_name_gu = row['item_name_gu'].strip()
-                    price = float(row['price'].strip()) if row['price'].strip() else 0.0
-                    
-                    # Create item
-                    item = MenuItem(
-                        category_id=cat_obj.id,
-                        name=item_name,
-                        name_gu=item_name_gu,
-                        price=price
-                    )
-                    db.session.add(item)
-                    
-            db.session.commit()
-            print("Menu data loaded from CSV!")
-        else:
-            print("WARNING: menu_data.csv not found, skipping menu items.")
+        # Load Menu from CSV
+        load_menu_from_csv()
 
         print("Data seeded successfully!")
         print("-" * 30)
@@ -95,6 +58,63 @@ def seed_data():
         print("Mobile: 7999620244")
         print("Password: soulsip@2000")
         print("-" * 30)
+
+def load_menu_from_csv(csv_path=None):
+    if csv_path is None:
+        csv_path = os.path.join(os.path.dirname(__file__), 'menu_data.csv')
+        
+    if not os.path.exists(csv_path):
+        print(f"WARNING: {csv_path} not found, skipping menu items.")
+        return False
+        
+    with open(csv_path, 'r', encoding='utf-8-sig') as f:
+        reader = csv.DictReader(f)
+        
+        categories_map = {c.name: c for c in Category.query.all()}
+        sort_counter = len(categories_map) + 1
+        
+        for row in reader:
+            cat_name = row['csvcategory'].strip()
+            
+            if cat_name not in categories_map:
+                new_cat = Category(name=cat_name, sort_order=sort_counter)
+                db.session.add(new_cat)
+                db.session.commit()
+                categories_map[cat_name] = new_cat
+                sort_counter += 1
+                
+            cat_obj = categories_map[cat_name]
+            
+            item_name = row['item_name'].strip()
+            item_name_gu = row.get('item_name_gu', '').strip()
+            description = row.get('description', '').strip()
+            price = float(row['price'].strip()) if row['price'].strip() else 0.0
+            is_fav = str(row.get('is_favorite', 'False')).strip().lower() == 'true'
+            food_type = row.get('food_type', 'veg').strip()
+            
+            # Create or update item
+            existing_item = MenuItem.query.filter_by(category_id=cat_obj.id, name=item_name).first()
+            if not existing_item:
+                item = MenuItem(
+                    category_id=cat_obj.id,
+                    name=item_name,
+                    name_gu=item_name_gu,
+                    description=description,
+                    price=price,
+                    is_favorite=is_fav,
+                    food_type=food_type,
+                    is_available=True
+                )
+                db.session.add(item)
+            else:
+                existing_item.price = price
+                existing_item.description = description
+                existing_item.is_favorite = is_fav
+                existing_item.food_type = food_type
+                
+    db.session.commit()
+    print("Menu data loaded successfully from CSV!")
+    return True
 
 if __name__ == "__main__":
     seed_data()

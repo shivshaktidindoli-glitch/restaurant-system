@@ -140,7 +140,7 @@ with app.app_context():
                 db.session.commit()
         except Exception:
             db.session.rollback()
-    # Auto-seed logic for fresh deployments
+    # Auto-seed logic for fresh deployments & menu loading
     if User.query.count() == 0:
         print("Empty database detected. Running auto-seed...")
         try:
@@ -149,6 +149,13 @@ with app.app_context():
             print("Auto-seed successful!")
         except Exception as e:
             print(f"Auto-seed failed: {e}")
+    elif Category.query.count() == 0:
+        try:
+            import seed
+            seed.load_menu_from_csv()
+            print("Menu auto-loaded from CSV!")
+        except Exception as e:
+            print(f"Menu auto-load failed: {e}")
 
 def log_activity(action, details):
     uid = current_user.id if current_user.is_authenticated else None

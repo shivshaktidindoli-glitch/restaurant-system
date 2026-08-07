@@ -1,1 +1,106 @@
-csvcategory,item_name,item_name_gu,price
+csvcategory,item_name,item_name_gu,description,price,is_favorite,food_type
+Soul Sip Special,Loaded Crispy Long-Stick Fries,,Extra-crunchy potato sticks piled high with melted cheese creamy mayo & spicy chilli sauces.,279,True,veg
+Hot Beverages / Coffee,Black Coffee,,Bold espresso pure & unsweetened,39,False,veg
+Hot Beverages / Coffee,Regular Coffee,,Classic milk coffee smooth & comforting,49,False,veg
+Hot Beverages / Coffee,Filter Coffee,,South-Indian brew frothy & aromatic,59,False,veg
+Hot Beverages / Coffee,Hot Chocolate,,Velvety dark cocoa served piping hot,99,False,veg
+Cold Beverages,Fresh Lime Soda,,Sweet salted or mixed — your choice,49,False,veg
+Cold Beverages,Cold Coffee (Classic) - Small,,Chilled frothy coffee over ice,49,False,veg
+Cold Beverages,Cold Coffee (Classic) - Large,,Chilled frothy coffee over ice,69,False,veg
+Cold Beverages,Cold Coffee w/ Ice Cream,,Vanilla scoop & chocolate drizzle,79,False,veg
+Cold Beverages,Lemon Iced Tea,,Black tea fresh lemon served chilled,79,False,veg
+Mocktails,Jaljeera Fizz,,Spiced jaljeera soda & crunchy boondi,89,False,veg
+Mocktails,Virgin Mojito,,Muddled mint lime & soda,99,False,veg
+Mocktails,Blue Lagoon,,Blue curaçao flavour tangy lemonade,109,False,veg
+Mocktails,Watermelon Mint Cooler,,Watermelon lime & crushed ice,109,False,veg
+Mocktails,Green Apple Fizz,,Crisp green apple citrus splash,109,False,veg
+Mocktails,Strawberry Basil Smash,,Strawberry & torn basil topped with soda,119,False,veg
+Mocktails,Blueberry Basil Lemonade,,Blueberry-basil twist on classic lemonade,119,False,veg
+Mocktails,Passion Fruit Mojito,,Passion fruit mint lime & soda,129,True,veg
+Regular Shakes,Vanilla Shake,,Classic vanilla bean & chilled milk,89,False,veg
+Regular Shakes,Strawberry Shake,,Ripe strawberry smooth & creamy,99,False,veg
+Regular Shakes,Mango Shake (Seasonal),,Silky mango blended with cool milk,99,False,veg
+Regular Shakes,Butterscotch Shake,,Creamy butterscotch-caramel crunch,109,False,veg
+Regular Shakes,Kesar Pista Shake,,Saffron & crushed pistachio chilled milk,119,False,veg
+Thick / Loaded Shakes,Oreo Thick Shake,,Crushed Oreo & creamy ice cream,139,False,veg
+Thick / Loaded Shakes,KitKat Thick Shake,,Loaded with crispy wafer chunks,149,False,veg
+Thick / Loaded Shakes,Belgian Chocolate Thick Shake,,Rich dark Belgian chocolate fix,159,False,veg
+Thick / Loaded Shakes,Ferrero Rocher Thick Shake,,Golden Ferrero Rocher & roasted hazelnut,169,False,veg
+Thick / Loaded Shakes,Nutella Brownie Thick Shake,,Fudgy brownie meets creamy Nutella,179,False,veg
+Thick / Loaded Shakes,Lotus Biscoff Thick Shake,,Crushed Biscoff & spiced cookie butter,179,True,veg
+Fries,Salted Normal Fries,,Golden fries classic sea salt,79,False,veg
+Fries,Peri Peri Fries,,Bold spicy peri peri seasoning,99,False,veg
+Fries,Salted Cheese Fries,,Smothered in warm melted cheese,119,False,veg
+Fries,Peri Peri Cheese Fries,,Peri peri spice meets melted cheese,129,False,veg
+Fries,Nachos French Fries,,Nacho chips cheese & jalapeños,149,False,veg
+Fries,Special Loaded Long Fries,,Extra-long fries cheese sauces & jalapeños,279,True,veg
+Garlic Bread & Toast,Salted Masala Toast,,Garlic butter & Indian spice blend,99,False,veg
+Garlic Bread & Toast,Normal Cheese Garlic Bread,,Garlic butter baked under melted cheese,109,False,veg
+Garlic Bread & Toast,Roasted Onion Pepper Toast,,Caramelized onion & roasted bell pepper,109,False,veg
+Garlic Bread & Toast,Grilled Chilli Toast,,Garlic toast spicy green chillies & cheese,109,False,veg
+Garlic Bread & Toast,Cheese Corn Toast,,Sweet corn & melted cheese,119,False,veg
+Garlic Bread & Toast,Schezwan Toast,,Fiery schezwan sauce & melted cheese,119,False,veg
+Garlic Bread & Toast,5-Flavour Garlic Toast,,Five seasoned toppings one showstopper platter,179,True,veg
+Momos,Veg Steam Momos,,Steamed stuffed with fresh vegetables,99,False,veg
+Momos,Fry Veg Momos,,Golden fried spiced veg filling,109,False,veg
+Momos,Veg Paneer Steam Momos,,Steamed soft paneer & veggie mix,109,False,veg
+Momos,Cheese Steam Momos,,Steamed gooey melted cheese filling,119,False,veg
+Momos,Fry Paneer / Cheese Momos,,Deep-fried paneer or cheese filling,119,False,veg
+Momos,Tandoori Peri Peri Momos,,Smoky tandoori marinade peri peri kick,179,False,veg
+Frankie / Wraps,Aloo Tikki Frankie,,Spiced potato patty tangy chutneys,59,False,veg
+Frankie / Wraps,Veg Cheese Frankie,,Melted cheese & fresh veggies in a soft warm roll,69,False,veg
+Frankie / Wraps,Tandoori Veg Frankie,,Smoky tandoori veggies in a soft roll,89,False,veg
+Frankie / Wraps,Cheese Corn Frankie,,Sweet corn & gooey melted cheese,89,False,veg
+Frankie / Wraps,Paneer Frankie,,Spiced paneer crunchy veggies & sauces,99,False,veg
+Frankie / Wraps,Mexican Veg Frankie,,Mixed veg salsa & Mexican spice,119,False,veg
+Frankie / Wraps,Paneer Tikka Frankie,,Tandoori paneer tikka onions & chutney,119,False,veg
+Frankie / Wraps,Schezwan Paneer Frankie,,Paneer tossed in bold schezwan sauce,119,False,veg
+Frankie / Wraps,Double Cheese Paneer Frankie,,Spiced paneer double melted cheese blast,129,True,veg
+Sandwich,Bread Butter Sandwich,,Soft bread creamy butter,49,False,veg
+Sandwich,Cheese Jam Sandwich,,Sweet jam meets rich cheese,69,False,veg
+Sandwich,Cheese Bread Butter,,Buttered bread with a cheese slice,69,False,veg
+Sandwich,Veg Sandwich,,Fresh veggies creamy cheese layers,79,False,veg
+Sandwich,Mini Cheese Grill,,Toasted pockets melted cheese & herbs,89,False,veg
+Sandwich,Veg Cheese Sandwich,,Sliced vegetables smooth melted cheese,99,False,veg
+Sandwich,Cheese Aloo Sandwich,,Spiced potato filling & melted cheese,99,False,veg
+Sandwich,Open Cheese Toast,,Golden toast loaded with gooey cheese,99,False,veg
+Sandwich,Veg Cheese Grill Sandwich,,Grilled crunchy veg & melted cheese,109,False,veg
+Sandwich,Garlic Cheese Open Toast,,Garlic butter bubbly melted cheese,109,False,veg
+Sandwich,Corn Cheese Open Toast,,Sweet corn & melted cheese open-faced,109,False,veg
+Sandwich,Cheesy Spicy Open Toast,,Melted cheese spicy chillies & herbs,119,False,veg
+Sandwich,Bombay Grill Sandwich,,Street-style spiced potato & green chutney,129,False,veg
+Sandwich,Tandoori Paneer Sandwich,,Smoky tandoori paneer grilled,139,False,veg
+Sandwich,Special Protein Sandwich,,Protein-rich grilled filling fitness-focused & fresh,149,False,veg
+Sandwich,Matka Sandwich (Veg / Paneer),,Chef's special served in an earthen pot,149,True,veg
+Burger,Standard Veg Burger,,Potato-veggie patty lettuce & mayo,79,False,veg
+Burger,Crispy Crunch Burger,,Extra-crunchy patty tangy signature sauce,95,False,veg
+Burger,Red Hot Spicy Burger,,Fiery patty hot chilli mayo,99,False,veg
+Burger,Farm House Burger,,Garden-fresh veggies tomato & cheese,109,False,veg
+Burger,Tandoori Paneer Burger,,Smoky paneer steak mint mayo,139,False,veg
+Burger,Original Double Tikki Burger,,Two crispy patties melted cheese & sauces,149,True,veg
+Pizza,Peri Peri Paneer Pizza,,Spiced peri peri paneer onions & melted cheese,109,False,veg
+Pizza,Margherita Pizza,,Tomato sauce mozzarella & fresh basil,129,False,veg
+Pizza,Cheese Corn Pizza,,Sweet corn thick layer of cheese,139,False,veg
+Pizza,Spicy Tangy Pizza,,Zesty sauces fiery jalapeños,169,False,veg
+Pizza,Farm House Pizza,,Onion capsicum tomato & mushroom,209,False,veg
+Pizza,Tandoori Paneer Pizza,,Tandoori paneer capsicum onion & cheese,279,True,veg
+Mayo Pav,Solid Masti Pav,,Buttery pav seasoned veggie patty,59,False,veg
+Mayo Pav,Cream Onion Pav,,Caramelized onion velvety sour cream,69,False,veg
+Mayo Pav,Veggie House Pav,,Garden veggies house-special spread,79,False,veg
+Mayo Pav,Hot Spicy Pav,,Fiery red chilli spice & jalapeños,79,False,veg
+Mayo Pav,Tandoori Paneer Pav,,Smoky tandoori paneer crisp onions,99,False,veg
+Pasta,Red Sauce Pasta,,Tangy tomato-basil garlic & herbs,139,False,veg
+Pasta,White Sauce Pasta,,Silky garlic-cream sauce melted cheese,159,False,veg
+Pasta,Pink Sauce Pasta,,Tomato marinara meets creamy white sauce,169,False,veg
+Maggi,Masala Maggi,,Classic noodles savoury Indian spice,69,False,veg
+Maggi,Veggie Maggi,,Sautéed garden vegetables,89,False,veg
+Maggi,Cheesy Sauce Maggi,,Rich velvety cheese sauce,99,False,veg
+Maggi,Schezwan Cheese Maggi,,Fiery schezwan spice melted cheese,109,False,veg
+Maggi,Vegetable Cheese Maggi,,Sautéed mixed vegetables in creamy cheese sauce,109,False,veg
+Maggi,Extra Cheese Maggie,,Extra velvety cheese sauce ultra creamy,129,False,veg
+Desserts,Ice Cream (2 Scoops),,Classic flavour cold & creamy,79,False,veg
+Desserts,Chocolate Lava Cake,,Molten cocoa centre oozes with every bite,79,False,veg
+Desserts,Brownie (Plain),,Rich dense fudgy chocolate brownie,99,False,veg
+Desserts,Brownie with Ice Cream,,Warm brownie chilled vanilla scoop,129,False,veg
+Desserts,Belgian Waffle (Choco / Nutella),,Golden-crisp deep pockets & airy centre,149,False,veg
+Desserts,Waffle with Ice Cream,,Crispy waffle chocolate/Nutella & ice cream,179,True,veg
