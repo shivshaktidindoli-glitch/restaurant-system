@@ -47,6 +47,60 @@
     </div>
 </div>
 
+<!-- Master Backup & Database Reset Controls -->
+{% if current_user.role == 'admin' %}
+<div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px 20px; border-radius: 12px; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+    <div>
+        <div style="font-weight: 700; color: #1e293b; font-size: 0.95rem;">
+            <i class="fa-solid fa-database" style="color: var(--brand-orange); margin-right: 6px;"></i> Cloud Database Backup & Data Maintenance
+        </div>
+        <div style="font-size: 0.8rem; color: #64748b;">
+            Export all historical orders, bills, and logs to CSV anytime. You can safely reset transaction data without losing your Menu or Settings.
+        </div>
+    </div>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <a href="/admin/backup/export_all_csv" class="btn-primary" style="background: #0284c7; border-color: #0284c7; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; padding: 8px 16px; border-radius: 8px;">
+            <i class="fa-solid fa-file-zipper"></i> Download Full Backup (CSV ZIP)
+        </a>
+        <button type="button" onclick="openResetModal()" class="btn-primary" style="background: #dc2626; border-color: #dc2626; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; padding: 8px 16px; border-radius: 8px;">
+            <i class="fa-solid fa-triangle-exclamation"></i> Reset Transaction Data
+        </button>
+    </div>
+</div>
+
+<!-- SECURE RESET MODAL -->
+<div class="modal" id="resetModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 14px; width: 90%; max-width: 480px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);">
+        <div style="display: flex; align-items: center; gap: 10px; color: #dc2626; margin-bottom: 12px;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.5rem;"></i>
+            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800;">Reset Transaction Data</h3>
+        </div>
+        <p style="font-size: 0.85rem; color: #475569; line-height: 1.5; margin-bottom: 14px;">
+            This action will clear all <strong>Orders, Invoices, Refunds, Credit Records, and Day-End Summaries</strong>.
+        </p>
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 12px; margin-bottom: 16px; font-size: 0.8rem; color: #166534;">
+            <i class="fa-solid fa-circle-check"></i> <strong>Safe Preservation:</strong> Your Food Menu, Categories, Tables &amp; QR codes, Staff Logins, and Admin Settings will <strong>NOT</strong> be deleted.
+        </div>
+        
+        <form method="POST" action="/admin/backup/reset_transactions">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div style="margin-bottom: 12px;">
+                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 4px;">Admin Password</label>
+                <input type="password" name="admin_password" required placeholder="Enter admin password" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 4px;">Type <code>RESET</code> to confirm</label>
+                <input type="text" name="confirm_text" required placeholder="RESET" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; text-transform: uppercase;">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" onclick="closeResetModal()" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer;">Cancel</button>
+                <button type="submit" style="background: #dc2626; color: white; border: none; padding: 8px 18px; border-radius: 8px; font-weight: 700; cursor: pointer;">Confirm &amp; Reset</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
 <div class="report-layout">
     <div class="report-sidebar">
         <ul class="report-menu">
@@ -175,6 +229,16 @@
         let start = document.getElementById('start-date').value;
         let end = document.getElementById('end-date').value;
         window.open(`/api/report_export_pdf?type=${currentType}&start=${start}&end=${end}`, '_blank');
+    }
+    
+    function openResetModal() {
+        const modal = document.getElementById('resetModal');
+        if (modal) modal.style.display = 'flex';
+    }
+    
+    function closeResetModal() {
+        const modal = document.getElementById('resetModal');
+        if (modal) modal.style.display = 'none';
     }
     
     // Load default

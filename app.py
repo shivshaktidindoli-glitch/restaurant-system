@@ -2475,6 +2475,118 @@ def report_export_pdf():
         mimetype='application/pdf'
     )
 
+@app.route('/admin/backup/export_all_csv')
+@login_required
+@role_required('admin')
+def export_all_backup_csv():
+    import io
+    import csv
+    import zipfile
+    from flask import send_file
+    
+    # Create an in-memory zip file containing all CSV tables
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        
+        # 1. Orders & Items CSV
+        orders_output = io.StringIO()
+        writer = csv.writer(orders_output)
+        writer.writerow(['Order ID', 'Date', 'Type', 'Table/Customer', 'Status', 'Total Amount', 'Items Summary'])
+        for o in Order.query.order_by(Order.created_at.desc()).all():
+            items_str = "; ".join([f"{i.quantity}x {i.menu_item.name if i.menu_item else 'Item'} (₹{i.price_at_order})" for i in o.items])
+            total_val = sum(i.quantity * i.price_at_order for i in o.items)
+            tbl = o.table.name if o.table else (o.customer_name or 'N/A')
+            writer.writerow([o.id, o.created_at.strftime('%Y-%m-%d %H:%M:%S'), o.type, tbl, o.status, total_val, items_str])
+        zip_file.writestr("1_orders_history.csv", orders_output.getvalue())
+        
+        # 2. Invoices CSV
+        invoices_output = io.StringIO()
+        writer = csv.writer(invoices_output)
+        writer.writerow(['Invoice ID', 'Invoice No', 'Date', 'Order ID', 'Subtotal', 'Discount', 'GST Amount', 'Total', 'Payment Method', 'Customer Mobile', 'Tip'])
+        for inv in Invoice.query.order_by(Invoice.created_at.desc()).all():
+            writer.writerow([inv.id, inv.invoice_number, inv.created_at.strftime('%Y-%m-%d %H:%M:%S'), inv.order_id, inv.subtotal, inv.discount, inv.gst_amount, inv.total, inv.payment_method, inv.order.customer_mobile if inv.order else '', inv.tip_amount])
+        zip_file.writestr("2_invoices_sales.csv", invoices_output.getvalue())
+        
+        # 3. Day-End Close Reports CSV
+        dayend_output = io.StringIO()
+        writer = csv.writer(dayend_output)
+        writer.writerow(['Date', 'Total Sales', 'Total Orders', 'Expected Cash', 'Total Tips', 'Closed At'])
+        for d in DayEndRecord.query.order_by(DayEndRecord.date.desc()).all():
+            writer.writerow([d.date.strftime('%Y-%m-%d'), d.total_sales, d.total_orders, d.expected_cash, d.total_tips, d.closed_at.strftime('%Y-%m-%d %H:%M:%S') if d.closed_at else ''])
+        zip_file.writestr("3_day_end_reports.csv", dayend_output.getvalue())
+        
+        # 4. Expenses & Cashflow CSV
+        expenses_output = io.StringIO()
+        writer = csv.writer(expenses_output)
+        writer.writerow(['ID', 'Date', 'Category', 'Description', 'Amount', 'Payment Mode', 'Recorded By'])
+        for e in Expense.query.order_by(Expense.created_at.desc()).all():
+            writer.writerow([e.id, e.created_at.strftime('%Y-%m-%d %H:%M:%S'), e.category, e.description, e.amount, e.payment_mode, e.recorded_by])
+        zip_file.writestr("4_expenses.csv", expenses_output.getvalue())
+        
+        # 5. Inventory Stock & Logs CSV
+        inventory_output = io.StringIO()
+        writer = csv.writer(inventory_output)
+        writer.writerow(['Item ID', 'Name', 'Current Stock', 'Unit', 'Low Stock Threshold'])
+        for mat in RawMaterial.query.all():
+            writer.writerow([mat.id, mat.name, mat.current_stock, mat.unit, mat.low_stock_threshold])
+        zip_file.writestr("5_inventory_current_stock.csv", inventory_output.getvalue())
+        
+    zip_buffer.seek(0)
+    filename = f"SoulSipCafe_FullBackup_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.zip"
+    return send_file(
+        zip_buffer,
+        as_attachment=True,
+        download_name=filename,
+        mimetype='application/zip'
+    )
+
+@app.route('/admin/backup/reset_transactions', methods=['POST'])
+@login_required
+@role_required('admin')
+def reset_transaction_data():
+    from werkzeug.security import check_password_hash
+    password = request.form.get('admin_password', '').strip()
+    confirm_text = request.form.get('confirm_text', '').strip().upper()
+    
+    # Security validation
+    if not check_password_hash(current_user.password_hash, password):
+        flash("Incorrect Admin Password! Data reset aborted for security.", "danger")
+        return redirect(url_for('reports'))
+        
+    if confirm_text != "RESET":
+        flash("You must type 'RESET' in the confirmation box to proceed.", "warning")
+        return redirect(url_for('reports'))
+        
+    try:
+        # Clear transactional tables
+        CreditLedger.query.delete()
+        Refund.query.delete()
+        Invoice.query.delete()
+        OrderItem.query.delete()
+        Order.query.delete()
+        DayEndRecord.query.delete()
+        Expense.query.delete()
+        CashFlow.query.delete()
+        WaiterCall.query.delete()
+        InventoryLog.query.delete()
+        ActivityLog.query.delete()
+        
+        # Reset all live table states to vacant
+        for t in Table.query.all():
+            t.status = 'vacant'
+            t.session_start_time = None
+            
+        db.session.commit()
+        
+        # Log fresh start
+        log_activity('system_reset', f"Admin {current_user.name} safely reset transaction data after CSV backup.")
+        flash("✅ All orders, invoices, and transaction logs have been successfully reset! Menu, categories, tables, and staff accounts remain 100% intact.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error resetting database: {str(e)}", "danger")
+        
+    return redirect(url_for('reports'))
+
 @app.route('/admin/staff', methods=['GET', 'POST'])
 @login_required
 @role_required('admin') # ONLY Admin can access staff management
