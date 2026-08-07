@@ -796,9 +796,21 @@ def add_inventory_entry():
     if current_user.role not in ['admin', 'manager']:
         return "Unauthorized", 403
     
-    material_id = int(request.form.get('material_id'))
+    raw_mat_id = request.form.get('material_id')
+    if not raw_mat_id:
+        flash("Please select a valid inventory item.", "danger")
+        return redirect(url_for('admin_inventory'))
+    try:
+        material_id = int(raw_mat_id)
+    except (ValueError, TypeError):
+        flash("Invalid material ID.", "danger")
+        return redirect(url_for('admin_inventory'))
+    
     entry_type = request.form.get('type') # add, deduct
-    quantity = float(request.form.get('quantity', 0.0))
+    try:
+        quantity = float(request.form.get('quantity', 0.0))
+    except (ValueError, TypeError):
+        quantity = 0.0
     reason = request.form.get('reason')
     
     mat = RawMaterial.query.get(material_id)
