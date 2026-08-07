@@ -1,48 +1,89 @@
 {% extends "customer/base.html" %}
-{% block title %}Menu - Soul Sip Cafe{% endblock %}
+{% block title %}Soul Sip Cafe - Digital Menu{% endblock %}
 
 {% block content %}
-<div class="header">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h1>Our Menu</h1>
+<!-- CAFE HERO HEADER & BRANDING -->
+<div class="cafe-hero-header">
+    <div class="cafe-brand-row">
+        <div class="cafe-brand-info">
+            <div class="cafe-logo-badge">
+                <i class="fa-solid fa-mug-hot"></i>
+            </div>
+            <div>
+                <h1 class="cafe-title">Soul Sip Cafe</h1>
+                <p class="cafe-tagline">Fresh Sips &bull; Delicious Bites &bull; Good Vibes</p>
+            </div>
+        </div>
         <div class="lang-switcher">
             <button onclick="setLang('en')" id="lang-en" class="lang-btn active">EN</button>
             <button onclick="setLang('hi')" id="lang-hi" class="lang-btn">HI</button>
             <button onclick="setLang('gu')" id="lang-gu" class="lang-btn">GU</button>
         </div>
     </div>
-    {% if table %}
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-            <p style="margin:0;">Ordering for <strong>Table {{ table.name }}</strong></p>
-            <button onclick="callWaiter('{{ table.name }}')" class="btn-primary" style="background-color: var(--danger); border: none; padding: 6px 12px; font-size: 0.8rem; border-radius: 20px;">🔔 Call Waiter</button>
-        </div>
-    {% else %}
-        <p>Takeaway / Parcel Order</p>
-    {% endif %}
+    
+    <div class="cafe-sub-bar">
+        {% if table %}
+            <div class="table-tag">
+                <span class="pulse-dot"></span>
+                <span>Table <strong>{{ table.name }}</strong></span>
+            </div>
+            <button onclick="callWaiter('{{ table.name }}')" class="btn-call-waiter">
+                <i class="fa-solid fa-bell"></i>
+                <span class="lang-text" data-en="Call Waiter" data-hi="वेटर बुलाएं" data-gu="વેઇટર બોલાવો">Call Waiter</span>
+            </button>
+        {% else %}
+            <div class="table-tag takeaway">
+                <i class="fa-solid fa-bag-shopping"></i>
+                <span>Takeaway / Parcel</span>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Item Search -->
+    <div class="menu-search-bar">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="menuItemSearch" placeholder="Search dishes, drinks, snacks..." oninput="filterMenuItems()">
+    </div>
 </div>
-<style>
-    .lang-switcher { display: flex; gap: 5px; background: #fff; padding: 4px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    .lang-btn { border: none; background: transparent; padding: 4px 10px; border-radius: 16px; cursor: pointer; font-size: 0.8rem; font-weight: 600; color: #64748b; }
-    .lang-btn.active { background: var(--brand-orange); color: white; }
-    .lang-text { transition: opacity 0.2s; }
-</style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
 
-<div class="category-tabs">
-    {% for cat in categories %}
-        <div class="tab {% if loop.first %}active{% endif %} lang-text" data-target="cat-{{ cat.id }}" 
-             data-en="{{ cat.name }}" 
-             data-hi="{{ cat.name_hi or cat.name }}" 
-             data-gu="{{ cat.name_gu or cat.name }}">
-            {{ cat.name }}
+<!-- CATEGORY TABS WITH INTERACTIVE SCROLL SLIDER -->
+<div class="category-slider-wrapper">
+    <div class="category-tabs" id="categoryTabs">
+        <!-- ALL ITEMS TAB -->
+        <div class="tab active lang-text" data-target="cat-all" 
+             data-en="✨ All Items" 
+             data-hi="✨ सभी व्यंजन" 
+             data-gu="✨ બધી વાનગીઓ">
+            ✨ All Items
         </div>
-    {% endfor %}
+        {% for cat in categories %}
+            <div class="tab lang-text" data-target="cat-{{ cat.id }}" 
+                 data-en="{{ cat.name }}" 
+                 data-hi="{{ cat.name_hi or cat.name }}" 
+                 data-gu="{{ cat.name_gu or cat.name }}">
+                {{ cat.name }}
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- VISUAL SCROLL TRACK & SLIDER INDICATOR -->
+    <div class="scroll-track-container">
+        <div class="scroll-thumb-slider" id="scrollThumbSlider"></div>
+    </div>
+    <div class="scroll-hint-bar">
+        <span>👈 Swipe horizontally for all categories 👉</span>
+    </div>
 </div>
 
+<!-- MENU SECTIONS (ALL ACTIVE BY DEFAULT FOR 'ALL ITEMS') -->
 {% for cat in categories %}
-    <div class="menu-section {% if loop.first %}active{% endif %}" id="cat-{{ cat.id }}">
-        <h2 class="lang-text" data-en="{{ cat.name }}" data-hi="{{ cat.name_hi or cat.name }}" data-gu="{{ cat.name_gu or cat.name }}">{{ cat.name }}</h2>
+    <div class="menu-section active" id="cat-{{ cat.id }}">
+        <div class="section-header-row">
+            <h2 class="lang-text" data-en="{{ cat.name }}" data-hi="{{ cat.name_hi or cat.name }}" data-gu="{{ cat.name_gu or cat.name }}">{{ cat.name }}</h2>
+            <span class="section-count-badge">{{ menu_items_by_cat[cat.id]|length }} items</span>
+        </div>
         {% for item in menu_items_by_cat[cat.id] %}
             <div class="menu-item" data-id="{{ item.id }}" data-price="{{ item.price }}"
                  data-en="{{ item.name }}" data-hi="{{ item.name_hi or item.name }}" data-gu="{{ item.name_gu or item.name }}">
@@ -57,7 +98,6 @@
                     
                     {% if item.variant_name %}
                         <div class="variants">
-                            <!-- Just a dummy radio for demo purposes since schema has variant_name string, not separate items per variant. In a real complex app variants would be related models. -->
                             <label class="variant-label">
                                 <input type="radio" name="var_{{ item.id }}" value="{{ item.variant_name }}" checked> {{ item.variant_name }}
                             </label>
@@ -135,53 +175,36 @@
     const currentTable = "{{ table_name if table_name else '' }}";
     let currentLang = localStorage.getItem('menu_lang') || 'en';
     
-    function submitOrder() {
-        if (cart.length === 0) {
-            alert('Your cart is empty!');
-            return;
-        }
+    function filterMenuItems() {
+        const q = (document.getElementById('menuItemSearch').value || '').toLowerCase().trim();
+        const items = document.querySelectorAll('.menu-item');
+        const sections = document.querySelectorAll('.menu-section');
 
-        const btn = document.getElementById('place-order-btn');
-        btn.disabled = true;
-        btn.innerText = 'Placing...';
-
-        const payload = {
-            table_name: tableName,
-            items: cart,
-            order_type: tableName ? 'dine-in' : 'parcel'
-        };
-
-        fetch('/api/place_order', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                // Play success sound
-                const beep = document.getElementById('success-beep');
-                if (beep) {
-                    beep.play().catch(e => console.log('Beep failed:', e));
-                }
-                
-                setTimeout(() => {
-                    window.location.href = `/order/${data.order_id}`;
-                }, 500);
+        items.forEach(item => {
+            const name = (item.getAttribute('data-en') + ' ' + (item.getAttribute('data-hi') || '') + ' ' + (item.getAttribute('data-gu') || '')).toLowerCase();
+            const desc = (item.querySelector('.item-desc')?.innerText || '').toLowerCase();
+            if (!q || name.includes(q) || desc.includes(q)) {
+                item.style.display = 'flex';
             } else {
-                alert(data.message || 'Error placing order');
-                btn.disabled = false;
-                btn.innerText = 'Place Order';
+                item.style.display = 'none';
             }
-        })
-        .catch(err => {
-            console.error(err);
-            alert('Network error');
-            btn.disabled = false;
-            btn.innerText = 'Place Order';
         });
+
+        if (q) {
+            sections.forEach(sec => {
+                const hasVisible = Array.from(sec.querySelectorAll('.menu-item')).some(i => i.style.display !== 'none');
+                sec.style.display = hasVisible ? 'block' : 'none';
+            });
+        } else {
+            const activeTab = document.querySelector('.tab.active');
+            if (activeTab && activeTab.dataset.target === 'cat-all') {
+                sections.forEach(s => s.style.display = 'block');
+            } else if (activeTab) {
+                sections.forEach(s => {
+                    s.style.display = (s.id === activeTab.dataset.target) ? 'block' : 'none';
+                });
+            }
+        }
     }
 
     function callWaiter(tName) {
@@ -202,13 +225,13 @@
         
         // Update UI buttons
         document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById('lang-' + lang).classList.add('active');
+        const activeLangBtn = document.getElementById('lang-' + lang);
+        if (activeLangBtn) activeLangBtn.classList.add('active');
         
         // Update all text elements with data attributes
         document.querySelectorAll('.lang-text').forEach(el => {
             let translated = el.getAttribute('data-' + lang);
             if (translated !== null) {
-                // If it's a title with a combo badge inside, we need to preserve the badge
                 if(el.classList.contains('item-title')) {
                     const hasBadge = el.querySelector('.combo-badge');
                     el.innerHTML = translated + (hasBadge ? ' <span class="combo-badge">COMBO</span>' : '');
@@ -227,40 +250,33 @@
         }
     }
     
-    // Call on load
-    setLang(currentLang);
-    
-    // Overriding the default addToCart logic slightly to store the item element ref
-    // The base.html script needs to know the correct name based on language.
-    // Wait, the base.html likely reads data-name attribute. Let's dynamically update data-name on menu items when lang changes!
-    
     function updateDataNames(lang) {
         document.querySelectorAll('.menu-item').forEach(el => {
             el.setAttribute('data-name', el.getAttribute('data-' + lang) || el.getAttribute('data-en'));
         });
     }
     
-    // Patch setLang to also update data-names for the cart system
     const oldSetLang = setLang;
     setLang = function(lang) {
         oldSetLang(lang);
         updateDataNames(lang);
-        // Refresh cart names if items are already in cart
         for(let id in cart) {
             let el = document.querySelector(`.menu-item[data-id="${id}"]`);
             if(el) {
                 cart[id].name = el.getAttribute('data-name');
             }
         }
-        updateCartUI();
-        renderCheckout();
+        if (typeof updateCartUI === 'function') updateCartUI();
+        if (typeof renderCheckout === 'function') renderCheckout();
     };
+
+    // Call on load
+    setLang(currentLang);
     
     // Live update for sold-out items / reorders
     var socket = window.socket || (typeof io !== 'undefined' ? io() : null);
     if (socket) {
         socket.on('menu_update', function() {
-            // Reload page to get fresh items
             window.location.reload();
         });
     }

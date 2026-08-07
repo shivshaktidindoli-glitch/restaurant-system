@@ -1,15 +1,68 @@
 let cart = {};
 
-// Tabs Logic
-document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.menu-section').forEach(s => s.classList.remove('active'));
+// Tabs & All Items Logic
+function initMenuTabs() {
+    const tabs = document.querySelectorAll('.tab');
+    const sections = document.querySelectorAll('.menu-section');
+    const tabsContainer = document.querySelector('.category-tabs');
+    const scrollThumb = document.getElementById('scrollThumbSlider');
+
+    // Update scroll indicator thumb position and width
+    function updateScrollSlider() {
+        if (!tabsContainer || !scrollThumb) return;
+        const scrollWidth = tabsContainer.scrollWidth;
+        const clientWidth = tabsContainer.clientWidth;
+        const maxScroll = scrollWidth - clientWidth;
         
-        tab.classList.add('active');
-        document.getElementById(tab.dataset.target).classList.add('active');
+        if (maxScroll <= 0) {
+            scrollThumb.style.width = '100%';
+            scrollThumb.style.transform = 'translateX(0)';
+            return;
+        }
+        
+        const visibleRatio = clientWidth / scrollWidth;
+        const thumbWidthPercent = Math.max(15, Math.min(100, visibleRatio * 100));
+        scrollThumb.style.width = thumbWidthPercent + '%';
+        
+        const scrollRatio = tabsContainer.scrollLeft / maxScroll;
+        const maxTranslatePx = clientWidth - (clientWidth * (thumbWidthPercent / 100));
+        const currentTranslatePx = scrollRatio * maxTranslatePx;
+        scrollThumb.style.transform = `translateX(${currentTranslatePx}px)`;
+    }
+
+    if (tabsContainer) {
+        tabsContainer.addEventListener('scroll', updateScrollSlider, { passive: true });
+        window.addEventListener('resize', updateScrollSlider);
+        setTimeout(updateScrollSlider, 80);
+    }
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            const target = tab.dataset.target;
+            if (target === 'cat-all') {
+                sections.forEach(s => s.classList.add('active'));
+            } else {
+                sections.forEach(s => s.classList.remove('active'));
+                const targetSec = document.getElementById(target);
+                if (targetSec) targetSec.classList.add('active');
+            }
+
+            // Smoothly scroll clicked tab into the middle of the category bar
+            if (tabsContainer) {
+                const tabOffsetLeft = tab.offsetLeft;
+                const tabWidth = tab.offsetWidth;
+                const containerWidth = tabsContainer.offsetWidth;
+                const targetScrollLeft = tabOffsetLeft - (containerWidth / 2) + (tabWidth / 2);
+                tabsContainer.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
+            }
+        });
     });
-});
+}
+
+document.addEventListener('DOMContentLoaded', initMenuTabs);
 
 function getVariant(itemId) {
     const radio = document.querySelector(`input[name="var_${itemId}"]:checked`);
