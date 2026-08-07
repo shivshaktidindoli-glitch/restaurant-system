@@ -10,9 +10,8 @@ This application is configured to run smoothly on Render's Web Service free tier
 **Start Command:**
 Configure the web service on Render to use this exact start command:
 ```bash
-gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 app:app
+gunicorn --worker-class gthread -w 1 --threads 100 app:app
 ```
-*(This ensures `flask-socketio` works properly with WebSockets enabled rather than polling.)*
 
 **Known Limitations on Free Tier (IMPORTANT):**
 Render's free tier uses an **ephemeral disk**. This means every time the server spins down or restarts, any local file changes made during runtime (like `restaurant.db` updates or activity logs) will be reset.
