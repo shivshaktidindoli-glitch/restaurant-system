@@ -225,6 +225,17 @@ def deduct_item_inventory(menu_item, quantity, order_id=None, order_type='dine-i
         db.session.add(log)
         db.session.commit()
         
+        # Broadcast real-time stock update to all connected admin / inventory views
+        stock_status = 'out' if mat.current_stock <= 0 else ('low' if mat.current_stock <= mat.low_stock_threshold else 'optimal')
+        socketio.emit('inventory_stock_updated', {
+            'material_id': mat.id,
+            'name': mat.name,
+            'current_stock': int(mat.current_stock) if mat.current_stock.is_integer() else mat.current_stock,
+            'threshold': mat.low_stock_threshold,
+            'unit': mat.unit,
+            'status': stock_status
+        }, namespace='/')
+
         # Check Low Stock Warning (e.g. <= 5 items remaining)
         if mat.current_stock <= mat.low_stock_threshold:
             display_qty = int(mat.current_stock) if mat.current_stock.is_integer() else mat.current_stock
@@ -265,7 +276,7 @@ def restore_item_inventory(menu_item, quantity, order_id=None, user_id=None):
         mat = RawMaterial.query.filter(db.func.lower(RawMaterial.name) == db.func.lower(clean_name)).first()
         if mat:
             mat.current_stock = float(mat.current_stock) + float(quantity)
-            reason_str = f"Item removed/reduced in Order #{order_id}" if order_id else "Item returned"
+            reason_str = f"Item restored from Order #{order_id}" if order_id else "Item returned"
             log = InventoryLog(
                 raw_material_id=mat.id,
                 type='add',
@@ -275,6 +286,16 @@ def restore_item_inventory(menu_item, quantity, order_id=None, user_id=None):
             )
             db.session.add(log)
             db.session.commit()
+            
+            stock_status = 'out' if mat.current_stock <= 0 else ('low' if mat.current_stock <= mat.low_stock_threshold else 'optimal')
+            socketio.emit('inventory_stock_updated', {
+                'material_id': mat.id,
+                'name': mat.name,
+                'current_stock': int(mat.current_stock) if mat.current_stock.is_integer() else mat.current_stock,
+                'threshold': mat.low_stock_threshold,
+                'unit': mat.unit,
+                'status': stock_status
+            }, namespace='/')
             return mat
     except Exception as e:
         print(f"Error restoring inventory for {menu_item.name}: {e}")
@@ -1033,9 +1054,15 @@ def update_order_status():
     if not order:
         return jsonify({'success': False, 'message': 'Order not found'}), 404
         
+    old_status = order.status
     order.status = new_status
     db.session.commit()
     log_activity('order_status_change', f"Order #{order_id} status changed to {new_status}.")
+    
+    if new_status == 'cancelled' and old_status != 'cancelled':
+        for oi in order.items:
+            if oi.menu_item:
+                restore_item_inventory(oi.menu_item, oi.quantity, order_id=order.id, user_id=current_user.id if current_user.is_authenticated else None)
     
     if new_status in ['served', 'ready'] and order.customer_mobile:
         send_whatsapp_message(order.customer_mobile, f"Hello, your order #{order.id} is now {new_status}! Please collect or enjoy your meal.")

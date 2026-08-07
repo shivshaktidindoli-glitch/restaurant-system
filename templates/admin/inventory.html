@@ -437,5 +437,33 @@
             label.innerText = 'Quantity to Deduct';
         }
     }
+
+    // Real-time stock auto-deduction listener via Socket.io
+    var socket = window.socket || (typeof io !== 'undefined' ? io() : null);
+    if (socket) {
+        socket.on('inventory_stock_updated', function(data) {
+            const stockEl = document.getElementById(`stock-val-${data.material_id}`);
+            if (stockEl) {
+                stockEl.innerText = data.current_stock;
+                const tr = stockEl.closest('tr');
+                if (tr) {
+                    tr.setAttribute('data-status', data.status);
+                    const stockTd = stockEl.parentElement;
+                    if (data.status === 'out') {
+                        stockTd.style.color = '#dc2626';
+                    } else if (data.status === 'low') {
+                        stockTd.style.color = '#ea580c';
+                    } else {
+                        stockTd.style.color = '#16a34a';
+                    }
+                    
+                    // Highlight animation
+                    tr.style.transition = 'background-color 0.4s ease';
+                    tr.style.backgroundColor = '#fef3c7';
+                    setTimeout(() => { tr.style.backgroundColor = ''; }, 1200);
+                }
+            }
+        });
+    }
 </script>
 {% endblock %}
