@@ -2664,35 +2664,49 @@ def split_bill():
 
 @app.route('/api/call_waiter', methods=['POST'])
 @csrf.exempt
-@limiter.limit("5 per minute")
+@limiter.limit("20 per minute")
 def call_waiter():
-    data = request.json
+    data = request.json or {}
     table_name = data.get('table_name')
     order_id = data.get('order_id')
     
     print(f"DEBUG API: /api/call_waiter hit. Table: {table_name}, Order: {order_id}", flush=True)
     
-    call = WaiterCall(table_name=table_name, order_id=order_id, status='pending')
+    call = WaiterCall(table_name=table_name or "Unknown", order_id=order_id, status='pending')
     db.session.add(call)
     db.session.commit()
     
     # Safe fetch of time
-    time_str = call.created_at.strftime('%H:%M') if call.created_at else "Now"
+    time_str = call.created_at.strftime('%I:%M %p') if call.created_at else "Just now"
     
-    print(f"DEBUG API: EMITTING WAITER CALL {table_name}. Payload ID: {call.id}, Time: {time_str}", flush=True)
+    payload = {
+        'id': call.id,
+        'table_name': call.table_name,
+        'order_id': order_id,
+        'time': time_str
+    }
     
     try:
-        socketio.emit('new_waiter_call', {
-            'id': call.id,
-            'table_name': table_name,
-            'order_id': order_id,
-            'time': time_str
-        }, namespace='/')
-        print(f"DEBUG API: EMIT SUCCESSFUL for {table_name}", flush=True)
+        socketio.emit('new_waiter_call', payload)
+        print(f"DEBUG API: new_waiter_call emitted: {payload}", flush=True)
     except Exception as e:
         print(f"DEBUG API: EMIT FAILED: {e}", flush=True)
     
-    return jsonify({'success': True})
+    return jsonify({'success': True, 'call_id': call.id})
+
+@app.route('/api/pending_waiter_calls', methods=['GET'])
+@login_required
+def get_pending_waiter_calls():
+    calls = WaiterCall.query.filter_by(status='pending').order_by(WaiterCall.created_at.desc()).limit(20).all()
+    return jsonify({
+        'success': True,
+        'calls': [{
+            'id': c.id,
+            'table_name': c.table_name,
+            'order_id': c.order_id,
+            'time': c.created_at.strftime('%I:%M %p') if c.created_at else "Just now"
+        } for c in calls]
+    })
 
 @app.route('/api/resolve_call/<int:call_id>', methods=['POST'])
 @login_required
@@ -2701,6 +2715,10 @@ def resolve_call(call_id):
     if call:
         call.status = 'resolved'
         db.session.commit()
+        try:
+            socketio.emit('waiter_call_resolved', {'id': call_id, 'table_name': call.table_name})
+        except Exception as e:
+            print(f"Socket emit error on resolve_call: {e}")
         return jsonify({'success': True})
     return jsonify({'success': False})
 
