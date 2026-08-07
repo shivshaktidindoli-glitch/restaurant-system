@@ -157,12 +157,10 @@
                     <i class="fa-solid fa-pause"></i>
                     <span>Hold</span>
                 </button>
-                <button class="petpooja-tool-item" onclick="openAlertsModal()" title="Alerts">
+                <button class="petpooja-tool-item" onclick="openAlertsModal()" title="Alerts" style="position:relative;">
                     <i class="fa-regular fa-bell"></i>
                     <span>Alerts</span>
-                    {% if low_stock_items|length > 0 %}
-                    <span class="tool-badge">{{ low_stock_items|length }}</span>
-                    {% endif %}
+                    <span id="alertsToolBadge" class="tool-badge" style="{% if low_stock_items|length == 0 %}display:none;{% endif %}">{{ low_stock_items|length }}</span>
                 </button>
                 <a href="{{ url_for('admin_logout') }}" class="petpooja-tool-item" title="Logout">
                     <i class="fa-solid fa-arrow-right-from-bracket" style="color:#ef4444;"></i>
@@ -567,6 +565,76 @@
         function openAlertsModal() {
             openModal('alertsModal');
         }
+
+        // Global Real-time Inventory Alert Listener
+        const socket = io();
+        socket.on('inventory_alert', function(data) {
+            console.warn('[INVENTORY ALERT]', data);
+            
+            // 1. Play alert chime using Web Audio API
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+                osc.frequency.setValueAtTime(880.00, audioCtx.currentTime + 0.15); // A5
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } catch (e) {}
+
+            // 2. Update topbar badge
+            const badge = document.getElementById('alertsToolBadge');
+            if (badge) {
+                let currentCount = parseInt(badge.innerText) || 0;
+                badge.innerText = currentCount + 1;
+                badge.style.display = 'inline-block';
+            }
+
+            // 3. Show floating toast warning
+            let toastBox = document.getElementById('inventoryAlertToastContainer');
+            if (!toastBox) {
+                toastBox = document.createElement('div');
+                toastBox.id = 'inventoryAlertToastContainer';
+                toastBox.style.cssText = 'position:fixed; top:75px; right:20px; z-index:999999; display:flex; flex-direction:column; gap:12px; max-width:380px; pointer-events:none;';
+                document.body.appendChild(toastBox);
+            }
+
+            const toast = document.createElement('div');
+            toast.style.cssText = 'pointer-events:auto; background:#fff1f2; border:2px solid #f43f5e; color:#9f1239; padding:14px 18px; border-radius:10px; box-shadow:0 10px 25px -5px rgba(225,29,72,0.3); font-family:Inter,sans-serif; animation:slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);';
+            toast.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-triangle-exclamation" style="font-size:1.2rem; color:#e11d48;"></i>
+                        <strong style="font-size:0.95rem; color:#9f1239;">Low Stock Warning!</strong>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" style="background:none; border:none; color:#9f1239; cursor:pointer; font-size:1rem;">&times;</button>
+                </div>
+                <div style="margin-top:6px; font-size:0.85rem; font-weight:600; color:#881337;">
+                    ${data.name} has only <span style="background:#ffe4e6; color:#e11d48; padding:2px 6px; border-radius:4px; font-weight:800;">${data.current_stock} ${data.unit || 'pcs'}</span> left! (Warning set at \u2264 5)
+                </div>
+                <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px;">
+                    <a href="/admin/inventory" style="background:#e11d48; color:#ffffff; padding:5px 12px; border-radius:6px; font-size:0.78rem; text-decoration:none; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
+                        <i class="fa-solid fa-boxes-stacked"></i> Restock Now
+                    </a>
+                </div>
+            `;
+            toastBox.appendChild(toast);
+
+            // Auto dismiss after 10 seconds
+            setTimeout(() => {
+                if (toast && toast.parentElement) {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateX(50px)';
+                    toast.style.transition = 'all 0.4s ease';
+                    setTimeout(() => toast.remove(), 400);
+                }
+            }, 10000);
+        });
     </script>
 </body>
 </html>

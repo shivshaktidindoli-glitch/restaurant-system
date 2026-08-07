@@ -232,7 +232,7 @@ class RawMaterial(db.Model):
     name = db.Column(db.String(100), nullable=False)
     unit = db.Column(db.String(20), nullable=False) # kg, litre, pieces, packet
     current_stock = db.Column(db.Float, default=0.0)
-    low_stock_threshold = db.Column(db.Float, default=10.0)
+    low_stock_threshold = db.Column(db.Float, default=5.0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     logs = db.relationship('InventoryLog', backref='raw_material', lazy=True, cascade="all, delete-orphan")

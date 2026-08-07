@@ -157,11 +157,123 @@ with app.app_context():
         except Exception as e:
             print(f"Menu auto-load failed: {e}")
 
+    # Auto-sync menu items to inventory if RawMaterial is empty
+    try:
+        if RawMaterial.query.count() == 0 and MenuItem.query.count() > 0:
+            for mi in MenuItem.query.all():
+                mat = RawMaterial(
+                    name=mi.name.strip(),
+                    unit='pcs',
+                    current_stock=20.0,
+                    low_stock_threshold=5.0
+                )
+                db.session.add(mat)
+            db.session.commit()
+            print("All menu items auto-synced to inventory with 20.0 initial stock!")
+    except Exception as e:
+        print(f"Inventory auto-sync error: {e}")
+
 def log_activity(action, details):
     uid = current_user.id if current_user.is_authenticated else None
     log = ActivityLog(user_id=uid, action=action, details=details)
     db.session.add(log)
     db.session.commit()
+
+def deduct_item_inventory(menu_item, quantity, order_id=None, order_type='dine-in', user_id=None):
+    """
+    Automatically deducts inventory stock when a menu item is ordered.
+    Auto-creates RawMaterial entry if not present.
+    Emits real-time low-stock alert when remaining stock <= low_stock_threshold (default 5.0).
+    """
+    if not menu_item or quantity <= 0:
+        return None
+        
+    try:
+        clean_name = menu_item.name.strip()
+        mat = RawMaterial.query.filter(db.func.lower(RawMaterial.name) == db.func.lower(clean_name)).first()
+        
+        if not mat:
+            mat = RawMaterial(
+                name=clean_name,
+                unit='pcs',
+                current_stock=20.0,
+                low_stock_threshold=5.0
+            )
+            db.session.add(mat)
+            db.session.commit()
+            init_log = InventoryLog(
+                raw_material_id=mat.id,
+                type='add',
+                quantity=20.0,
+                reason='Auto-tracked Item Initialized',
+                user_id=user_id
+            )
+            db.session.add(init_log)
+            db.session.commit()
+            
+        # Deduct ordered quantity
+        mat.current_stock = max(0.0, float(mat.current_stock) - float(quantity))
+        
+        reason_str = f"Order #{order_id} ({order_type})" if order_id else "Order Placed"
+        log = InventoryLog(
+            raw_material_id=mat.id,
+            type='deduct',
+            quantity=float(quantity),
+            reason=reason_str,
+            user_id=user_id
+        )
+        db.session.add(log)
+        db.session.commit()
+        
+        # Check Low Stock Warning (e.g. <= 5 items remaining)
+        if mat.current_stock <= mat.low_stock_threshold:
+            display_qty = int(mat.current_stock) if mat.current_stock.is_integer() else mat.current_stock
+            alert_msg = f"⚠️ Low Stock Warning: Only {display_qty} {mat.unit} left for '{mat.name}'!"
+            
+            socketio.emit('inventory_alert', {
+                'id': mat.id,
+                'name': mat.name,
+                'current_stock': mat.current_stock,
+                'threshold': mat.low_stock_threshold,
+                'unit': mat.unit,
+                'message': alert_msg
+            }, namespace='/')
+            
+            log_activity('low_stock_warning', alert_msg)
+            print(f"[INVENTORY ALERT] {alert_msg}")
+            
+        return mat
+    except Exception as e:
+        print(f"Error deducting inventory for {menu_item.name}: {e}")
+        db.session.rollback()
+        return None
+
+def restore_item_inventory(menu_item, quantity, order_id=None, user_id=None):
+    """
+    Restores inventory stock when an item is removed or cancelled from an order.
+    """
+    if not menu_item or quantity <= 0:
+        return None
+    try:
+        clean_name = menu_item.name.strip()
+        mat = RawMaterial.query.filter(db.func.lower(RawMaterial.name) == db.func.lower(clean_name)).first()
+        if mat:
+            mat.current_stock = float(mat.current_stock) + float(quantity)
+            reason_str = f"Item removed/reduced in Order #{order_id}" if order_id else "Item returned"
+            log = InventoryLog(
+                raw_material_id=mat.id,
+                type='add',
+                quantity=float(quantity),
+                reason=reason_str,
+                user_id=user_id
+            )
+            db.session.add(log)
+            db.session.commit()
+            return mat
+    except Exception as e:
+        print(f"Error restoring inventory for {menu_item.name}: {e}")
+        db.session.rollback()
+        return None
 
 def send_whatsapp_message(mobile, text):
     if not mobile:
@@ -462,6 +574,17 @@ def place_order():
             price_at_order=item['price']
         )
         db.session.add(order_item)
+        
+        # Deduct from inventory
+        menu_item_obj = MenuItem.query.get(item['id'])
+        if menu_item_obj:
+            deduct_item_inventory(
+                menu_item=menu_item_obj,
+                quantity=item['quantity'],
+                order_id=new_order.id,
+                order_type=order_type,
+                user_id=current_user.id if current_user.is_authenticated else None
+            )
     
     db.session.commit()
 
@@ -553,6 +676,10 @@ def update_order():
             diff = existing_total - new_qty
             changes.append(f"Reduced qty of {existing_records[0].menu_item.name} by {diff}")
             
+            # Restore inventory for reduced quantity
+            if existing_records and existing_records[0].menu_item:
+                restore_item_inventory(existing_records[0].menu_item, diff, order_id=order.id, user_id=current_user.id if current_user.is_authenticated else None)
+            
             # Sort descending by kot_number so we delete newest first
             existing_records.sort(key=lambda x: x.kot_number or 0, reverse=True)
             for r in existing_records:
@@ -585,6 +712,16 @@ def update_order():
                     added_at=datetime.utcnow()
                 )
                 db.session.add(new_oi)
+                
+                # Deduct newly added item quantity from inventory
+                deduct_item_inventory(
+                    menu_item=menu_item,
+                    quantity=diff,
+                    order_id=order.id,
+                    order_type=order.type,
+                    user_id=current_user.id if current_user.is_authenticated else None
+                )
+                
                 changes.append(f"Added {menu_item.name} (x{diff}) [KOT-{next_kot}]")
                 has_added = True
                 
@@ -670,7 +807,102 @@ def add_inventory_entry():
     db.session.add(log)
     db.session.commit()
     
+    # Broadcast alert if below threshold after manual deduction
+    if mat.current_stock <= mat.low_stock_threshold:
+        display_qty = int(mat.current_stock) if mat.current_stock.is_integer() else mat.current_stock
+        socketio.emit('inventory_alert', {
+            'id': mat.id,
+            'name': mat.name,
+            'current_stock': mat.current_stock,
+            'threshold': mat.low_stock_threshold,
+            'unit': mat.unit,
+            'message': f"⚠️ Low Stock Warning: Only {display_qty} {mat.unit} left for '{mat.name}'!"
+        }, namespace='/')
+        
     return redirect(url_for('admin_inventory'))
+
+@app.route('/admin/inventory/sync_menu', methods=['POST', 'GET'])
+@login_required
+def sync_menu_inventory():
+    if current_user.role not in ['admin', 'manager']:
+        flash('Unauthorized', 'danger')
+        return redirect(url_for('admin_inventory'))
+        
+    menu_items = MenuItem.query.all()
+    count_added = 0
+    for mi in menu_items:
+        clean_name = mi.name.strip()
+        mat = RawMaterial.query.filter(db.func.lower(RawMaterial.name) == db.func.lower(clean_name)).first()
+        if not mat:
+            mat = RawMaterial(
+                name=clean_name,
+                unit='pcs',
+                current_stock=25.0,
+                low_stock_threshold=5.0
+            )
+            db.session.add(mat)
+            count_added += 1
+            
+    db.session.commit()
+    flash(f"Successfully synced menu items! {count_added} new items linked to inventory tracking.", "success")
+    return redirect(url_for('admin_inventory'))
+
+@app.route('/api/inventory/quick_update', methods=['POST'])
+@login_required
+def api_quick_inventory_update():
+    if current_user.role not in ['admin', 'manager']:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+    data = request.json or {}
+    material_id = data.get('material_id')
+    new_stock = data.get('current_stock')
+    threshold = data.get('low_stock_threshold')
+    
+    mat = RawMaterial.query.get(material_id)
+    if not mat:
+        return jsonify({'success': False, 'message': 'Item not found'}), 404
+        
+    if new_stock is not None:
+        try:
+            val = float(new_stock)
+            diff = val - mat.current_stock
+            mat.current_stock = max(0.0, val)
+            log = InventoryLog(
+                raw_material_id=mat.id,
+                type='adjustment',
+                quantity=abs(diff),
+                reason=f"Quick Stock Adjustment to {val}",
+                user_id=current_user.id
+            )
+            db.session.add(log)
+        except ValueError:
+            pass
+            
+    if threshold is not None:
+        try:
+            mat.low_stock_threshold = max(0.0, float(threshold))
+        except ValueError:
+            pass
+            
+    db.session.commit()
+    
+    # Broadcast alert if stock <= threshold
+    if mat.current_stock <= mat.low_stock_threshold:
+        display_qty = int(mat.current_stock) if mat.current_stock.is_integer() else mat.current_stock
+        socketio.emit('inventory_alert', {
+            'id': mat.id,
+            'name': mat.name,
+            'current_stock': mat.current_stock,
+            'threshold': mat.low_stock_threshold,
+            'unit': mat.unit,
+            'message': f"⚠️ Low Stock Warning: Only {display_qty} {mat.unit} left for '{mat.name}'!"
+        }, namespace='/')
+        
+    return jsonify({
+        'success': True,
+        'current_stock': mat.current_stock,
+        'low_stock_threshold': mat.low_stock_threshold,
+        'is_low_stock': mat.current_stock <= mat.low_stock_threshold
+    })
 
 @app.route('/admin')
 def admin_index():
