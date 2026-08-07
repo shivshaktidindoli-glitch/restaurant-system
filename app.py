@@ -63,7 +63,14 @@ if database_url:
     # Render and some providers use postgres:// which is deprecated in SQLAlchemy 1.4+
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql://", 1)
+    if "sslmode=" not in database_url and "neon.tech" in database_url:
+        sep = "&" if "?" in database_url else "?"
+        database_url = f"{database_url}{sep}sslmode=require"
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+    }
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(db_dir, 'restaurant.db')
 
@@ -103,75 +110,61 @@ def inject_inventory_alerts():
     return dict(low_stock_items=[])
 
 
-# Create tables before first request if they don't exist
-with app.app_context():
-    db.create_all()
-    
-    # Safe auto-migration for Phase 20 & POSS
-    try:
-        from sqlalchemy import text
-        queries = [
-            "ALTER TABLE branches ADD COLUMN license_key VARCHAR(100)",
-            "ALTER TABLE orders ADD COLUMN has_new_items BOOLEAN DEFAULT 0",
-            "ALTER TABLE orders ADD COLUMN coupon_code VARCHAR(50)",
-            "ALTER TABLE orders ADD COLUMN delivery_address TEXT",
-            "ALTER TABLE orders ADD COLUMN landmark VARCHAR(100)",
-            "ALTER TABLE orders ADD COLUMN delivery_charge FLOAT DEFAULT 0.0",
-            "ALTER TABLE orders ADD COLUMN delivery_staff_id INTEGER REFERENCES staff_users(id)",
-            "ALTER TABLE invoices ADD COLUMN delivery_charge FLOAT DEFAULT 0.0",
-            "ALTER TABLE invoices ADD COLUMN coupon_code VARCHAR(50)"
-        ]
-        for q in queries:
+# Create tables and auto-seed on startup safely
+def init_database_and_seed():
+    with app.app_context():
+        try:
+            db.create_all()
+        except Exception as e:
+            print(f"Error in db.create_all: {e}")
+
+        # License Key Sync
+        client_license = os.environ.get('CLIENT_LICENSE_KEY')
+        if client_license:
             try:
-                db.session.execute(text(q))
-                db.session.commit()
+                first_branch = Branch.query.first()
+                if first_branch and first_branch.license_key != client_license:
+                    first_branch.license_key = client_license
+                    db.session.commit()
             except Exception:
                 db.session.rollback()
-    except Exception:
-        pass
 
-    # License Key Sync
-    client_license = os.environ.get('CLIENT_LICENSE_KEY')
-    if client_license:
+        # Auto-seed logic for fresh deployments & menu loading
         try:
-            first_branch = Branch.query.first()
-            if first_branch and first_branch.license_key != client_license:
-                first_branch.license_key = client_license
-                db.session.commit()
-        except Exception:
+            if User.query.count() == 0:
+                print("Empty database detected. Running auto-seed...")
+                import seed
+                seed.seed_data()
+                print("Auto-seed successful!")
+            elif Category.query.count() == 0:
+                import seed
+                seed.load_menu_from_csv()
+                print("Menu auto-loaded from CSV!")
+        except Exception as e:
+            print(f"Auto-seed warning: {e}")
             db.session.rollback()
-    # Auto-seed logic for fresh deployments & menu loading
-    if User.query.count() == 0:
-        print("Empty database detected. Running auto-seed...")
-        try:
-            import seed
-            seed.seed_data()
-            print("Auto-seed successful!")
-        except Exception as e:
-            print(f"Auto-seed failed: {e}")
-    elif Category.query.count() == 0:
-        try:
-            import seed
-            seed.load_menu_from_csv()
-            print("Menu auto-loaded from CSV!")
-        except Exception as e:
-            print(f"Menu auto-load failed: {e}")
 
-    # Auto-sync menu items to inventory if RawMaterial is empty
-    try:
-        if RawMaterial.query.count() == 0 and MenuItem.query.count() > 0:
-            for mi in MenuItem.query.all():
-                mat = RawMaterial(
-                    name=mi.name.strip(),
-                    unit='pcs',
-                    current_stock=20.0,
-                    low_stock_threshold=5.0
-                )
-                db.session.add(mat)
-            db.session.commit()
-            print("All menu items auto-synced to inventory with 20.0 initial stock!")
-    except Exception as e:
-        print(f"Inventory auto-sync error: {e}")
+        # Auto-sync menu items to inventory if RawMaterial is empty
+        try:
+            if RawMaterial.query.count() == 0 and MenuItem.query.count() > 0:
+                for mi in MenuItem.query.all():
+                    mat = RawMaterial(
+                        name=mi.name.strip(),
+                        unit='pcs',
+                        current_stock=20.0,
+                        low_stock_threshold=5.0
+                    )
+                    db.session.add(mat)
+                db.session.commit()
+                print("All menu items auto-synced to inventory with 20.0 initial stock!")
+        except Exception as e:
+            print(f"Inventory auto-sync error: {e}")
+            db.session.rollback()
+
+try:
+    init_database_and_seed()
+except Exception as e:
+    print(f"Database initialization warning: {e}")
 
 def log_activity(action, details):
     uid = current_user.id if current_user.is_authenticated else None
@@ -3068,10 +3061,12 @@ def auto_migrate():
         except Exception:
             db.session.rollback()
 
-# Run migration on startup (even with Gunicorn)
-auto_migrate()
+# Run migration on startup safely
+try:
+    auto_migrate()
+except Exception as e:
+    print(f"Auto-migrate warning: {e}")
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    # Use socketio.run for development server with websocket support
     socketio.run(app, debug=False, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)
