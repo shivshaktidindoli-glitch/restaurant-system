@@ -240,11 +240,17 @@ def deduct_item_inventory(menu_item, quantity, order_id=None, order_type='dine-i
             }, namespace='/')
             
             log_activity('low_stock_warning', alert_msg)
-            print(f"[INVENTORY ALERT] {alert_msg}")
+            try:
+                print(f"[INVENTORY ALERT] {alert_msg}")
+            except Exception:
+                pass
             
         return mat
     except Exception as e:
-        print(f"Error deducting inventory for {menu_item.name}: {e}")
+        try:
+            print(f"Error deducting inventory for {menu_item.name}: {e}")
+        except Exception:
+            pass
         db.session.rollback()
         return None
 
@@ -509,16 +515,24 @@ def place_order():
     order_type = data.get('order_type', 'dine-in') # dine-in, parcel, home-delivery
     
     table = None
-    if table_name:
-        table = Table.query.filter_by(name=table_name).first()
+    default_branch = Branch.query.first()
+    default_branch_id = default_branch.id if default_branch else 1
+
+    if table_name and str(table_name).strip():
+        clean_tbl = str(table_name).strip()
+        table = Table.query.filter(db.func.lower(Table.name) == db.func.lower(clean_tbl)).first()
+        if not table:
+            tbl_stripped = clean_tbl.lower().replace('table', '').strip()
+            table = Table.query.filter(db.func.lower(Table.name) == tbl_stripped).first()
+        
         if table:
-            branch_id = table.branch_id
+            branch_id = table.branch_id or default_branch_id
         else:
-            return jsonify({'success': False, 'message': 'Invalid table'}), 400
+            # Fallback to parcel if table name is invalid instead of crashing
+            branch_id = default_branch_id
+            order_type = 'parcel'
     else:
-        # Default branch if no table (parcel)
-        branch = Branch.query.first()
-        branch_id = branch.id
+        branch_id = default_branch_id
 
     if not items:
         return jsonify({'success': False, 'message': 'Cart is empty'}), 400
@@ -1180,22 +1194,44 @@ def edit_table(table_id):
     return redirect(url_for('manage_tables'))
 
 @app.route('/admin/qr/<int:table_id>')
-@login_required
+@app.route('/table/qr/<int:table_id>')
 def get_qr(table_id):
     table = Table.query.get_or_404(table_id)
-    # Important: request.host_url gives something like "http://127.0.0.1:5000/"
     url = f"{request.host_url}menu?table={table.name}"
     
-    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr = qrcode.QRCode(version=1, box_size=12, border=4)
     qr.add_data(url)
     qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white")
+    img = qr.make_image(fill_color="#0f172a", back_color="#ffffff")
     
     img_io = io.BytesIO()
     img.save(img_io, 'PNG')
     img_io.seek(0)
-    from flask import send_file
-    return send_file(img_io, mimetype='image/png')
+    from flask import send_file, make_response
+    response = make_response(send_file(img_io, mimetype='image/png'))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    return response
+
+@app.route('/table/qr_by_name/<string:table_name>')
+def get_qr_by_name(table_name):
+    table = Table.query.filter(db.func.lower(Table.name) == db.func.lower(table_name.strip())).first()
+    if not table:
+        url = f"{request.host_url}menu?table={table_name}"
+    else:
+        url = f"{request.host_url}menu?table={table.name}"
+        
+    qr = qrcode.QRCode(version=1, box_size=12, border=4)
+    qr.add_data(url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="#0f172a", back_color="#ffffff")
+    
+    img_io = io.BytesIO()
+    img.save(img_io, 'PNG')
+    img_io.seek(0)
+    from flask import send_file, make_response
+    response = make_response(send_file(img_io, mimetype='image/png'))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    return response
 
 @app.route('/admin/new_parcel')
 @login_required
@@ -1639,6 +1675,62 @@ def toggle_item():
         return jsonify({'success': True})
     return jsonify({'success': False})
 
+@app.route('/admin/items/edit/<int:item_id>', methods=['POST'])
+@login_required
+@role_required('admin', 'manager')
+def edit_item(item_id):
+    item = MenuItem.query.get_or_404(item_id)
+    old_name = item.name
+    
+    name = request.form.get('name')
+    name_hi = request.form.get('name_hi')
+    name_gu = request.form.get('name_gu')
+    cat_id = request.form.get('category_id')
+    price = request.form.get('price', type=float)
+    desc = request.form.get('description', '')
+    desc_hi = request.form.get('desc_hi', '')
+    desc_gu = request.form.get('desc_gu', '')
+    variant = request.form.get('variant_name', '')
+    is_combo = request.form.get('is_combo') == 'on'
+    combo_items = request.form.get('combo_items', '')
+    is_favorite = request.form.get('is_favorite') == 'on'
+    food_type = request.form.get('food_type', 'veg')
+    short_code = request.form.get('short_code', '')
+    
+    if name and cat_id and price is not None:
+        import json
+        combo_json = json.dumps([i.strip() for i in combo_items.split(',') if i.strip()]) if is_combo else "[]"
+        
+        item.name = name.strip()
+        item.name_hi = name_hi.strip() if name_hi else None
+        item.name_gu = name_gu.strip() if name_gu else None
+        item.category_id = cat_id
+        item.price = price
+        item.description = desc
+        item.desc_hi = desc_hi
+        item.desc_gu = desc_gu
+        item.variant_name = variant
+        item.is_combo = is_combo
+        item.combo_items = combo_json
+        item.is_favorite = is_favorite
+        item.food_type = food_type
+        item.short_code = short_code
+        
+        # If name changed, also update corresponding RawMaterial name
+        if old_name != item.name:
+            mat = RawMaterial.query.filter(db.func.lower(RawMaterial.name) == db.func.lower(old_name)).first()
+            if mat:
+                mat.name = item.name
+                
+        db.session.commit()
+        socketio.emit('menu_update', namespace='/')
+        log_activity('item_edited', f"Menu item '{item.name}' updated.")
+        flash(f"Item '{item.name}' updated successfully.", 'success')
+    else:
+        flash("Invalid item data.", 'danger')
+        
+    return redirect(url_for('items'))
+
 @app.route('/admin/items/delete/<int:item_id>', methods=['POST'])
 @login_required
 @role_required('admin', 'manager')
@@ -1656,6 +1748,28 @@ def delete_item(item_id):
         db.session.rollback()
         flash(f"Error deleting item: {str(e)}", 'error')
     return redirect(url_for('items'))
+
+@app.route('/admin/categories/edit/<int:cat_id>', methods=['POST'])
+@login_required
+@role_required('admin', 'manager')
+def edit_category(cat_id):
+    cat = Category.query.get_or_404(cat_id)
+    name = request.form.get('name')
+    name_hi = request.form.get('name_hi')
+    name_gu = request.form.get('name_gu')
+    
+    if name:
+        cat.name = name.strip()
+        cat.name_hi = name_hi.strip() if name_hi else None
+        cat.name_gu = name_gu.strip() if name_gu else None
+        db.session.commit()
+        socketio.emit('menu_update', namespace='/')
+        log_activity('category_edited', f"Category updated to '{cat.name}'.")
+        flash(f"Category '{cat.name}' updated successfully.", 'success')
+    else:
+        flash("Category name is required.", 'danger')
+        
+    return redirect(url_for('categories'))
 
 @app.route('/admin/categories/delete/<int:cat_id>', methods=['POST'])
 @login_required

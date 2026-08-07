@@ -147,15 +147,22 @@
             {% endif %}
             
             <div class="table-actions">
-                <select onchange="updateTableStatus({{ table.id }}, this.value)">
-                    <option value="vacant" {% if table.status == 'vacant' %}selected{% endif %}>Vacant</option>
-                    <option value="occupied" {% if table.status == 'occupied' %}selected{% endif %}>Occupied</option>
-                    <option value="cleaning" {% if table.status == 'cleaning' %}selected{% endif %}>Needs Cleaning</option>
+                <select onchange="updateTableStatus({{ table.id }}, this.value)" style="padding: 7px; border-radius: 6px; border: 1px solid var(--border-color); width: 100%; margin-bottom: 8px; font-weight: 500;">
+                    <option value="vacant" {% if table.status == 'vacant' %}selected{% endif %}>🟢 Vacant</option>
+                    <option value="occupied" {% if table.status == 'occupied' %}selected{% endif %}>🔴 Occupied</option>
+                    <option value="cleaning" {% if table.status == 'cleaning' %}selected{% endif %}>🟡 Needs Cleaning</option>
                 </select>
-                <button class="btn-primary" style="width: 100%; margin-bottom: 8px; font-weight: bold; padding: 8px;" onclick="takeTableOrder({{ table.id }})">
-                    Take Order
-                </button>
-                <button class="btn-qr" onclick="window.open('/menu?table={{ table.name }}', '_blank')">Simulate QR Scan</button>
+                <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+                    <button class="btn-primary" style="flex: 1; font-weight: 600; padding: 8px; font-size: 0.85rem;" onclick="takeTableOrder({{ table.id }})">
+                        🍽️ Order
+                    </button>
+                    <button type="button" style="flex: 1; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 6px; font-weight: 600; padding: 8px; font-size: 0.85rem; cursor: pointer;" onclick="showTableQR({{ table.id }}, '{{ table.name }}')">
+                        📱 QR Code
+                    </button>
+                </div>
+                <a href="/menu?table={{ table.name }}" target="_blank" style="display: block; text-align: center; font-size: 0.75rem; color: var(--text-secondary); text-decoration: none; padding: 3px 0;">
+                    🔗 Open Customer Menu &rarr;
+                </a>
             </div>
         </div>
         {% endfor %}
@@ -163,10 +170,100 @@
     {% endfor %}
 </div>
 
+<!-- Table QR Code Modal -->
+<div id="liveTableQRModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div style="background: white; border-radius: 16px; max-width: 440px; width: 90%; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); padding: 28px; position: relative;">
+        <button type="button" onclick="closeTableQR()" style="position: absolute; top: 16px; right: 18px; background: none; border: none; font-size: 1.5rem; color: #64748b; cursor: pointer; line-height: 1;">&times;</button>
+        
+        <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--brand-orange); font-weight: 700; margin-bottom: 4px;">Soul Sip Cafe</div>
+        <h2 id="liveQRTitle" style="margin: 0 0 6px 0; font-size: 1.4rem; color: #1e293b;">Table QR Code</h2>
+        <p style="color: #64748b; font-size: 0.85rem; margin: 0 0 16px 0;">Scan to open interactive digital menu & order directly</p>
+        
+        <div style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 16px; display: inline-block; margin-bottom: 16px;">
+            <img id="liveQRImage" src="" alt="Table QR Code" style="width: 220px; height: 220px; display: block; border-radius: 8px;">
+        </div>
+        
+        <div style="background: #f1f5f9; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; color: #475569; word-break: break-all; margin-bottom: 18px;" id="liveQRUrlText">
+            -
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button type="button" onclick="printTableQR()" class="btn-primary" style="padding: 10px; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                🖨️ Print Standee
+            </button>
+            <button type="button" onclick="downloadTableQR()" style="background: #0284c7; color: white; border: none; border-radius: 6px; padding: 10px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                💾 Download PNG
+            </button>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
+    var socket = window.socket || (typeof io !== 'undefined' ? io() : null);
+
+    let currentQRTableId = null;
+    let currentQRTableName = '';
+
+    function showTableQR(id, name) {
+        currentQRTableId = id;
+        currentQRTableName = name;
+        const url = window.location.origin + '/menu?table=' + encodeURIComponent(name);
+        document.getElementById('liveQRTitle').innerText = 'Table ' + name + ' QR';
+        document.getElementById('liveQRImage').src = '/table/qr/' + id + '?t=' + new Date().getTime();
+        document.getElementById('liveQRUrlText').innerText = url;
+        document.getElementById('liveTableQRModal').style.display = 'flex';
+    }
+
+    function closeTableQR() {
+        document.getElementById('liveTableQRModal').style.display = 'none';
+    }
+
+    function printTableQR() {
+        const qrSrc = document.getElementById('liveQRImage').src;
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>QR Standee - Table ${currentQRTableName}</title>
+                <style>
+                    body { font-family: 'Inter', sans-serif; text-align: center; padding: 40px; margin: 0; }
+                    .standee-card { border: 3px solid #1e293b; border-radius: 20px; padding: 30px; max-width: 320px; margin: 0 auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+                    h1 { color: #f97316; margin: 0 0 5px 0; font-size: 1.8rem; }
+                    h2 { margin: 10px 0; font-size: 1.4rem; color: #1e293b; }
+                    p { color: #64748b; font-size: 0.95rem; margin-bottom: 20px; }
+                    img { width: 220px; height: 220px; }
+                    .footer { margin-top: 20px; font-size: 0.85rem; color: #94a3b8; font-weight: 500; }
+                </style>
+            </head>
+            <body>
+                <div class="standee-card">
+                    <h1>Soul Sip Cafe</h1>
+                    <h2>Table ${currentQRTableName}</h2>
+                    <p>Scan to view menu & order instantly from your phone!</p>
+                    <img src="${qrSrc}" />
+                    <div class="footer">✨ Seamless Contactless Ordering ✨</div>
+                </div>
+                <script>
+                    window.onload = function() { window.print(); }
+                <\/script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+    }
+
+    function downloadTableQR() {
+        const link = document.createElement('a');
+        link.href = '/table/qr/' + currentQRTableId;
+        link.download = `table_${currentQRTableName}_qr.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
     function searchTables() {
         const input = document.getElementById('searchTable').value.toLowerCase();
         const cards = document.querySelectorAll('.table-card');
@@ -210,7 +307,7 @@
                 body: JSON.stringify({ table_id: tableId, status: newStatus })
             });
             if (resp.ok) {
-                window.location.reload(); // Reload to refresh stats & colors easily
+                window.location.reload();
             } else {
                 alert("Failed to update status");
             }

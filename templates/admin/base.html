@@ -567,8 +567,9 @@
         }
 
         // Global Real-time Inventory Alert Listener
-        const socket = io();
-        socket.on('inventory_alert', function(data) {
+        window.socket = window.socket || (typeof io !== 'undefined' ? io() : null);
+        if (window.socket) {
+            window.socket.on('inventory_alert', function(data) {
             console.warn('[INVENTORY ALERT]', data);
             
             // 1. Play alert chime using Web Audio API
@@ -634,7 +635,8 @@
                     setTimeout(() => toast.remove(), 400);
                 }
             }, 10000);
-        });
+            });
+        }
     </script>
 </body>
 </html>

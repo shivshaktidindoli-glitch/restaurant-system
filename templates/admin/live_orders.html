@@ -305,7 +305,7 @@
 
 {% block scripts %}
 <script>
-    const socket = io();
+    var socket = window.socket || (typeof io !== 'undefined' ? io() : null);
     
     let currentSettleOrder = null;
     let currentSettleOrderId = null;

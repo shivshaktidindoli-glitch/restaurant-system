@@ -257,10 +257,12 @@
     };
     
     // Live update for sold-out items / reorders
-    const socket = io();
-    socket.on('menu_update', function() {
-        // Reload page to get fresh items
-        window.location.reload();
-    });
+    var socket = window.socket || (typeof io !== 'undefined' ? io() : null);
+    if (socket) {
+        socket.on('menu_update', function() {
+            // Reload page to get fresh items
+            window.location.reload();
+        });
+    }
 </script>
 {% endblock %}

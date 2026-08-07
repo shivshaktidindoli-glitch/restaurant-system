@@ -77,7 +77,7 @@
     <audio id="notif-sound" src="/static/audio/beep.wav" preload="auto"></audio>
 
     <script>
-    const socket = io();
+    var socket = window.socket || (typeof io !== 'undefined' ? io() : null);
     
     // Unlock audio on first user interaction to bypass browser autoplay policies
     let audioUnlocked = false;

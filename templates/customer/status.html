@@ -89,7 +89,7 @@
 
 {% block scripts %}
 <script>
-    const socket = io();
+    var socket = window.socket || (typeof io !== 'undefined' ? io() : null);
     const orderId = {{ order.id }};
     
     socket.on('connect', () => {

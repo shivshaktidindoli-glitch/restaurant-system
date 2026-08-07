@@ -97,13 +97,20 @@
 
 <!-- QR Modal -->
 <div class="modal" id="qrModal">
-    <div class="modal-content">
-        <h2 id="qrTitle">Table QR</h2>
-        <p style="color: var(--text-secondary); margin-top: 5px;">Scan to open menu directly.</p>
-        <img id="qrImage" src="" alt="QR Code">
-        <div>
-            <button class="btn-primary" onclick="closeQR()">Close</button>
-            <button class="btn-sm" onclick="window.open(document.getElementById('qrImage').src, '_blank')">Print</button>
+    <div class="modal-content" style="max-width: 440px; padding: 28px; border-radius: 16px; position: relative;">
+        <button type="button" onclick="closeQR()" style="position: absolute; top: 16px; right: 18px; background: none; border: none; font-size: 1.5rem; color: #64748b; cursor: pointer; line-height: 1;">&times;</button>
+        <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--brand-orange); font-weight: 700; margin-bottom: 4px;">Soul Sip Cafe</div>
+        <h2 id="qrTitle" style="margin: 0 0 6px 0; font-size: 1.4rem; color: #1e293b;">Table QR</h2>
+        <p style="color: var(--text-secondary); margin: 0 0 16px 0; font-size: 0.85rem;">Scan to open customer menu directly</p>
+        <div style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 16px; display: inline-block; margin-bottom: 16px;">
+            <img id="qrImage" src="" alt="QR Code" style="width: 220px; height: 220px; display: block; border-radius: 8px;">
+        </div>
+        <div style="background: #f1f5f9; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; color: #475569; word-break: break-all; margin-bottom: 18px;" id="qrUrlDisplay">
+            -
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button class="btn-primary" onclick="printStandee()" style="padding: 10px; font-weight: 600; font-size: 0.85rem;">🖨️ Print Standee</button>
+            <button type="button" onclick="downloadQR()" style="background: #0284c7; color: white; border: none; border-radius: 6px; padding: 10px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">💾 Download PNG</button>
         </div>
     </div>
 </div>
@@ -138,15 +145,64 @@
 
 {% block scripts %}
 <script>
+    let activeQRTableId = null;
+    let activeQRTableName = '';
+
     function showQR(id, name) {
-        document.getElementById('qrTitle').innerText = name + ' QR Code';
-        // Cache bust the image URL just in case
-        document.getElementById('qrImage').src = '/admin/qr/' + id + '?t=' + new Date().getTime();
+        activeQRTableId = id;
+        activeQRTableName = name;
+        const url = window.location.origin + '/menu?table=' + encodeURIComponent(name);
+        document.getElementById('qrTitle').innerText = 'Table ' + name + ' QR';
+        document.getElementById('qrImage').src = '/table/qr/' + id + '?t=' + new Date().getTime();
+        document.getElementById('qrUrlDisplay').innerText = url;
         document.getElementById('qrModal').classList.add('active');
     }
     
     function closeQR() {
         document.getElementById('qrModal').classList.remove('active');
+    }
+
+    function printStandee() {
+        const qrSrc = document.getElementById('qrImage').src;
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>QR Standee - Table ${activeQRTableName}</title>
+                <style>
+                    body { font-family: 'Inter', sans-serif; text-align: center; padding: 40px; margin: 0; }
+                    .standee-card { border: 3px solid #1e293b; border-radius: 20px; padding: 30px; max-width: 320px; margin: 0 auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+                    h1 { color: #f97316; margin: 0 0 5px 0; font-size: 1.8rem; }
+                    h2 { margin: 10px 0; font-size: 1.4rem; color: #1e293b; }
+                    p { color: #64748b; font-size: 0.95rem; margin-bottom: 20px; }
+                    img { width: 220px; height: 220px; }
+                    .footer { margin-top: 20px; font-size: 0.85rem; color: #94a3b8; font-weight: 500; }
+                </style>
+            </head>
+            <body>
+                <div class="standee-card">
+                    <h1>Soul Sip Cafe</h1>
+                    <h2>Table ${activeQRTableName}</h2>
+                    <p>Scan to view menu & order instantly from your phone!</p>
+                    <img src="${qrSrc}" />
+                    <div class="footer">✨ Seamless Contactless Ordering ✨</div>
+                </div>
+                <script>
+                    window.onload = function() { window.print(); }
+                <\/script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+    }
+
+    function downloadQR() {
+        const link = document.createElement('a');
+        link.href = '/table/qr/' + activeQRTableId;
+        link.download = `table_${activeQRTableName}_qr.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
     
     function editTable(id, name, section, seats) {
