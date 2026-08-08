@@ -37,6 +37,31 @@
     
     .row { display: flex; gap: 15px; }
     .col { flex: 1; }
+
+    @media (max-width: 768px) {
+        .billing-layout {
+            flex-direction: column !important;
+            height: auto !important;
+            gap: 15px !important;
+        }
+        .col-list {
+            width: 100% !important;
+            max-height: 250px !important;
+        }
+        .col-bill {
+            width: 100% !important;
+        }
+        .bill-content {
+            padding: 16px !important;
+        }
+        .billing-footer {
+            padding: 16px !important;
+        }
+        .row {
+            flex-direction: column !important;
+            gap: 10px !important;
+        }
+    }
 </style>
 
 <div class="billing-layout">
