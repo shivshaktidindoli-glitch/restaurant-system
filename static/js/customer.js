@@ -218,6 +218,12 @@ function closeCheckout() {
 }
 
 async function placeOrder() {
+    const btn = document.getElementById('btnPlaceOrder');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = 'Placing...';
+    }
+    
     let finalTable = currentTable;
     let manualTableEl = document.getElementById('manual-table');
     let orderType = 'dine-in';
@@ -258,10 +264,12 @@ async function placeOrder() {
                 window.location.href = `/order/${data.order_id}`;
             }, 250); // wait for beep to finish before redirecting
         } else {
+            if (btn) { btn.disabled = false; btn.innerHTML = 'Place Order'; }
             alert('Error: ' + data.message);
         }
-    } catch (err) {
+    } catch(err) {
         console.error(err);
+        if (btn) { btn.disabled = false; btn.innerHTML = 'Place Order'; }
         alert('Failed to place order.');
     }
 }
