@@ -1091,6 +1091,7 @@ def live_orders():
     orders_served = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter_by(status='served').order_by(Order.created_at.desc()).all() if len(o.items) > 0]
     orders_completed = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter(Order.status == 'completed', Order.created_at >= today_start).order_by(Order.created_at.desc()).all() if len(o.items) > 0]
     waiter_calls = WaiterCall.query.filter_by(status='pending').order_by(WaiterCall.created_at.desc()).all()
+    branches = Branch.query.all()
     
     return render_template('admin/live_orders.html', 
                            active_page='live_orders',
