@@ -48,6 +48,7 @@
             </select>
         </div>
         <button class="btn-print" onclick="window.print()">🖨️ Print Invoice</button>
+        <button class="btn-whatsapp" onclick="shareWhatsApp()" style="background-color: #25D366; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600; margin-left: 10px; font-size: 1rem;"><i class="fa-brands fa-whatsapp"></i> Share on WhatsApp</button>
     </div>
 
     <div class="invoice-paper thermal-80" id="invoicePaper">
@@ -157,6 +158,57 @@
             const val = document.getElementById('formatSelect').value;
             const paper = document.getElementById('invoicePaper');
             paper.className = 'invoice-paper ' + val;
+        }
+        
+        function shareWhatsApp() {
+            let billText = "*Soul Sip Cafe*\n";
+            billText += "123 Main Street, City\n";
+            billText += "----------------------------\n";
+            billText += "*TAX INVOICE*\n";
+            billText += "Inv No: {{ invoice.invoice_number }}\n";
+            billText += "Date: {{ invoice.created_at.strftime('%Y-%m-%d %H:%M') }}\n";
+            {% if invoice.order.customer_name %}
+            billText += "Customer: {{ invoice.order.customer_name }}\n";
+            {% endif %}
+            billText += "----------------------------\n";
+            
+            {% set items = {} %}
+            {% for item in invoice.order.items %}
+                {% if item.menu_item.name in items %}
+                    {% set _ = items.update({item.menu_item.name: {'qty': items[item.menu_item.name].qty + item.quantity, 'tot': items[item.menu_item.name].tot + (item.quantity * item.price_at_order)}}) %}
+                {% else %}
+                    {% set _ = items.update({item.menu_item.name: {'qty': item.quantity, 'tot': (item.quantity * item.price_at_order)}}) %}
+                {% endif %}
+            {% endfor %}
+            
+            {% for name, data in items.items() %}
+            billText += "{{ data.qty }}x {{ name }} - Rs.{{ '%.2f'|format(data.tot) }}\n";
+            {% endfor %}
+            
+            billText += "----------------------------\n";
+            billText += "Subtotal: Rs.{{ '%.2f'|format(invoice.subtotal) }}\n";
+            {% if invoice.discount > 0 %}
+            billText += "Discount: -Rs.{{ '%.2f'|format(invoice.discount) }}\n";
+            {% endif %}
+            billText += "Taxes: Rs.{{ '%.2f'|format(invoice.gst_amount) }}\n";
+            billText += "Round Off: Rs.{{ '%.2f'|format(invoice.round_off) }}\n";
+            billText += "*GRAND TOTAL: Rs.{{ invoice.total }}*\n";
+            billText += "----------------------------\n";
+            billText += "Thank you for dining with us!\n";
+            
+            let customerMobile = "{{ invoice.order.customer_mobile or '' }}";
+            
+            // Create WhatsApp URL
+            let url = "https://wa.me/";
+            if (customerMobile && customerMobile.length >= 10) {
+                if (!customerMobile.startsWith("91") && customerMobile.length === 10) {
+                    customerMobile = "91" + customerMobile;
+                }
+                url += customerMobile;
+            }
+            url += "?text=" + encodeURIComponent(billText);
+            
+            window.open(url, '_blank');
         }
         
         // Anti-DevTools Deterrent
