@@ -70,6 +70,9 @@ if database_url:
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
         'pool_pre_ping': True,
         'pool_recycle': 300,
+        'pool_size': 10,
+        'max_overflow': 20,
+        'pool_timeout': 30,
     }
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(db_dir, 'restaurant.db')
@@ -115,6 +118,26 @@ def init_database_and_seed():
     with app.app_context():
         try:
             db.create_all()
+            
+            # Execute CREATE INDEX for performance optimization explicitly for existing tables
+            from sqlalchemy import text
+            index_queries = [
+                "CREATE INDEX IF NOT EXISTS ix_menu_items_category_id ON menu_items (category_id);",
+                "CREATE INDEX IF NOT EXISTS ix_orders_branch_id ON orders (branch_id);",
+                "CREATE INDEX IF NOT EXISTS ix_orders_table_id ON orders (table_id);",
+                "CREATE INDEX IF NOT EXISTS ix_orders_status ON orders (status);",
+                "CREATE INDEX IF NOT EXISTS ix_orders_created_at ON orders (created_at);",
+                "CREATE INDEX IF NOT EXISTS ix_order_items_order_id ON order_items (order_id);",
+                "CREATE INDEX IF NOT EXISTS ix_invoices_order_id ON invoices (order_id);",
+                "CREATE INDEX IF NOT EXISTS ix_invoices_created_at ON invoices (created_at);"
+            ]
+            for q in index_queries:
+                try:
+                    db.session.execute(text(q))
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
+                    
         except Exception as e:
             print(f"Error in db.create_all: {e}")
 
