@@ -17,6 +17,7 @@ from flask_wtf.csrf import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 
 def role_required(*roles):
     def wrapper(fn):
@@ -522,10 +523,15 @@ def index():
 @limiter.limit("100 per minute")
 def menu():
     table_name = request.args.get('table')
+    
+    # Optimize N+1 queries by fetching everything at once and grouping in memory
     categories = Category.query.order_by(Category.sort_order.asc()).all()
-    menu_items_by_cat = {}
-    for cat in categories:
-        menu_items_by_cat[cat.id] = [i for i in cat.items if i.is_available]
+    all_items = MenuItem.query.filter_by(is_available=True).all()
+    
+    menu_items_by_cat = {cat.id: [] for cat in categories}
+    for item in all_items:
+        if item.category_id in menu_items_by_cat:
+            menu_items_by_cat[item.category_id].append(item)
         
     table = None
     if table_name:
@@ -1044,10 +1050,10 @@ def live_orders():
     # Only show completed orders for today
     today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     
-    orders_new = [o for o in Order.query.filter_by(status='new').order_by(Order.created_at.desc()).all() if len(o.items) > 0]
-    orders_preparing = [o for o in Order.query.filter_by(status='preparing').order_by(Order.created_at.desc()).all() if len(o.items) > 0]
-    orders_served = [o for o in Order.query.filter_by(status='served').order_by(Order.created_at.desc()).all() if len(o.items) > 0]
-    orders_completed = [o for o in Order.query.filter(Order.status == 'completed', Order.created_at >= today_start).order_by(Order.created_at.desc()).all() if len(o.items) > 0]
+    orders_new = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter_by(status='new').order_by(Order.created_at.desc()).all() if len(o.items) > 0]
+    orders_preparing = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter_by(status='preparing').order_by(Order.created_at.desc()).all() if len(o.items) > 0]
+    orders_served = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter_by(status='served').order_by(Order.created_at.desc()).all() if len(o.items) > 0]
+    orders_completed = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter(Order.status == 'completed', Order.created_at >= today_start).order_by(Order.created_at.desc()).all() if len(o.items) > 0]
     
     branches = Branch.query.all()
     
@@ -1119,7 +1125,7 @@ def live_tables():
         
         if t.status == 'occupied':
             # Sum all non-completed/cancelled orders for this table
-            active_orders = Order.query.filter(Order.table_id == t.id, Order.status.notin_(['completed', 'cancelled'])).all()
+            active_orders = Order.query.options(joinedload(Order.items)).filter(Order.table_id == t.id, Order.status.notin_(['completed', 'cancelled', 'settled'])).all()
             for o in active_orders:
                 for item in o.items:
                     t.active_total += item.price_at_order * item.quantity
@@ -1333,8 +1339,8 @@ def my_deliveries():
 @login_required
 @role_required('manager', 'cashier')
 def billing():
-    # Fetch all completed orders
-    completed_orders = Order.query.filter_by(status='completed').all()
+    # Fetch all completed orders with eager loading to prevent massive N+1 slow queries
+    completed_orders = Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter_by(status='completed').all()
     
     # Group by table for dine-in, keep parcel separate
     sessions = {}
@@ -1713,7 +1719,7 @@ def items():
         return redirect(url_for('items'))
         
     cats = Category.query.order_by(Category.sort_order.asc()).all()
-    items = MenuItem.query.join(Category).order_by(Category.sort_order, MenuItem.name).all()
+    items = MenuItem.query.join(Category).options(joinedload(MenuItem.category)).order_by(Category.sort_order, MenuItem.name).all()
     return render_template('admin/items.html', categories=cats, items=items, active_page='items')
 
 @app.route('/api/toggle_item', methods=['POST'])
