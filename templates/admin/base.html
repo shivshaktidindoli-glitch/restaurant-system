@@ -66,8 +66,8 @@
     <div class="sidebar">
         <div class="sidebar-header">
             <div style="display:flex; align-items:center; gap:10px;">
-                <div class="dot" style="background:#dc2626;"></div>
-                <h2>RADHA POSS</h2>
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" style="height: 30px; border-radius: 4px;">
+                <h2>SOUL SIP POSS</h2>
             </div>
             <button class="sidebar-close-btn" onclick="toggleSidebar(false)" title="Close Menu">
                 <i class="fa-solid fa-xmark"></i>
@@ -139,8 +139,8 @@
                 <button class="mobile-menu-btn" onclick="toggleSidebar()" style="background:none; border:none; color:#334155; font-size:1.1rem; cursor:pointer; display:none;">
                     <i class="fa-solid fa-bars"></i>
                 </button>
-                <div class="pos-brand-logo">
-                    <i class="fa-solid fa-utensils"></i> POSS
+                <div class="pos-brand-logo" style="background: none; padding: 0;">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" style="height: 28px; border-radius: 4px;">
                 </div>
                 <div class="brand-outlet-title" title="Soul Sip Cafe">
                     Soul Sip Cafe (R393522)

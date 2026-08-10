@@ -19,7 +19,9 @@
 <body>
     <div class="login-page">
         <div class="login-card">
-            <div class="login-logo">Soul Sip Cafe</div>
+            <div class="login-logo" style="display:flex; justify-content:center; margin-bottom:10px;">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Soul Sip Cafe Logo" style="height: 80px; width: auto; border-radius: 8px;">
+            </div>
             <div class="login-subtitle">Admin Portal Sign In</div>
             
             {% with messages = get_flashed_messages() %}
