@@ -368,14 +368,16 @@ def send_whatsapp_message(mobile, text):
         }
     }
     
-    try:
-        import requests
-        response = requests.post(url, headers=headers, json=payload, timeout=5)
-        print(f"[WhatsApp] Sent to {mobile}, Status: {response.status_code}, Response: {response.text}")
-        return response
-    except Exception as e:
-        print(f"[WhatsApp] Error sending to {mobile}: {str(e)}")
-        return None
+    def _send_async():
+        try:
+            import requests
+            response = requests.post(url, headers=headers, json=payload, timeout=5)
+            print(f"[WhatsApp] Sent to {mobile}, Status: {response.status_code}")
+        except Exception as e:
+            print(f"[WhatsApp] Error sending to {mobile}: {str(e)}")
+            
+    import threading
+    threading.Thread(target=_send_async, daemon=True).start()
 
 @app.after_request
 def add_security_headers(response):
