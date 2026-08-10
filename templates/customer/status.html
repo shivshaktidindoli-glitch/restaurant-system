@@ -89,40 +89,44 @@
 
 {% block scripts %}
 <script>
-    var socket = window.socket || (typeof io !== 'undefined' ? io() : null);
     const orderId = {{ order.id }};
     
-    socket.on('connect', () => {
-        console.log('Connected to real-time updates');
-    });
-
-    socket.on('order_status_update', (data) => {
-        if (data.order_id === orderId) {
-            const status = data.status.toLowerCase();
-            const circle = document.getElementById('status-circle');
-            const text = document.getElementById('status-text');
-            const icon = document.getElementById('status-icon');
-            
-            // Remove all existing status classes
-            circle.className = `status-circle status-${status}`;
-            text.innerText = status.toUpperCase();
-            
-            if (status === 'new') icon.innerText = '⏳';
-            else if (status === 'preparing') icon.innerText = '🍳';
-            else if (status === 'served' || status === 'completed') icon.innerText = '✅';
-            
-            if (status === 'completed') {
-                const feedbackContainer = document.getElementById('feedback-container');
-                if (feedbackContainer) feedbackContainer.style.display = 'block';
-                
-                const actionBtns = document.getElementById('action-buttons-container');
-                if (actionBtns) actionBtns.style.display = 'none';
-                
-                // Hide tracker
-                if (circle) circle.style.display = 'none';
+    // Polling logic instead of Socket.IO to prevent server thread exhaustion on Render
+    setInterval(async () => {
+        try {
+            const resp = await fetch(`/api/customer_order_status/${orderId}`);
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data.success) {
+                    const status = data.status.toLowerCase();
+                    const circle = document.getElementById('status-circle');
+                    const text = document.getElementById('status-text');
+                    const icon = document.getElementById('status-icon');
+                    
+                    // Remove all existing status classes
+                    circle.className = `status-circle status-${status}`;
+                    text.innerText = status.toUpperCase();
+                    
+                    if (status === 'new') icon.innerText = '⏳';
+                    else if (status === 'preparing') icon.innerText = '🍳';
+                    else if (status === 'served' || status === 'completed') icon.innerText = '✅';
+                    
+                    if (status === 'completed') {
+                        const feedbackContainer = document.getElementById('feedback-container');
+                        if (feedbackContainer) feedbackContainer.style.display = 'block';
+                        
+                        const actionBtns = document.getElementById('action-buttons-container');
+                        if (actionBtns) actionBtns.style.display = 'none';
+                        
+                        // Hide tracker
+                        if (circle) circle.style.display = 'none';
+                    }
+                }
             }
+        } catch(e) {
+            console.error("Failed to fetch order status", e);
         }
-    });
+    }, 15000); // Check every 15 seconds
 
     let selectedRating = 0;
     

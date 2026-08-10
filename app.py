@@ -71,8 +71,8 @@ if database_url:
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
         'pool_pre_ping': True,
         'pool_recycle': 300,
-        'pool_size': 10,
-        'max_overflow': 20,
+        'pool_size': 20,
+        'max_overflow': 40,
         'pool_timeout': 30,
     }
 else:
@@ -800,6 +800,14 @@ def order_status(order_id):
     total_amount = sum(item.price_at_order * item.quantity for item in order.items)
     has_feedback = Feedback.query.filter_by(order_id=order_id).first() is not None
     return render_template('customer/status.html', order=order, total_amount=total_amount, has_feedback=has_feedback)
+
+@app.route('/api/customer_order_status/<int:order_id>')
+@limiter.limit("30 per minute")
+def api_customer_order_status(order_id):
+    order = Order.query.get(order_id)
+    if not order:
+        return jsonify({'success': False, 'message': 'Not found'}), 404
+    return jsonify({'success': True, 'status': order.status})
 
 @app.route('/admin/inventory')
 @login_required

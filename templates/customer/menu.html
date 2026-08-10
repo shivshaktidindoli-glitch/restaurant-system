@@ -46,7 +46,7 @@
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+
 
 <!-- CATEGORY TABS WITH INTERACTIVE SCROLL SLIDER -->
 <div class="category-slider-wrapper">
@@ -274,11 +274,6 @@
     setLang(currentLang);
     
     // Live update for sold-out items / reorders
-    var socket = window.socket || (typeof io !== 'undefined' ? io() : null);
-    if (socket) {
-        socket.on('menu_update', function() {
-            window.location.reload();
-        });
-    }
+
 </script>
 {% endblock %}
