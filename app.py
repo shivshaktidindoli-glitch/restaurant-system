@@ -1054,8 +1054,8 @@ def admin_dashboard():
     ist_today_start = ist_now.replace(hour=0, minute=0, second=0, microsecond=0)
     utc_today_start = ist_today_start - timedelta(hours=5, minutes=30)
     
-    today_invoices = Invoice.query.filter(Invoice.created_at >= utc_today_start).all()
-    today_sales = sum(i.total for i in today_invoices)
+    from sqlalchemy import func
+    today_sales = db.session.query(func.sum(Invoice.total)).filter(Invoice.created_at >= utc_today_start).scalar() or 0.0
     
     today_orders = Order.query.filter(Order.created_at >= utc_today_start).count()
     live_orders = Order.query.filter(Order.status.in_(['new', 'preparing', 'served'])).count()
@@ -1086,10 +1086,10 @@ def live_orders():
     # Only show completed orders for today
     today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     
-    orders_new = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter_by(status='new').order_by(Order.created_at.desc()).all() if len(o.items) > 0]
-    orders_preparing = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter_by(status='preparing').order_by(Order.created_at.desc()).all() if len(o.items) > 0]
-    orders_served = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter_by(status='served').order_by(Order.created_at.desc()).all() if len(o.items) > 0]
-    orders_completed = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter(Order.status == 'completed', Order.created_at >= today_start).order_by(Order.created_at.desc()).all() if len(o.items) > 0]
+    orders_new = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter_by(status='new').order_by(Order.created_at.desc()).limit(50).all() if len(o.items) > 0]
+    orders_preparing = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter_by(status='preparing').order_by(Order.created_at.desc()).limit(50).all() if len(o.items) > 0]
+    orders_served = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter_by(status='served').order_by(Order.created_at.desc()).limit(50).all() if len(o.items) > 0]
+    orders_completed = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter(Order.status == 'completed', Order.created_at >= today_start).order_by(Order.created_at.desc()).limit(50).all() if len(o.items) > 0]
     waiter_calls = WaiterCall.query.filter_by(status='pending').order_by(WaiterCall.created_at.desc()).all()
     branches = Branch.query.all()
     
@@ -1377,7 +1377,7 @@ def my_deliveries():
 @role_required('manager', 'cashier')
 def billing():
     # Fetch all completed orders with eager loading to prevent massive N+1 slow queries
-    completed_orders = Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter_by(status='completed').all()
+    completed_orders = Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter_by(status='completed').order_by(Order.created_at.desc()).limit(200).all()
     
     # Group by table for dine-in, keep parcel separate
     sessions = {}
@@ -1616,7 +1616,7 @@ def generate_upi_qr():
 @login_required
 @role_required('manager', 'cashier')
 def invoices_list():
-    invs = Invoice.query.order_by(Invoice.created_at.desc()).all()
+    invs = Invoice.query.order_by(Invoice.created_at.desc()).limit(500).all()
     return render_template('admin/invoices.html', invoices=invs, active_page='invoices')
 
 @app.route('/admin/invoices/print/<int:id>')
@@ -1678,7 +1678,7 @@ def refunds():
             flash('Invalid Invoice Number or Amount.')
         return redirect(url_for('refunds'))
         
-    all_refunds = Refund.query.order_by(Refund.created_at.desc()).all()
+    all_refunds = Refund.query.order_by(Refund.created_at.desc()).limit(200).all()
     
     pending_total = sum(r.amount for r in all_refunds if r.status == 'pending')
     refunded_total = sum(r.amount for r in all_refunds if r.status == 'completed')
@@ -2558,7 +2558,7 @@ def export_all_backup_csv():
         orders_output = io.StringIO()
         writer = csv.writer(orders_output)
         writer.writerow(['Order ID', 'Date', 'Type', 'Table/Customer', 'Status', 'Total Amount', 'Items Summary'])
-        for o in Order.query.order_by(Order.created_at.desc()).all():
+        for o in Order.query.order_by(Order.created_at.desc()).limit(500).all():
             items_str = "; ".join([f"{i.quantity}x {i.menu_item.name if i.menu_item else 'Item'} (₹{i.price_at_order})" for i in o.items])
             total_val = sum(i.quantity * i.price_at_order for i in o.items)
             tbl = o.table.name if o.table else (o.customer_name or 'N/A')
@@ -2569,7 +2569,7 @@ def export_all_backup_csv():
         invoices_output = io.StringIO()
         writer = csv.writer(invoices_output)
         writer.writerow(['Invoice ID', 'Invoice No', 'Date', 'Order ID', 'Subtotal', 'Discount', 'GST Amount', 'Total', 'Payment Method', 'Customer Mobile', 'Tip'])
-        for inv in Invoice.query.order_by(Invoice.created_at.desc()).all():
+        for inv in Invoice.query.order_by(Invoice.created_at.desc()).limit(500).all():
             writer.writerow([inv.id, inv.invoice_number, inv.created_at.strftime('%Y-%m-%d %H:%M:%S'), inv.order_id, inv.subtotal, inv.discount, inv.gst_amount, inv.total, inv.payment_method, inv.order.customer_mobile if inv.order else '', inv.tip_amount])
         zip_file.writestr("2_invoices_sales.csv", invoices_output.getvalue())
         
@@ -2686,7 +2686,7 @@ def staff():
 @login_required
 @role_required('admin')
 def activity_log():
-    logs = ActivityLog.query.order_by(ActivityLog.created_at.desc()).all()
+    logs = ActivityLog.query.order_by(ActivityLog.created_at.desc()).limit(300).all()
     return render_template('admin/activity_log.html', logs=logs, active_page='activity_log')
 
 # Dummy route for unimplemented sidebar links to avoid 404s breaking the test
