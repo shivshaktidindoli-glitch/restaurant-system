@@ -231,6 +231,13 @@
     let currentQRTableId = null;
     let currentQRTableName = '';
 
+    // Fix for mobile devices: when screen wakes up or tab becomes visible, reload to fetch missed real-time events
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+            window.location.reload();
+        }
+    });
+
     function showTableQR(id, name) {
         currentQRTableId = id;
         currentQRTableName = name;

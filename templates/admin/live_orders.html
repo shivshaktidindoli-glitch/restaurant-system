@@ -320,6 +320,13 @@
     let appliedDiscountReason = '';
     let orderItemsMap = {}; // orderId -> items
 
+    // Fix for mobile devices: when screen wakes up or tab becomes visible, reload to fetch missed real-time events
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+            window.location.reload();
+        }
+    });
+
     function closeModal(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) {
