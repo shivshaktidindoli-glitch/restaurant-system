@@ -226,17 +226,22 @@
 
 {% block scripts %}
 <script>
-    var socket = window.socket || (typeof io !== 'undefined' ? io() : null);
 
     let currentQRTableId = null;
     let currentQRTableName = '';
 
-    // Fix for mobile devices: when screen wakes up or tab becomes visible, reload to fetch missed real-time events
-    document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") {
-            window.location.reload();
-        }
-    });
+    let lastUpdateCheck = Date.now() / 1000;
+    setInterval(async () => {
+        try {
+            const resp = await fetch(`/api/check_updates?since=${lastUpdateCheck}`);
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data.has_updates) {
+                    window.location.reload();
+                }
+            }
+        } catch(e) {}
+    }, 10000);
 
     function showTableQR(id, name) {
         currentQRTableId = id;

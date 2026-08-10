@@ -94,7 +94,25 @@ limiter = Limiter(
     storage_uri="memory://"
 )
 db.init_app(app)
-socketio = SocketIO(app, cors_allowed_origins="*")
+
+import time
+GLOBAL_LAST_UPDATE_TIMESTAMP = time.time()
+def update_global_timestamp(*args, **kwargs):
+    global GLOBAL_LAST_UPDATE_TIMESTAMP
+    GLOBAL_LAST_UPDATE_TIMESTAMP = time.time()
+
+class DummySocket:
+    def emit(self, *args, **kwargs):
+        update_global_timestamp()
+    def run(self, app, **kwargs):
+        kwargs.pop('allow_unsafe_werkzeug', None)
+        app.run(**kwargs)
+    def on(self, *args, **kwargs):
+        def decorator(f):
+            return f
+        return decorator
+
+socketio = DummySocket()
 login_manager = LoginManager()
 login_manager.login_view = 'admin_login'
 login_manager.init_app(app)
@@ -809,6 +827,14 @@ def api_customer_order_status(order_id):
         return jsonify({'success': False, 'message': 'Not found'}), 404
     return jsonify({'success': True, 'status': order.status})
 
+@app.route('/api/check_updates', methods=['GET'])
+def check_updates():
+    client_time = request.args.get('since', type=float, default=0.0)
+    return jsonify({
+        'has_updates': GLOBAL_LAST_UPDATE_TIMESTAMP > client_time,
+        'server_time': GLOBAL_LAST_UPDATE_TIMESTAMP
+    })
+
 @app.route('/admin/inventory')
 @login_required
 def admin_inventory():
@@ -1062,8 +1088,7 @@ def live_orders():
     orders_preparing = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter_by(status='preparing').order_by(Order.created_at.desc()).all() if len(o.items) > 0]
     orders_served = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter_by(status='served').order_by(Order.created_at.desc()).all() if len(o.items) > 0]
     orders_completed = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter(Order.status == 'completed', Order.created_at >= today_start).order_by(Order.created_at.desc()).all() if len(o.items) > 0]
-    
-    branches = Branch.query.all()
+    waiter_calls = WaiterCall.query.filter_by(status='pending').order_by(WaiterCall.created_at.desc()).all()
     
     return render_template('admin/live_orders.html', 
                            active_page='live_orders',
@@ -1071,6 +1096,7 @@ def live_orders():
                            orders_preparing=orders_preparing,
                            orders_served=orders_served,
                            orders_completed=orders_completed,
+                           waiter_calls=waiter_calls,
                            branches=branches)
 
 @app.route('/api/update_order_status', methods=['POST'])
@@ -3116,12 +3142,10 @@ def api_hold_orders():
         })
     return jsonify({'orders': res})
 
+
+
 # --- SOCKET EVENTS ---
 
-
-@socketio.on('connect')
-def handle_connect():
-    print("Client connected")
 
 from sqlalchemy import text
 

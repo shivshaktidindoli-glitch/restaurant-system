@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+
     <style>
         body { background-color: #0f172a; color: white; margin: 0; padding: 20px; font-family: 'Inter', sans-serif; display: block; }
         .kds-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
@@ -77,60 +77,38 @@
     <audio id="notif-sound" src="/static/audio/beep.wav" preload="auto"></audio>
 
     <script>
-    var socket = window.socket || (typeof io !== 'undefined' ? io() : null);
+    let lastUpdateCheck = Date.now() / 1000;
     
-    // Unlock audio on first user interaction to bypass browser autoplay policies
-    let audioUnlocked = false;
-    document.body.addEventListener('click', () => {
-        if (!audioUnlocked) {
-            const audio = document.getElementById('notif-sound');
-            if (audio) {
-                audio.play().then(() => {
-                    audio.pause();
-                    audio.currentTime = 0;
-                    audioUnlocked = true;
-                }).catch(err => console.log('Audio unlock failed', err));
-            }
-        }
-    });
-
-    socket.on('new_order', () => {
-            if (document.getElementById('sound-toggle').checked) {
-                const audio = document.getElementById('notif-sound');
-                let playCount = 0;
-                
-                function playBeep() {
-                    if (playCount < 3) {
-                        audio.play().catch(e => console.log(e));
+    setInterval(async () => {
+        try {
+            const resp = await fetch(`/api/check_updates?since=${lastUpdateCheck}`);
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data.has_updates) {
+                    if (document.getElementById('sound-toggle').checked) {
+                        const audio = document.getElementById('notif-sound');
+                        let playCount = 0;
+                        function playBeep() {
+                            if (playCount < 3) {
+                                audio.play().catch(e => console.log(e));
+                            } else {
+                                window.location.reload();
+                            }
+                        }
+                        audio.onended = () => {
+                            playCount++;
+                            setTimeout(playBeep, 500); // 0.5s gap
+                        };
+                        playBeep(); // Start the first beep
                     } else {
                         window.location.reload();
                     }
                 }
-                
-                audio.onended = () => {
-                    playCount++;
-                    setTimeout(playBeep, 500); // 0.5s gap
-                };
-                
-                playBeep(); // Start the first beep
-            } else {
-                window.location.reload();
             }
-        });
-        
-        socket.on('order_status_update', (data) => {
-            // If an order is marked served or completed from admin, remove it from KDS
-            if (data.status !== 'new' && data.status !== 'preparing') {
-                const card = document.querySelector(`.kds-card[data-id="${data.order_id}"]`);
-                if (card) {
-                    card.remove();
-                    checkEmpty();
-                }
-            } else {
-                // If it was just updated to preparing, we can just reload to update the UI
-                window.location.reload();
-            }
-        });
+        } catch (e) {
+            console.error("Polling error", e);
+        }
+    }, 10000);
         
         function checkEmpty() {
             const grid = document.getElementById('kds-grid');

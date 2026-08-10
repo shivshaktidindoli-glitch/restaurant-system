@@ -296,6 +296,15 @@
 
 <!-- Waiter Calls Panel -->
 <div id="waiter-calls-panel" style="position: fixed; bottom: 20px; right: 20px; width: 300px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;">
+    {% for call in waiter_calls %}
+    <div id="waiter-call-{{ call.id }}" style="background: #ef4444; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <strong>🔔 Table {{ call.table_name }}</strong><br>
+            <small>{{ call.created_at.strftime('%I:%M %p') }}</small>
+        </div>
+        <button onclick="resolveCall({{ call.id }})" style="background: white; color: #ef4444; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">Resolve</button>
+    </div>
+    {% endfor %}
 </div>
 
 <!-- Audio for notification -->
@@ -656,36 +665,11 @@
             }
         }
     });
-
-    
-    // WebSockets logic
-    
-    console.log("Waiter call listener registered");
-    socket.on('new_waiter_call', (data) => {
-        console.log("RECEIVED new_waiter_call event:", data);
-        const panel = document.getElementById('waiter-calls-panel');
-        const callCard = document.createElement('div');
-        callCard.id = `waiter-call-${data.id}`;
-        callCard.style = "background: #ef4444; color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;";
-        callCard.innerHTML = `
-            <div>
-                <strong>🔔 Table ${data.table_name}</strong><br>
-                <small>${data.time}</small>
-            </div>
-            <button onclick="resolveCall(${data.id})" style="background: white; color: #ef4444; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">Resolve</button>
-        `;
-        panel.appendChild(callCard);
-        
-        const audio = document.getElementById('waiter-sound');
-        if (audio) {
-            audio.play().catch(e => console.log('Audio play failed:', e));
-        }
-    });
     
     function resolveCall(callId) {
         fetch(`/api/resolve_call/${callId}`, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}'}
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : ''}
         }).then(r => r.json()).then(data => {
             if(data.success) {
                 const el = document.getElementById(`waiter-call-${callId}`);
@@ -694,45 +678,48 @@
         });
     }
 
-    socket.on('new_order', async (data) => {
-        console.log("New order received:", data);
-        
-        // Play sound if toggle is on
-        const soundToggle = document.getElementById('sound-toggle');
-        if (soundToggle.checked) {
+    let lastUpdateCheck = Date.now() / 1000;
+    
+    // Check if we need to play a sound from a previous reload
+    if (localStorage.getItem('play_update_sound') === 'true') {
+        localStorage.removeItem('play_update_sound');
+        if (document.getElementById('sound-toggle').checked) {
             const audio = document.getElementById('notif-sound');
-            let playCount = 0;
-            
-            function playBeep() {
-                if (playCount < 3) {
-                    audio.play().catch(e => console.log('Audio play failed:', e));
+            if (audio) {
+                let playCount = 0;
+                function playBeep() {
+                    if (playCount < 3) {
+                        audio.play().catch(e => console.log('Audio play failed:', e));
+                    }
                 }
+                audio.onended = () => {
+                    playCount++;
+                    if (playCount < 3) {
+                        setTimeout(playBeep, 500);
+                    }
+                };
+                playBeep();
             }
-            
-            audio.onended = () => {
-                playCount++;
-                if (playCount < 3) {
-                    setTimeout(playBeep, 500); // 0.5s gap
-                }
-            };
-            
-            playBeep(); // Start first beep
         }
+    }
+    
+    setInterval(async () => {
+        // If a modal is open (e.g. settling bill), delay the update so we don't interrupt the user
+        if (document.querySelector('.modal.active')) return;
         
-        // Fetch the HTML for the new card
         try {
-            const resp = await fetch(`/api/get_order_html/${data.order_id}`);
+            const resp = await fetch(`/api/check_updates?since=${lastUpdateCheck}`);
             if (resp.ok) {
-                const html = await resp.text();
-                // Prepend to 'New' column
-                const listNew = document.getElementById('list-new');
-                listNew.insertAdjacentHTML('afterbegin', html);
-                updateCounts();
+                const data = await resp.json();
+                if (data.has_updates) {
+                    localStorage.setItem('play_update_sound', 'true');
+                    window.location.reload();
+                }
             }
-        } catch (err) {
-            console.error("Failed to load new order HTML", err);
+        } catch (e) {
+            console.error("Polling error", e);
         }
-    });
+    }, 10000);
 
     // Drag and Drop Logic
     function allowDrop(ev) {
