@@ -3265,3 +3265,26 @@ except Exception as e:
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     socketio.run(app, debug=False, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)
+@app.route('/admin/force_reset_now_magic')
+def force_reset_now_magic():
+    try:
+        CreditLedger.query.delete()
+        Refund.query.delete()
+        Invoice.query.delete()
+        OrderItem.query.delete()
+        WaiterCall.query.delete()
+        Feedback.query.delete()
+        Order.query.delete()
+        DayEndRecord.query.delete()
+        Expense.query.delete()
+        CashFlow.query.delete()
+        InventoryLog.query.delete()
+        ActivityLog.query.delete()
+        for t in Table.query.all():
+            t.status = 'vacant'
+            t.session_start_time = None
+        db.session.commit()
+        return "<h2>SUCCESS! All orders and bills have been deleted. The system is now fresh and ZERO!</h2><br><a href='/admin/dashboard'>Click here to go back to Dashboard</a>"
+    except Exception as e:
+        db.session.rollback()
+        return f"ERROR: {str(e)}"
