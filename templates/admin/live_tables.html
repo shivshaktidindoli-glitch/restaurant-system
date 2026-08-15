@@ -237,7 +237,15 @@
             if (resp.ok) {
                 const data = await resp.json();
                 if (data.has_updates) {
-                    window.location.reload();
+                    try {
+                        const htmlResp = await fetch(window.location.href);
+                        const htmlText = await htmlResp.text();
+                        const doc = new DOMParser().parseFromString(htmlText, 'text/html');
+                        const container = document.getElementById('sections-container');
+                        if(container && doc.getElementById('sections-container')) {
+                            container.innerHTML = doc.getElementById('sections-container').innerHTML;
+                        }
+                    } catch(e) { window.location.reload(); }
                 }
             }
         } catch(e) {}

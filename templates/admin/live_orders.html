@@ -713,7 +713,14 @@
                 const data = await resp.json();
                 if (data.has_updates) {
                     localStorage.setItem('play_update_sound', 'true');
-                    window.location.reload();
+                    try {
+                        const htmlResp = await fetch(window.location.href);
+                        const htmlText = await htmlResp.text();
+                        const doc = new DOMParser().parseFromString(htmlText, 'text/html');
+                        document.querySelector('.kanban-board').innerHTML = doc.querySelector('.kanban-board').innerHTML;
+                        updateCounts();
+                        lastUpdateCheck = data.timestamp;
+                    } catch(e) { window.location.reload(); }
                 }
             }
         } catch (e) {

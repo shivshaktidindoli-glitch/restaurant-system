@@ -92,7 +92,13 @@
                             if (playCount < 3) {
                                 audio.play().catch(e => console.log(e));
                             } else {
-                                window.location.reload();
+                                try {
+                                    const htmlResp = await fetch(window.location.href);
+                                    const htmlText = await htmlResp.text();
+                                    const doc = new DOMParser().parseFromString(htmlText, 'text/html');
+                                    document.querySelector('.kds-grid').innerHTML = doc.querySelector('.kds-grid').innerHTML;
+                                    lastUpdateCheck = data.timestamp;
+                                } catch(e) { window.location.reload(); }
                             }
                         }
                         audio.onended = () => {
@@ -101,7 +107,13 @@
                         };
                         playBeep(); // Start the first beep
                     } else {
-                        window.location.reload();
+                        try {
+                            const htmlResp = await fetch(window.location.href);
+                            const htmlText = await htmlResp.text();
+                            const doc = new DOMParser().parseFromString(htmlText, 'text/html');
+                            document.querySelector('.kds-grid').innerHTML = doc.querySelector('.kds-grid').innerHTML;
+                            lastUpdateCheck = data.timestamp;
+                        } catch(e) { window.location.reload(); }
                     }
                 }
             }
