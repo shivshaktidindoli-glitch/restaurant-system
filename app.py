@@ -2629,11 +2629,12 @@ def reset_transaction_data():
         Refund.query.delete()
         Invoice.query.delete()
         OrderItem.query.delete()
+        WaiterCall.query.delete()
+        Feedback.query.delete()
         Order.query.delete()
         DayEndRecord.query.delete()
         Expense.query.delete()
         CashFlow.query.delete()
-        WaiterCall.query.delete()
         InventoryLog.query.delete()
         ActivityLog.query.delete()
         
