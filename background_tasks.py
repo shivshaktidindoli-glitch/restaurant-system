@@ -1,5 +1,6 @@
-import threading
-import queue
+import eventlet
+threading = eventlet.patcher.original('threading')
+queue = eventlet.patcher.original('queue')
 import time
 import requests
 import smtplib
@@ -10,7 +11,8 @@ from datetime import datetime
 class BackgroundTaskQueue:
     def __init__(self):
         self.q = queue.Queue()
-        self.worker = threading.Thread(target=self._run, daemon=True)
+        self.worker = threading.Thread(target=self._run)
+        self.worker.daemon = True
         self.worker.start()
 
     def _run(self):
