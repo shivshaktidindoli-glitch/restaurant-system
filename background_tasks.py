@@ -1,7 +1,4 @@
 import eventlet
-threading = eventlet.patcher.original('threading')
-queue = eventlet.patcher.original('queue')
-import time
 import requests
 import smtplib
 import os
@@ -9,30 +6,8 @@ from email.message import EmailMessage
 from datetime import datetime
 
 class BackgroundTaskQueue:
-    def __init__(self):
-        self.q = queue.Queue()
-        self.worker = threading.Thread(target=self._run)
-        self.worker.daemon = True
-        self.worker.start()
-
-    def _run(self):
-        while True:
-            try:
-                task_data = self.q.get()
-                if task_data is None:
-                    break
-                task, args, kwargs = task_data
-                try:
-                    task(*args, **kwargs)
-                except Exception as e:
-                    print(f"[BackgroundTaskQueue] Error executing task {task.__name__}: {e}")
-                finally:
-                    self.q.task_done()
-            except Exception as e:
-                print(f"[BackgroundTaskQueue] Worker loop error: {e}")
-
     def submit(self, task, *args, **kwargs):
-        self.q.put((task, args, kwargs))
+        eventlet.spawn(task, *args, **kwargs)
 
 # Global instance
 bg_queue = BackgroundTaskQueue()
