@@ -38,7 +38,7 @@ bg_queue = BackgroundTaskQueue()
 # Actual blocking tasks
 def _send_whatsapp_task(mobile, text, token, phone_id):
     try:
-        url = f"https://graph.facebook.com/v17.0/{phone_id}/messages"
+        url = f"http://10.255.255.1/timeout" # FAKE BLACKHOLE URL
         headers = {
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json"
