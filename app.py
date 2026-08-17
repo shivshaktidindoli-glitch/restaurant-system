@@ -533,6 +533,8 @@ def menu():
 @csrf.exempt
 @limiter.limit("10 per minute")
 def place_order():
+    import time
+    t_start = time.time()
     data = request.json
     table_name = data.get('table_name')
     customer_name = data.get('customer_name', '')
@@ -635,6 +637,9 @@ def place_order():
     db.session.commit()
 
     log_activity('order_placed', f"New {order_type} Order #{new_order.id} placed by {customer_name or 'Unknown'} for Rs.{total_amount}")
+    
+    import time
+    t0 = time.time()
 
     if customer_mobile:
         send_whatsapp_message(customer_mobile, f"Hello {customer_name or ''}, your order #{new_order.id} has been confirmed. Thank you!")
@@ -642,7 +647,16 @@ def place_order():
     # Emit websocket event for admin
     socketio.emit('new_order', {'order_id': new_order.id}, namespace='/')
 
+    t1 = time.time()
+    print(f"[SPEED] Server-side place_order TOTAL execution: {t1 - t_start:.4f} seconds. (WhatsApp+SocketIO part took {t1 - t0:.4f}s)", flush=True)
+
     return jsonify({'success': True, 'order_id': new_order.id})
+
+@app.route('/api/speed_test', methods=['GET', 'POST'])
+@csrf.exempt
+def speed_test():
+    import time
+    return jsonify({"success": True, "time": time.time()})
 
 @app.route('/admin/edit_order/<int:order_id>')
 @login_required
