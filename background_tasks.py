@@ -1,13 +1,15 @@
-import eventlet
 import requests
 import smtplib
 import os
 from email.message import EmailMessage
 from datetime import datetime
+from concurrent.futures import ProcessPoolExecutor
+
+executor = ProcessPoolExecutor(max_workers=2)
 
 class BackgroundTaskQueue:
     def submit(self, task, *args, **kwargs):
-        eventlet.spawn(task, *args, **kwargs)
+        executor.submit(task, *args, **kwargs)
 
 # Global instance
 bg_queue = BackgroundTaskQueue()
