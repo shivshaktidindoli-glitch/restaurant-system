@@ -367,8 +367,19 @@ def send_whatsapp_message(mobile, text):
         start_new_session=True
     )
 
+import time
+from flask import g
+
+@app.before_request
+def start_timer():
+    g.start_time = time.time()
+
 @app.after_request
 def add_security_headers(response):
+    if hasattr(g, 'start_time'):
+        elapsed = time.time() - g.start_time
+        print(f"[LIFECYCLE] {request.path} took {elapsed:.4f}s", flush=True)
+
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['Server'] = 'Protected'
     response.headers.pop('X-Powered-By', None)
@@ -697,8 +708,10 @@ def place_order():
         delivery_staff_id=delivery_staff_id,
         created_by=current_user.id if current_user.is_authenticated else None
     )
+    print(f"[{time.time() - t_start:.4f}s] DB write se pehle", flush=True)
     db.session.add(new_order)
     db.session.commit() # commit to get order id
+    print(f"[{time.time() - t_start:.4f}s] DB write ke baad", flush=True)
 
     validated_items = []
     total_amount = 0
@@ -748,7 +761,9 @@ def place_order():
     t0 = time.time()
 
     if customer_mobile:
+        print(f"[{time.time() - t_start:.4f}s] WhatsApp queue-submit se pehle", flush=True)
         send_whatsapp_message(customer_mobile, f"Hello {customer_name or ''}, your order #{new_order.id} has been confirmed. Thank you!")
+        print(f"[{time.time() - t_start:.4f}s] WhatsApp queue-submit ke baad", flush=True)
     
     t_sock_start = time.time()
     socketio.emit('new_order', {'order_id': new_order.id}, namespace='/')
@@ -760,7 +775,7 @@ def place_order():
         'socket_time': t_sock_end - t_sock_start,
         'whatsapp_launch_time': t_sock_start - t0 # approx
     }
-    print(f"[SPEED] Server-side place_order TOTAL execution: {t1 - t_start:.4f} seconds.", flush=True)
+    print(f"[{time.time() - t_start:.4f}s] response return karne se pehle", flush=True)
 
     return jsonify({'success': True, 'order_id': new_order.id, 'timings': timing_data})
 
