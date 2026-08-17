@@ -8,6 +8,7 @@ import smtplib
 from email.message import EmailMessage
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, session
+from background_tasks import bg_queue, _send_whatsapp_task, _send_email_task
 from flask_socketio import SocketIO
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from dotenv import load_dotenv
@@ -352,32 +353,8 @@ def send_whatsapp_message(mobile, text):
     if len(mobile) == 10 and mobile.isdigit():
         mobile = '91' + mobile
         
-    url = f"https://graph.facebook.com/v17.0/{phone_id}/messages"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json"
-    }
-    payload = {
-        "messaging_product": "whatsapp",
-        "recipient_type": "individual",
-        "to": mobile,
-        "type": "text",
-        "text": {
-            "preview_url": False,
-            "body": text
-        }
-    }
-    
-    def _send_async():
-        try:
-            import requests
-            response = requests.post(url, headers=headers, json=payload, timeout=5)
-            print(f"[WhatsApp] Sent to {mobile}, Status: {response.status_code}")
-        except Exception as e:
-            print(f"[WhatsApp] Error sending to {mobile}: {str(e)}")
-            
-    import threading
-    threading.Thread(target=_send_async, daemon=True).start()
+    # Fire and forget immediately using task queue
+    bg_queue.submit(_send_whatsapp_task, mobile, text, token, phone_id)
 
 @app.after_request
 def add_security_headers(response):
@@ -438,35 +415,18 @@ def send_backup_email(zip_buffer):
         print("SMTP credentials not configured. Skipping email backup.")
         return False
         
-    msg = EmailMessage()
-    msg['Subject'] = f"Soul Sip Cafe Database Backup - {datetime.now().strftime('%Y-%m-%d')}"
-    msg['From'] = smtp_username
-    msg['To'] = os.environ.get('BACKUP_TO_EMAIL', 'soulsipcafe@gmail.com')
-    msg.set_content("Please find attached the daily database backup (CSV format).")
+    subject = f"Soul Sip Cafe Database Backup - {datetime.now().strftime('%Y-%m-%d')}"
+    to_email = os.environ.get('BACKUP_TO_EMAIL', 'soulsipcafe@gmail.com')
+    body = "Please find attached the daily database backup (CSV format)."
+    filename = f"soulsip_backup_{datetime.now().strftime('%Y%m%d')}.zip"
     
-    msg.add_attachment(
-        zip_buffer.read(),
-        maintype='application',
-        subtype='zip',
-        filename=f"soulsip_backup_{datetime.now().strftime('%Y%m%d')}.zip"
-    )
+    # Read bytes for passing to background task
+    zip_bytes = zip_buffer.read()
     zip_buffer.seek(0)
     
-    try:
-        if int(smtp_port) == 465:
-            server = smtplib.SMTP_SSL(smtp_server, int(smtp_port))
-        else:
-            server = smtplib.SMTP(smtp_server, int(smtp_port))
-            server.starttls()
-            
-        server.login(smtp_username, smtp_password)
-        server.send_message(msg)
-        server.quit()
-        print("Backup email sent successfully.")
-        return True
-    except Exception as e:
-        print(f"Failed to send backup email: {e}")
-        return False
+    # Fire and forget
+    bg_queue.submit(_send_email_task, smtp_server, smtp_port, smtp_username, smtp_password, to_email, subject, body, zip_bytes, filename)
+    return True
 
 # --- ROUTES ---
 
