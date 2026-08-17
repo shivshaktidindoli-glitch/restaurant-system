@@ -355,14 +355,16 @@ def send_whatsapp_message(mobile, text):
     if len(mobile) == 10 and mobile.isdigit():
         mobile = '91' + mobile
         
-    # Fire and forget immediately using detached subprocess
+    # Fire and forget immediately using fully detached subprocess
     import subprocess
     import sys
     subprocess.Popen(
         [sys.executable, "send_whatsapp.py", mobile, text, token, phone_id],
         close_fds=True,
+        stdin=subprocess.DEVNULL,
         stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL
+        stderr=subprocess.DEVNULL,
+        start_new_session=True
     )
 
 @app.after_request
