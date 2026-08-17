@@ -355,8 +355,15 @@ def send_whatsapp_message(mobile, text):
     if len(mobile) == 10 and mobile.isdigit():
         mobile = '91' + mobile
         
-    # Fire and forget immediately using task queue
-    bg_queue.submit(_send_whatsapp_task, mobile, text, token, phone_id)
+    # Fire and forget immediately using detached subprocess
+    import subprocess
+    import sys
+    subprocess.Popen(
+        [sys.executable, "send_whatsapp.py", mobile, text, token, phone_id],
+        close_fds=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
+    )
 
 @app.after_request
 def add_security_headers(response):
@@ -633,7 +640,7 @@ def place_order():
         send_whatsapp_message(customer_mobile, f"Hello {customer_name or ''}, your order #{new_order.id} has been confirmed. Thank you!")
 
     # Emit websocket event for admin
-    # socketio.emit('new_order', {'order_id': new_order.id}, namespace='/')
+    socketio.emit('new_order', {'order_id': new_order.id}, namespace='/')
 
     return jsonify({'success': True, 'order_id': new_order.id})
 
