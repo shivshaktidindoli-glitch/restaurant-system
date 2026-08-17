@@ -639,20 +639,130 @@ def place_order():
     db.session.commit()
 
     log_activity('order_placed', f"New {order_type} Order #{new_order.id} placed by {customer_name or 'Unknown'} for Rs.{total_amount}")
+    import time
+    t_start = time.time()
+    data = request.json
+    table_name = data.get('table_name')
+    customer_name = data.get('customer_name', '')
+    customer_mobile = data.get('customer_mobile', '')
+    covers = int(data.get('covers', 1))
+    coupon_code = data.get('coupon_code', None)
+    delivery_address = data.get('delivery_address', None)
+    landmark = data.get('landmark', None)
+    delivery_charge = float(data.get('delivery_charge', 0.0))
+    delivery_staff_id = data.get('delivery_staff_id', None)
+    items = data.get('items', [])
+    order_type = data.get('order_type', 'dine-in') # dine-in, parcel, home-delivery
+    
+    table = None
+    default_branch = Branch.query.first()
+    default_branch_id = default_branch.id if default_branch else 1
+
+    if table_name and str(table_name).strip():
+        clean_tbl = str(table_name).strip()
+        table = Table.query.filter(db.func.lower(Table.name) == db.func.lower(clean_tbl)).first()
+        if not table:
+            tbl_stripped = clean_tbl.lower().replace('table', '').strip()
+            table = Table.query.filter(db.func.lower(Table.name) == tbl_stripped).first()
+        
+        if table:
+            branch_id = table.branch_id or default_branch_id
+        else:
+            # Fallback to parcel if table name is invalid instead of crashing
+            branch_id = default_branch_id
+            order_type = 'parcel'
+    else:
+        branch_id = default_branch_id
+
+    if not items:
+        return jsonify({'success': False, 'message': 'Cart is empty'}), 400
+
+    if table and order_type == 'dine-in':
+        table.status = 'occupied'
+        if not table.session_start_time:
+            table.session_start_time = datetime.utcnow()
+
+    new_order = Order(
+        branch_id=branch_id, 
+        table_id=table.id if table else None,
+        type=order_type,
+        status='new',
+        customer_name=customer_name,
+        customer_mobile=customer_mobile,
+        covers=covers,
+        coupon_code=coupon_code,
+        delivery_address=delivery_address,
+        landmark=landmark,
+        delivery_charge=delivery_charge,
+        delivery_staff_id=delivery_staff_id,
+        created_by=current_user.id if current_user.is_authenticated else None
+    )
+    db.session.add(new_order)
+    db.session.commit() # commit to get order id
+
+    validated_items = []
+    total_amount = 0
+    for item in items:
+        qty = item.get('quantity', 0)
+        if not isinstance(qty, int) or qty <= 0:
+            return jsonify({'success': False, 'message': 'Invalid quantity'}), 400
+        
+        menu_item = MenuItem.query.get(item['id'])
+        if not menu_item:
+            return jsonify({'success': False, 'message': 'Invalid menu item'}), 400
+            
+        validated_items.append({
+            'id': menu_item.id,
+            'variant': item.get('variant'),
+            'quantity': qty,
+            'price': menu_item.price
+        })
+        total_amount += (menu_item.price * qty)
+
+    for item in validated_items:
+        order_item = OrderItem(
+            order_id=new_order.id,
+            menu_item_id=item['id'],
+            variant=item['variant'],
+            quantity=item['quantity'],
+            price_at_order=item['price']
+        )
+        db.session.add(order_item)
+        
+        # Deduct from inventory
+        menu_item_obj = MenuItem.query.get(item['id'])
+        if menu_item_obj:
+            deduct_item_inventory(
+                menu_item=menu_item_obj,
+                quantity=item['quantity'],
+                order_id=new_order.id,
+                order_type=order_type,
+                user_id=current_user.id if current_user.is_authenticated else None
+            )
+    
+    db.session.commit()
+
+    log_activity('order_placed', f"New {order_type} Order #{new_order.id} placed by {customer_name or 'Unknown'} for Rs.{total_amount}")
     
     import time
     t0 = time.time()
 
     if customer_mobile:
         send_whatsapp_message(customer_mobile, f"Hello {customer_name or ''}, your order #{new_order.id} has been confirmed. Thank you!")
-
-    # Emit websocket event for admin
+    
+    t_sock_start = time.time()
     socketio.emit('new_order', {'order_id': new_order.id}, namespace='/')
+    t_sock_end = time.time()
 
     t1 = time.time()
-    print(f"[SPEED] Server-side place_order TOTAL execution: {t1 - t_start:.4f} seconds. (WhatsApp+SocketIO part took {t1 - t0:.4f}s)", flush=True)
+    timing_data = {
+        'total_time': t1 - t_start,
+        'socket_time': t_sock_end - t_sock_start,
+        'whatsapp_launch_time': t_sock_start - t0 # approx
+    }
+    print(f"[SPEED] Server-side place_order TOTAL execution: {t1 - t_start:.4f} seconds.", flush=True)
 
-    return jsonify({'success': True, 'order_id': new_order.id})
+    return jsonify({'success': True, 'order_id': new_order.id, 'timings': timing_data})
 
 @app.route('/api/speed_test', methods=['GET', 'POST'])
 @csrf.exempt
