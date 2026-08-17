@@ -633,7 +633,7 @@ def place_order():
         send_whatsapp_message(customer_mobile, f"Hello {customer_name or ''}, your order #{new_order.id} has been confirmed. Thank you!")
 
     # Emit websocket event for admin
-    socketio.emit('new_order', {'order_id': new_order.id}, namespace='/')
+    # socketio.emit('new_order', {'order_id': new_order.id}, namespace='/')
 
     return jsonify({'success': True, 'order_id': new_order.id})
 
