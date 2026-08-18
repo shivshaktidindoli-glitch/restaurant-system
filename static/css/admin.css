@@ -1732,3 +1732,13 @@ body {
         display: none !important;
     }
 }
+
+@media (max-width: 992px) {
+    /* Swap the native HTML Order buttons for absolute reliability */
+    .desktop-order-btn {
+        display: none !important;
+    }
+    .mobile-order-btn {
+        display: block !important;
+    }
+}

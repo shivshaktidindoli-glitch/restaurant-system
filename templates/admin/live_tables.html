@@ -177,9 +177,15 @@
                     <option value="cleaning" {% if table.status == 'cleaning' %}selected{% endif %}>🟡 Needs Cleaning</option>
                 </select>
                 <div style="display: flex; gap: 6px; margin-bottom: 6px;">
-                    <button class="btn-primary" style="flex: 1; font-weight: 600; padding: 8px; font-size: 0.85rem;" onclick="takeTableOrder({{ table.id }}, '{{ table.name }}')">
+                    <!-- Desktop Order Button -->
+                    <a href="/admin/new_dinein/{{ table.id }}" class="btn-primary desktop-order-btn" style="flex: 1; font-weight: 600; padding: 8px; font-size: 0.85rem; text-align: center; text-decoration: none; box-sizing: border-box; display: block;">
                         🍽️ Order
-                    </button>
+                    </a>
+                    <!-- Mobile Order Button (Customer Menu) -->
+                    <a href="/menu?table={{ table.name }}" class="btn-primary mobile-order-btn" style="flex: 1; font-weight: 600; padding: 8px; font-size: 0.85rem; text-align: center; text-decoration: none; box-sizing: border-box; display: none;">
+                        🍽️ Order
+                    </a>
+                    
                     <button type="button" style="flex: 1; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 6px; font-weight: 600; padding: 8px; font-size: 0.85rem; cursor: pointer;" onclick="showTableQR({{ table.id }}, '{{ table.name }}')">
                         📱 QR Code
                     </button>
