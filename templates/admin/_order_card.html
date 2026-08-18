@@ -3,6 +3,7 @@
         <div>
             <span class="order-id">#{{ order.id }}</span>
             <span class="order-time">{{ order.created_at.strftime('%I:%M %p') }}</span>
+            <span class="order-elapsed" data-time="{{ order.created_at.timestamp() * 1000 }}" style="margin-left: 8px; font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; background: #fef08a; color: #854d0e;">0m ago</span>
         </div>
         {% if order.status not in ['completed', 'cancelled'] %}
         <a href="{{ url_for('edit_order', order_id=order.id) }}" style="color: var(--brand-blue); text-decoration: none; font-size: 0.9rem; padding: 2px 6px; border: 1px solid var(--brand-blue); border-radius: 4px;" title="Edit Order">Edit</a>
@@ -49,3 +50,5 @@
         {% endif %}
     </div>
 </div>
+
+

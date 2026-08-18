@@ -813,5 +813,36 @@
         document.getElementById('filter-branch').value = 'all';
         applyFilters();
     }
+
+    // Dynamic timer for Kitchen Display System (KDS)
+    function updateOrderTimers() {
+        document.querySelectorAll('.order-elapsed').forEach(timer => {
+            const timeStr = timer.getAttribute('data-time');
+            if (timeStr) {
+                // Parse timestamp directly
+                const orderTime = parseFloat(timeStr);
+                const now = new Date().getTime();
+                const diffMins = Math.floor(Math.max(0, now - orderTime) / 60000);
+                
+                timer.innerText = diffMins + 'm ago';
+                
+                // Color coding
+                if (diffMins >= 20) {
+                    timer.style.background = '#fef2f2'; // light red
+                    timer.style.color = '#dc2626'; // dark red
+                } else if (diffMins >= 10) {
+                    timer.style.background = '#fffbeb'; // light orange
+                    timer.style.color = '#d97706'; // dark orange
+                } else {
+                    timer.style.background = '#f0fdf4'; // light green
+                    timer.style.color = '#16a34a'; // dark green
+                }
+            }
+        });
+    }
+    
+    // Initial run and then every 30 seconds
+    updateOrderTimers();
+    setInterval(updateOrderTimers, 30000);
 </script>
 {% endblock %}
