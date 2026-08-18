@@ -1742,3 +1742,37 @@ body {
         display: block !important;
     }
 }
+
+@media (max-width: 992px) {
+    /* Fix squished Live Orders filters bar */
+    .filters-bar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 16px !important;
+    }
+    .filters-left, .filters-right {
+        flex-wrap: wrap !important;
+        width: 100% !important;
+        justify-content: space-between !important;
+    }
+    .filters-left select, .filters-left .btn-clear {
+        flex: 1 1 auto !important;
+    }
+    .filters-right .sound-toggle {
+        flex: 1 !important;
+        white-space: nowrap !important;
+    }
+    .filters-right .btn-primary {
+        flex: 1 !important;
+    }
+}
+
+@media (max-width: 992px) {
+    /* Prevent waiter call toast from hiding behind the bottom mobile nav */
+    #globalWaiterCallContainer {
+        bottom: 80px !important;
+        right: 12px !important;
+        left: 12px !important;
+        max-width: none !important;
+    }
+}

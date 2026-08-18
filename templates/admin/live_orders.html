@@ -223,22 +223,7 @@
     </div>
 </div>
 
-<div class="mobile-swipe-hint" style="display:none; text-align:right; font-size:0.85rem; color:var(--text-secondary); margin-bottom: 5px;">
-    Swipe for more columns <i class="fa-solid fa-arrow-right-long"></i>
-</div>
-<style>
-    @media (max-width: 768px) {
-        .mobile-swipe-hint {
-            display: block !important;
-            animation: pulseHint 2s infinite;
-        }
-    }
-    @keyframes pulseHint {
-        0% { opacity: 0.6; transform: translateX(0); }
-        50% { opacity: 1; transform: translateX(5px); }
-        100% { opacity: 0.6; transform: translateX(0); }
-    }
-</style>
+<!-- Kanban board swipe hint removed as columns are now vertical on mobile -->
 <div class="kanban-board">
     <!-- NEW -->
     <div class="kanban-column" id="col-new" ondrop="drop(event, 'new')" ondragover="allowDrop(event)">
