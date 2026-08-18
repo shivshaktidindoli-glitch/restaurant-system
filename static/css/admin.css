@@ -1626,3 +1626,51 @@ body {
 }
 
 @media (max-width: 768px) { .mobile-swipe-hint { display: none !important; } }
+
+/* --- ADDITIONAL MOBILE FIXES BASED ON FEEDBACK --- */
+@media (max-width: 992px) {
+    /* Hide the topbar 'New Order' button since it's already in the bottom nav */
+    .btn-new-order-red {
+        display: none !important;
+    }
+    
+    /* Hide text from quick-action tools to save space */
+    .petpooja-tool-item span {
+        display: none !important;
+    }
+    
+    .petpooja-tool-item {
+        padding: 5px !important;
+        font-size: 1.2rem !important;
+    }
+    
+    .petpooja-right-tools {
+        gap: 5px !important;
+        overflow-x: auto;
+        white-space: nowrap;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        flex-wrap: nowrap;
+    }
+    .petpooja-right-tools::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Remove the pos-brand text to save space */
+    .brand-outlet-title {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Force 1 column grids on ALL mobile devices, not just very small ones */
+    .dashboard-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    .operations-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+}
