@@ -749,7 +749,7 @@
             toast.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
                     <div style="display:flex; align-items:center; gap:12px;">
-                        <span style="font-size:1.8rem; line-height:1;">🔔</span>
+                        <span style="font-size:1.8rem; line-height:1;">[Bell]</span>
                         <div>
                             <div style="font-size:1.15rem; font-weight:800; letter-spacing:-0.3px;">Table ${call.table_name}</div>
                             <div style="font-size:0.82rem; opacity:0.95; font-weight:500;">Calling for Assistance &bull; ${call.time}</div>
@@ -792,7 +792,7 @@
         window.socket = window.socket || (typeof io !== 'undefined' ? io() : null);
         if (window.socket) {
             window.socket.on('new_waiter_call', function(data) {
-                console.log("🔔 Global Waiter Call Received:", data);
+                console.log("[Bell] Global Waiter Call Received:", data);
                 playWaiterChimeSound();
                 if (!activeWaiterCalls.some(c => c.id === data.id)) {
                     activeWaiterCalls.unshift(data);
@@ -922,4 +922,6 @@
     </script>
 </body>
 </html>
+
+
 
