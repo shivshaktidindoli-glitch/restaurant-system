@@ -30,7 +30,7 @@
         {% endfor %}
     </div>
     <div class="order-actions">
-        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+        <div class="status-btn-container" style="display: flex; gap: 8px; margin-bottom: 8px;">
             {% if order.status == 'new' %}
                 <button class="btn-status" style="flex:1;" onclick="updateStatus({{ order.id }}, 'preparing')">Start Preparing</button>
             {% elif order.status == 'preparing' %}

@@ -754,13 +754,14 @@
     }
     
     function updateCardButtons(card, status) {
-        const actionDiv = card.querySelector('.order-actions');
+        const actionDiv = card.querySelector('.status-btn-container');
+        if (!actionDiv) return;
         if (status === 'new') {
-            actionDiv.innerHTML = `<button class="btn-status" onclick="updateStatus(${card.dataset.id}, 'preparing')">Start Preparing</button>`;
+            actionDiv.innerHTML = `<button class="btn-status" style="flex:1;" onclick="updateStatus(${card.dataset.id}, 'preparing')">Start Preparing</button>`;
         } else if (status === 'preparing') {
-            actionDiv.innerHTML = `<button class="btn-status" onclick="updateStatus(${card.dataset.id}, 'served')">Mark Served</button>`;
+            actionDiv.innerHTML = `<button class="btn-status" style="flex:1;" onclick="updateStatus(${card.dataset.id}, 'served')">Mark Served</button>`;
         } else if (status === 'served') {
-            actionDiv.innerHTML = `<button class="btn-status" onclick="updateStatus(${card.dataset.id}, 'completed')">Complete</button>`;
+            actionDiv.innerHTML = `<button class="btn-status" style="flex:1;" onclick="updateStatus(${card.dataset.id}, 'completed')">Complete</button>`;
         } else {
             actionDiv.innerHTML = '';
         }
