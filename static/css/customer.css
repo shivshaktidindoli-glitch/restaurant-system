@@ -575,3 +575,10 @@ body {
     margin-bottom: 8px;
     font-size: 0.95rem;
 }
+
+@media (max-width: 768px) {
+    /* Fallback for mobile browsers that cache HTML aggressively or fail to run the ResizeObserver */
+    .category-slider-wrapper {
+        top: 165px;
+    }
+}
