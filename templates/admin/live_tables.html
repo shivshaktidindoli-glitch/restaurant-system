@@ -177,14 +177,14 @@
                     <option value="cleaning" {% if table.status == 'cleaning' %}selected{% endif %}>🟡 Needs Cleaning</option>
                 </select>
                 <div style="display: flex; gap: 6px; margin-bottom: 6px;">
-                    <button class="btn-primary" style="flex: 1; font-weight: 600; padding: 8px; font-size: 0.85rem;" onclick="takeTableOrder({{ table.id }})">
+                    <button class="btn-primary" style="flex: 1; font-weight: 600; padding: 8px; font-size: 0.85rem;" onclick="takeTableOrder({{ table.id }}, '{{ table.name }}')">
                         🍽️ Order
                     </button>
                     <button type="button" style="flex: 1; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 6px; font-weight: 600; padding: 8px; font-size: 0.85rem; cursor: pointer;" onclick="showTableQR({{ table.id }}, '{{ table.name }}')">
                         📱 QR Code
                     </button>
                 </div>
-                <a href="/menu?table={{ table.name }}" target="_blank" style="display: block; text-align: center; font-size: 0.75rem; color: var(--text-secondary); text-decoration: none; padding: 3px 0;">
+                <a href="/menu?table={{ table.name }}" target="_blank" class="desktop-only-menu-link" style="display: block; text-align: center; font-size: 0.75rem; color: var(--text-secondary); text-decoration: none; padding: 3px 0;">
                     🔗 Open Customer Menu &rarr;
                 </a>
             </div>
@@ -361,8 +361,14 @@
         }
     }
     
-    function takeTableOrder(tableId) {
-        window.location.href = '/admin/new_dinein/' + tableId;
+    function takeTableOrder(tableId, tableName) {
+        if (window.innerWidth <= 992) {
+            // On mobile, redirect to the interactive customer menu as requested
+            window.location.href = '/menu?table=' + tableName;
+        } else {
+            // On desktop, go to the standard Admin POS screen
+            window.location.href = '/admin/new_dinein/' + tableId;
+        }
     }
 
     // Real-time table highlight for active waiter calls

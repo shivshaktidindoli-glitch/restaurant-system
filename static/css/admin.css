@@ -1725,3 +1725,10 @@ body {
         font-weight: 700 !important;
     }
 }
+
+@media (max-width: 992px) {
+    /* Hide the 'Open Customer Menu' text link on mobile since the main 'Order' button now does this */
+    .desktop-only-menu-link {
+        display: none !important;
+    }
+}
