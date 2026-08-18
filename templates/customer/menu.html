@@ -275,5 +275,21 @@
     
     // Live update for sold-out items / reorders
 
+    // Dynamically adjust category slider sticky offset so it never overlaps the header
+    document.addEventListener('DOMContentLoaded', () => {
+        const header = document.querySelector('.cafe-hero-header');
+        const slider = document.querySelector('.category-slider-wrapper');
+        if (header && slider) {
+            // Apply initial offset immediately
+            slider.style.top = header.offsetHeight + 'px';
+            
+            // Re-calculate if the header resizes (e.g., orientation change, wrapping text)
+            const ro = new ResizeObserver(() => {
+                slider.style.top = header.offsetHeight + 'px';
+            });
+            ro.observe(header);
+        }
+    });
+
 </script>
 {% endblock %}
