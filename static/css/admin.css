@@ -602,19 +602,23 @@ body {
     
     /* Kanban Board */
     .kanban-board {
+        flex-direction: column;
         gap: 15px;
+        height: auto;
+        overflow-y: visible;
+        padding-right: 0;
+        scroll-snap-type: none;
     }
     .kanban-column {
-        min-width: 85vw; /* peek-hint effect */
-        scroll-snap-align: start;
+        min-width: 100%;
+        scroll-snap-align: none;
+        height: auto;
+        max-height: none;
     }
-    /* Optional: enable snap scrolling on kanban-board */
-    .kanban-board {
-        scroll-snap-type: x mandatory;
-        padding-right: 15vw;
+    .column-body {
+        height: auto;
+        max-height: 50vh; /* Optional constraint so they don't get too long */
     }
-    
-    /* Live Tables */
     .tables-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
@@ -1378,35 +1382,36 @@ body {
         background: #e2e8f0 !important;
     }
 
-    /* Sidebar Drawer Off-Canvas */
+    /* Full-Screen Mobile Menu instead of Sliding Drawer */
     .sidebar {
         position: fixed !important;
-        top: 0 !important;
+        top: 60px !important; /* Below topbar */
         bottom: 0 !important;
         left: 0 !important;
-        width: 290px !important;
-        max-width: 86vw !important;
-        height: 100vh !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: calc(100vh - 60px) !important;
         z-index: 99999 !important;
-        transform: translateX(-100%) !important;
-        transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        display: none !important;
+        transform: none !important;
+        transition: none !important;
         box-shadow: none !important;
+        background: #ffffff !important;
     }
 
     .sidebar.active {
-        transform: translateX(0) !important;
-        box-shadow: 6px 0 25px rgba(0, 0, 0, 0.4) !important;
+        display: block !important;
+        transform: none !important;
+        box-shadow: none !important;
     }
 
     .sidebar-close-btn {
-        display: block !important;
+        display: none !important; /* Hide close button as they can toggle the hamburger again, or we can keep it */
     }
 
     .sidebar-header {
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        padding: 16px 18px !important;
+        display: none !important; /* Hide duplicate header in mobile menu */
     }
 
     .sidebar-content {
@@ -1609,10 +1614,15 @@ body {
         font-size: 1.2rem !important;
     }
 
+    .dashboard-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
     .operations-grid {
-        grid-template-columns: 1fr 1fr !important;
-        gap: 8px !important;
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
     }
 }
 
-
+@media (max-width: 768px) { .mobile-swipe-hint { display: none !important; } }

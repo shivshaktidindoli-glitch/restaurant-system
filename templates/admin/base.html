@@ -904,7 +904,21 @@
         </a>
     </nav>
 
-    {% block scripts %}{% endblock %}
+    <script>
+        // Make all tables responsive on mobile by wrapping them in a scrollable div
+        document.addEventListener('DOMContentLoaded', function() {
+            const tables = document.querySelectorAll('table:not(.no-responsive)');
+            tables.forEach(table => {
+                if (!table.parentElement.classList.contains('table-responsive')) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'table-responsive';
+                    wrapper.style.cssText = 'overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; border-radius: 8px; margin-bottom: 15px;';
+                    table.parentNode.insertBefore(wrapper, table);
+                    wrapper.appendChild(table);
+                }
+            });
+        });
+    </script>
 </body>
 </html>
 
