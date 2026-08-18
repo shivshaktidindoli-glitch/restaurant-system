@@ -582,3 +582,22 @@ body {
         top: 165px;
     }
 }
+
+
+/* FINAL FOOLPROOF STICKY FIX */
+.cafe-hero-header {
+    position: relative !important;
+    top: auto !important;
+    z-index: 1 !important;
+    box-shadow: none !important;
+}
+.category-slider-wrapper {
+    position: relative !important;
+    top: auto !important;
+    z-index: 1 !important;
+}
+@media (max-width: 768px) {
+    .category-slider-wrapper {
+        top: auto !important;
+    }
+}

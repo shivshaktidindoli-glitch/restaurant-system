@@ -2,6 +2,7 @@
 {% block title %}Rajasthani Restaurant - Digital Menu{% endblock %}
 
 {% block content %}
+<div class="sticky-menu-header" style="position: sticky; top: 0; z-index: 100; background: #fff; box-shadow: 0 4px 12px -2px rgba(0,0,0,0.08);">
 <!-- CAFE HERO HEADER & BRANDING -->
 <div class="cafe-hero-header">
     <div class="cafe-brand-row">
@@ -77,6 +78,7 @@
     </div>
 </div>
 
+</div>
 <!-- MENU SECTIONS (ALL ACTIVE BY DEFAULT FOR 'ALL ITEMS') -->
 {% for cat in categories %}
     <div class="menu-section active" id="cat-{{ cat.id }}">
@@ -275,21 +277,6 @@
     
     // Live update for sold-out items / reorders
 
-    // Dynamically adjust category slider sticky offset so it never overlaps the header
-    document.addEventListener('DOMContentLoaded', () => {
-        const header = document.querySelector('.cafe-hero-header');
-        const slider = document.querySelector('.category-slider-wrapper');
-        if (header && slider) {
-            // Apply initial offset immediately
-            slider.style.top = header.offsetHeight + 'px';
-            
-            // Re-calculate if the header resizes (e.g., orientation change, wrapping text)
-            const ro = new ResizeObserver(() => {
-                slider.style.top = header.offsetHeight + 'px';
-            });
-            ro.observe(header);
-        }
-    });
-
 </script>
 {% endblock %}
+
