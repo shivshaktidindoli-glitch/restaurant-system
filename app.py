@@ -585,6 +585,12 @@ def place_order():
         return jsonify({'success': False, 'message': 'Cart is empty'}), 400
 
     if table and order_type == 'dine-in':
+        # Prevent double-submission duplicate orders (10 second debounce per table)
+        from datetime import datetime
+        recent_order = Order.query.filter_by(table_id=table.id, type='dine-in').order_by(Order.created_at.desc()).first()
+        if recent_order and recent_order.created_at and (datetime.utcnow() - recent_order.created_at).total_seconds() < 10:
+            return jsonify({'success': True, 'order_id': recent_order.id, 'duplicate': True})
+
         table.status = 'occupied'
         if not table.session_start_time:
             table.session_start_time = datetime.utcnow()
@@ -689,6 +695,12 @@ def place_order():
         return jsonify({'success': False, 'message': 'Cart is empty'}), 400
 
     if table and order_type == 'dine-in':
+        # Prevent double-submission duplicate orders (10 second debounce per table)
+        from datetime import datetime
+        recent_order = Order.query.filter_by(table_id=table.id, type='dine-in').order_by(Order.created_at.desc()).first()
+        if recent_order and recent_order.created_at and (datetime.utcnow() - recent_order.created_at).total_seconds() < 10:
+            return jsonify({'success': True, 'order_id': recent_order.id, 'duplicate': True})
+
         table.status = 'occupied'
         if not table.session_start_time:
             table.session_start_time = datetime.utcnow()
@@ -3398,3 +3410,5 @@ def force_reset_now_magic():
     except Exception as e:
         db.session.rollback()
         return f"ERROR: {str(e)}"
+
+
