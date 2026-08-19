@@ -161,7 +161,7 @@ class POSSIntegrationTests(unittest.TestCase):
         # Hold orders API
         hold_res = self.client.get('/api/hold_orders')
         self.assertEqual(hold_res.status_code, 200)
-        print("[PASS] Test 6: Radha POSS Topbar quick actions (Item toggle, Hold orders) verified")
+        print("[PASS] Test 6: Soul Sip POS Topbar quick actions (Item toggle, Hold orders) verified")
 
     def tearDown(self):
         limiter.enabled = True
