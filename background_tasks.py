@@ -3,11 +3,11 @@ import smtplib
 import os
 from email.message import EmailMessage
 from datetime import datetime
-import eventlet
+import gevent
 
 class BackgroundTaskQueue:
     def submit(self, task, *args, **kwargs):
-        eventlet.spawn(task, *args, **kwargs)
+        gevent.spawn(task, *args, **kwargs)
 
 # Global instance
 bg_queue = BackgroundTaskQueue()
