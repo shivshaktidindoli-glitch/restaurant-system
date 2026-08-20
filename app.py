@@ -1,5 +1,25 @@
 import gevent.monkey
 gevent.monkey.patch_all()
+import threading
+import gevent
+class GeventTimer:
+    def __init__(self, interval, function, args=None, kwargs=None):
+        self.interval = interval
+        self.function = function
+        self.args = args if args is not None else []
+        self.kwargs = kwargs if kwargs is not None else {}
+        self._g = None
+        self.name = 'GeventTimer'
+        self.daemon = True
+    def start(self):
+        self._g = gevent.spawn_later(self.interval, self.function, *self.args, **self.kwargs)
+    def cancel(self):
+        if self._g: self._g.kill()
+    def join(self):
+        if self._g: self._g.join()
+    def is_alive(self):
+        return self._g and not self._g.ready()
+threading.Timer = GeventTimer
 import os
 import json
 import qrcode
