@@ -11,14 +11,15 @@ class GeventTimer:
         self._g = None
         self.name = 'GeventTimer'
         self.daemon = True
+        self.ident = None
     def start(self):
         self._g = gevent.spawn_later(self.interval, self.function, *self.args, **self.kwargs)
     def cancel(self):
         if self._g: self._g.kill()
-    def join(self):
-        if self._g: self._g.join()
+    def join(self, timeout=None):
+        if self._g: self._g.join(timeout=timeout)
     def is_alive(self):
-        return self._g and not self._g.ready()
+        return bool(self._g and not self._g.ready())
 threading.Timer = GeventTimer
 import os
 import json
