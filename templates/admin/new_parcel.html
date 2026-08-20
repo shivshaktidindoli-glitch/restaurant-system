@@ -55,7 +55,7 @@
             <div class="menu-grid">
                 {% for item in items %}
                 {% if item.is_favorite %}
-                <div class="menu-item-card search-target card-item-{{ item.id }} food-{{ item.food_type }}" data-code="{{ item.short_code | lower }}">
+                <div class="menu-item-card search-target card-item-{{ item.id }} food-{{ item.food_type }}" data-code="{{ item.short_code | lower }}" data-id="{{ item.id }}" data-name="{{ item.name|escape }}" data-price="{{ item.price }}" onclick="updateCartEvent(this, 1)" style="cursor: pointer;">
                     <div>
                         <h4 class="item-name">{{ item.name }} {% if item.variant_name %}({{ item.variant_name }}){% endif %}</h4>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -71,9 +71,9 @@
                         {% endif %}
                     </div>
                     <div class="stepper">
-                        <button onclick="updateCart({{ item.id }}, '{{ item.name|replace("'", "\\'") }}', {{ item.price }}, -1)">-</button>
+                        <button type="button" onclick="event.stopPropagation(); updateCartEvent(this, -1)" style="pointer-events: auto;">-</button>
                         <span id="qty-fav-{{ item.id }}" class="qty-display-{{ item.id }}">0</span>
-                        <button onclick="updateCart({{ item.id }}, '{{ item.name|replace("'", "\\'") }}', {{ item.price }}, 1)">+</button>
+                        <button type="button" onclick="event.stopPropagation(); updateCartEvent(this, 1)" style="pointer-events: auto;">+</button>
                     </div>
                 </div>
                 {% endif %}
@@ -88,7 +88,7 @@
             <div class="menu-grid">
                 {% for item in cat.items %}
                 {% if not item.is_favorite %}
-                <div class="menu-item-card search-target card-item-{{ item.id }} food-{{ item.food_type }}" data-code="{{ item.short_code | lower }}">
+                <div class="menu-item-card search-target card-item-{{ item.id }} food-{{ item.food_type }}" data-code="{{ item.short_code | lower }}" data-id="{{ item.id }}" data-name="{{ item.name|escape }}" data-price="{{ item.price }}" onclick="updateCartEvent(this, 1)" style="cursor: pointer;">
                     <div>
                         <h4 class="item-name">{{ item.name }} {% if item.variant_name %}({{ item.variant_name }}){% endif %}</h4>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -104,9 +104,9 @@
                         {% endif %}
                     </div>
                     <div class="stepper">
-                        <button onclick="updateCart({{ item.id }}, '{{ item.name|replace("'", "\\'") }}', {{ item.price }}, -1)">-</button>
+                        <button type="button" onclick="event.stopPropagation(); updateCartEvent(this, -1)" style="pointer-events: auto;">-</button>
                         <span id="qty-{{ item.id }}" class="qty-display-{{ item.id }}">0</span>
-                        <button onclick="updateCart({{ item.id }}, '{{ item.name|replace("'", "\\'") }}', {{ item.price }}, 1)">+</button>
+                        <button type="button" onclick="event.stopPropagation(); updateCartEvent(this, 1)" style="pointer-events: auto;">+</button>
                     </div>
                 </div>
                 {% endif %}
@@ -183,6 +183,15 @@
 
     let cart = {};
     
+    
+    function updateCartEvent(element, delta) {
+        const card = element.closest('.menu-item-card');
+        if (!card) return;
+        const itemId = card.dataset.id;
+        const name = card.dataset.name;
+        const price = parseFloat(card.dataset.price);
+        updateCart(itemId, name, price, delta);
+    }
     function updateCart(itemId, name, price, delta) {
         if (!cart[itemId]) {
             cart[itemId] = { name: name, price: price, qty: 0 };

@@ -68,9 +68,9 @@
                         {% endif %}
                     </div>
                     <div class="stepper">
-                        <button onclick="updateCart({{ item.id }}, '{{ item.name|replace("'", "\\'") }}', {{ item.price }}, -1)">-</button>
+                        <button type="button" onclick="event.stopPropagation(); updateCartEvent(this, -1)" style="pointer-events: auto;">-</button>
                         <span id="qty-fav-{{ item.id }}" class="qty-display-{{ item.id }}">0</span>
-                        <button onclick="updateCart({{ item.id }}, '{{ item.name|replace("'", "\\'") }}', {{ item.price }}, 1)">+</button>
+                        <button type="button" onclick="event.stopPropagation(); updateCartEvent(this, 1)" style="pointer-events: auto;">+</button>
                     </div>
                 </div>
                 {% endif %}
@@ -90,9 +90,9 @@
                         <div class="price">₹{{ item.price }}</div>
                     </div>
                     <div class="stepper">
-                        <button onclick="updateCart({{ item.id }}, '{{ item.name|replace("'", "\\'") }}', {{ item.price }}, -1)">-</button>
+                        <button type="button" onclick="event.stopPropagation(); updateCartEvent(this, -1)" style="pointer-events: auto;">-</button>
                         <span id="qty-{{ item.id }}">0</span>
-                        <button onclick="updateCart({{ item.id }}, '{{ item.name|replace("'", "\\'") }}', {{ item.price }}, 1)">+</button>
+                        <button type="button" onclick="event.stopPropagation(); updateCartEvent(this, 1)" style="pointer-events: auto;">+</button>
                     </div>
                 </div>
                 {% endfor %}
@@ -185,6 +185,15 @@
 
     let cart = {};
     
+    
+    function updateCartEvent(element, delta) {
+        const card = element.closest('.menu-item-card');
+        if (!card) return;
+        const itemId = card.dataset.id;
+        const name = card.dataset.name;
+        const price = parseFloat(card.dataset.price);
+        updateCart(itemId, name, price, delta);
+    }
     function updateCart(itemId, name, price, delta) {
         if (!cart[itemId]) {
             cart[itemId] = { name: name, price: price, qty: 0 };
