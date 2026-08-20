@@ -744,13 +744,20 @@
     
     // Button Logic
     function updateStatus(orderId, newStatus) {
-        const card = document.querySelector(`.order-card[data-id="${orderId}"]`);
-        const targetList = document.getElementById(`list-${newStatus}`);
-        if (card && targetList) {
-            targetList.appendChild(card);
-            updateStatusAPI(orderId, newStatus);
-            updateCardButtons(card, newStatus);
+        try {
+            const card = document.querySelector(.order-card[data-id="\"]);
+            const targetList = document.getElementById(list-\);
+            if (card && targetList) {
+                targetList.appendChild(card);
+                updateStatusAPI(orderId, newStatus);
+                updateCardButtons(card, newStatus);
+            } else {
+                alert('DOM Error: Cannot find card or target list');
+            }
+        } catch(e) {
+            alert('JS Error: ' + e);
         }
+    }
     }
     
     function updateCardButtons(card, status) {

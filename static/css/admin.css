@@ -443,10 +443,10 @@ body {
     font-weight: 500;
     transition: all 0.2s;
 }
-.btn-status:hover {
+@media (hover: hover) { .btn-status:hover {
     background: var(--brand-orange);
     color: white;
-}
+} }
 
 /* ==========================================================================
    Modals (Settle, Discount, Split)
@@ -1776,3 +1776,13 @@ body {
         max-width: none !important;
     }
 }
+
+/* Force KDS buttons to be clickable even if overlapping occurs */
+.order-card a, .order-card button {
+    pointer-events: auto !important;
+    position: relative !important;
+    z-index: 50 !important;
+    touch-action: manipulation !important;
+}
+
+
