@@ -32,11 +32,11 @@
     <div class="order-actions">
         <div class="status-btn-container" style="display: flex; gap: 8px; margin-bottom: 8px;">
             {% if order.status == 'new' %}
-                <button class="btn-status" style="flex:1;" onclick="event.preventDefault(); updateStatus({{ order.id }}, 'preparing')">Start Preparing</button>
+                <button class="btn-status" style="flex:1;" onclick="try{event.preventDefault();}catch(e){} updateStatus({{ order.id }}, 'preparing')">Start Preparing</button>
             {% elif order.status == 'preparing' %}
-                <button class="btn-status" style="flex:1;" onclick="event.preventDefault(); updateStatus({{ order.id }}, 'served')">Mark Served</button>
+                <button class="btn-status" style="flex:1;" onclick="try{event.preventDefault();}catch(e){} updateStatus({{ order.id }}, 'served')">Mark Served</button>
             {% elif order.status == 'served' %}
-                <button class="btn-status" style="flex:1;" onclick="event.preventDefault(); updateStatus({{ order.id }}, 'completed')">Complete</button>
+                <button class="btn-status" style="flex:1;" onclick="try{event.preventDefault();}catch(e){} updateStatus({{ order.id }}, 'completed')">Complete</button>
             {% endif %}
         </div>
         
@@ -46,7 +46,7 @@
                 {% set total = total + (item.price_at_order * item.quantity) %}
             {% endfor %}
             {% set total = (total * 1.05)|round(2) %}
-            <button class="btn-primary" style="width:100%; background:#dc2626;" onclick="event.preventDefault(); openSettleModal({{ order.id }}, '{{ order.type }}', '{{ order.customer_name or '' }}', '{{ order.customer_mobile or '' }}', '{{ total }}', '{{ order.coupon_code or '' }}')">Settle Bill</button>
+            <button class="btn-primary" style="width:100%; background:#dc2626;" onclick="try{event.preventDefault();}catch(e){} openSettleModal({{ order.id }}, '{{ order.type }}', '{{ order.customer_name or '' }}', '{{ order.customer_mobile or '' }}', '{{ total }}', '{{ order.coupon_code or '' }}')">Settle Bill</button>
         {% endif %}
     </div>
 </div>

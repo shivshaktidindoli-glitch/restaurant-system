@@ -4,6 +4,11 @@
 {% block page_title %}Edit Order #{{ order.id }}{% endblock %}
 
 {% block content %}
+<script>
+window.onerror = function(msg, url, line, col, error) {
+    alert('JS Error: ' + msg + '\nLine: ' + line);
+};
+</script>
 <style>
     .parcel-layout { display: flex; gap: 30px; }
     .col-menu { flex: 2; }
@@ -63,9 +68,9 @@
                         </div>
                     </div>
                     <div class="stepper">
-                        <button type="button" onclick="event.stopPropagation(); updateCartEvent(this, -1)" style="pointer-events: auto;">-</button>
+                        <button type="button" onclick="try{event.stopPropagation();}catch(e){} updateCartEvent(this, -1)" style="pointer-events: auto;">-</button>
                         <span id="qty-fav-{{ item.id }}" class="qty-display-{{ item.id }}">0</span>
-                        <button type="button" onclick="event.stopPropagation(); updateCartEvent(this, 1)" style="pointer-events: auto;">+</button>
+                        <button type="button" onclick="try{event.stopPropagation();}catch(e){} updateCartEvent(this, 1)" style="pointer-events: auto;">+</button>
                     </div>
                 </div>
                 {% endif %}
@@ -91,9 +96,9 @@
                         </div>
                     </div>
                     <div class="stepper">
-                        <button type="button" onclick="event.stopPropagation(); updateCartEvent(this, -1)" style="pointer-events: auto;">-</button>
+                        <button type="button" onclick="try{event.stopPropagation();}catch(e){} updateCartEvent(this, -1)" style="pointer-events: auto;">-</button>
                         <span id="qty-{{ item.id }}" class="qty-display-{{ item.id }}">0</span>
-                        <button type="button" onclick="event.stopPropagation(); updateCartEvent(this, 1)" style="pointer-events: auto;">+</button>
+                        <button type="button" onclick="try{event.stopPropagation();}catch(e){} updateCartEvent(this, 1)" style="pointer-events: auto;">+</button>
                     </div>
                 </div>
                 {% endif %}
@@ -188,16 +193,16 @@
     
     // Initialize cart with existing order items
     {% for item in order.items %}
-    if (!cart[{{ item.menu_item_id }}]) {
-        cart[{{ item.menu_item_id }}] = { 
+    if (!cart[{{ item.menu_item_id or 0 }}]) {
+        cart[{{ item.menu_item_id or 0 }}] = { 
             name: '{{ item.menu_item.name|replace("'", "\\'") }}', 
             price: {{ item.price_at_order }}, 
             qty: 0,
             original_kots: {}
         };
     }
-    cart[{{ item.menu_item_id }}].qty += {{ item.quantity }};
-    cart[{{ item.menu_item_id }}].original_kots[{{ item.kot_number }}] = (cart[{{ item.menu_item_id }}].original_kots[{{ item.kot_number }}] || 0) + {{ item.quantity }};
+    cart[{{ item.menu_item_id or 0 }}].qty += {{ item.quantity }};
+    cart[{{ item.menu_item_id or 0 }}].original_kots[{{ item.kot_number or 1 }}] = (cart[{{ item.menu_item_id or 0 }}].original_kots[{{ item.kot_number or 1 }}] || 0) + {{ item.quantity }};
     {% endfor %}
     
     document.addEventListener('DOMContentLoaded', () => {
@@ -413,3 +418,4 @@
     });
 </script>
 {% endblock %}
+

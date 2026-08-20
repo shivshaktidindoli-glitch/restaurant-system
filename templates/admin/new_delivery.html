@@ -68,9 +68,9 @@
                         {% endif %}
                     </div>
                     <div class="stepper">
-                        <button type="button" onclick="event.stopPropagation(); updateCartEvent(this, -1)" style="pointer-events: auto;">-</button>
+                        <button type="button" onclick="try{event.stopPropagation();}catch(e){} updateCartEvent(this, -1)" style="pointer-events: auto;">-</button>
                         <span id="qty-fav-{{ item.id }}" class="qty-display-{{ item.id }}">0</span>
-                        <button type="button" onclick="event.stopPropagation(); updateCartEvent(this, 1)" style="pointer-events: auto;">+</button>
+                        <button type="button" onclick="try{event.stopPropagation();}catch(e){} updateCartEvent(this, 1)" style="pointer-events: auto;">+</button>
                     </div>
                 </div>
                 {% endif %}
@@ -90,9 +90,9 @@
                         <div class="price">₹{{ item.price }}</div>
                     </div>
                     <div class="stepper">
-                        <button type="button" onclick="event.stopPropagation(); updateCartEvent(this, -1)" style="pointer-events: auto;">-</button>
+                        <button type="button" onclick="try{event.stopPropagation();}catch(e){} updateCartEvent(this, -1)" style="pointer-events: auto;">-</button>
                         <span id="qty-{{ item.id }}">0</span>
-                        <button type="button" onclick="event.stopPropagation(); updateCartEvent(this, 1)" style="pointer-events: auto;">+</button>
+                        <button type="button" onclick="try{event.stopPropagation();}catch(e){} updateCartEvent(this, 1)" style="pointer-events: auto;">+</button>
                     </div>
                 </div>
                 {% endfor %}
