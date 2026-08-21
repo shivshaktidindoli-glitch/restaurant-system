@@ -3384,59 +3384,6 @@ def fix_all_items():
     db.session.commit()
     return "Fixed all bad translations!"
 
-@app.route('/api/apply_new_menu')
-def apply_new_menu():
-    import json
-    import os
-    import traceback
-    
-    try:
-        file_path = os.path.join(basedir, 'menu_extraction_temp.json')
-        if not os.path.exists(file_path):
-            return "File not found", 404
-            
-        with open(file_path, 'r', encoding='utf-8-sig') as f:
-            data = json.load(f)
-            
-        cat_map = {}
-        new_items = 0
-        updated_items = 0
-        
-        for item in data:
-            cat_name = item['category']
-            if cat_name not in cat_map:
-                cat = Category.query.filter_by(name=cat_name).first()
-                if not cat:
-                    cat = Category(name=cat_name)
-                    db.session.add(cat)
-                    db.session.commit()
-                cat_map[cat_name] = cat.id
-                
-            cat_id = cat_map[cat_name]
-            
-            menu_item = MenuItem.query.filter_by(name=item['name_en']).first()
-            if menu_item:
-                menu_item.name_hi = item['name_hi']
-                menu_item.price = float(item['price'])
-                menu_item.category_id = cat_id
-                updated_items += 1
-            else:
-                menu_item = MenuItem(
-                    name=item['name_en'],
-                    name_hi=item['name_hi'],
-                    price=float(item['price']),
-                    category_id=cat_id,
-                    is_available=True
-                )
-                db.session.add(menu_item)
-                new_items += 1
-                
-        db.session.commit()
-        return f"Success! New: {new_items}, Updated: {updated_items}"
-    except Exception as e:
-        db.session.rollback()
-        return str(traceback.format_exc()), 500
-
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     socketio.run(app, debug=False, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)
