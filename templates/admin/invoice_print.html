@@ -34,22 +34,24 @@
             @page { margin: 0; size: auto; }
             body { background: white; padding: 0; margin: 0; display: block; height: auto; }
             .print-controls { display: none; }
-            .invoice-paper { page-break-after: avoid !important; break-after: avoid !important; 
+            .invoice-paper { 
                 box-shadow: none; 
-                margin: 0 auto; 
-                padding: 10mm 15mm 0mm 15mm !important; 
-                width: 100% !important;
-                max-width: 100% !important;
+                margin: 0 auto !important; 
+                padding: 10mm 2mm 0mm 2mm !important; 
+                width: 65mm !important;
+                max-width: 65mm !important;
                 box-sizing: border-box !important;
                 font-weight: 900 !important; 
                 font-size: 15px !important; 
-                height: auto !important;                 page-break-inside: avoid !important;
-                break-inside: avoid !important;
+                height: auto !important;
                 min-height: 0 !important;
                 overflow: hidden !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
             .invoice-paper * {
-                color: #000 !important;                 font-family: Arial, sans-serif !important;
+                color: #000 !important;
+                font-family: Arial, sans-serif !important;
                 -webkit-text-stroke: 0.4px #000 !important;
                 font-weight: 900 !important;
                 word-wrap: break-word !important;
