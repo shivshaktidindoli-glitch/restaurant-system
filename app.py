@@ -1145,7 +1145,16 @@ def live_orders():
     orders_new = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter_by(status='new').order_by(Order.created_at.desc()).limit(50).all() if len(o.items) > 0]
     orders_preparing = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter_by(status='preparing').order_by(Order.created_at.desc()).limit(50).all() if len(o.items) > 0]
     orders_served = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter_by(status='served').order_by(Order.created_at.desc()).limit(50).all() if len(o.items) > 0]
-    orders_completed = [o for o in Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter(Order.status == 'completed', Order.created_at >= today_start).order_by(Order.created_at.desc()).limit(50).all() if len(o.items) > 0]
+    raw_completed = Order.query.options(joinedload(Order.items), joinedload(Order.table)).outerjoin(Invoice).filter(Order.status == 'completed', Invoice.id == None).order_by(Order.created_at.desc()).limit(100).all()
+    valid_completed = []
+    for o in raw_completed:
+        if o.table_id:
+            if o.table and o.table.status != 'vacant':
+                valid_completed.append(o)
+        else:
+            valid_completed.append(o)
+            
+    orders_completed = [o for o in valid_completed if len(o.items) > 0][:50]
     waiter_calls = WaiterCall.query.filter_by(status='pending').order_by(WaiterCall.created_at.desc()).all()
     branches = Branch.query.all()
     
