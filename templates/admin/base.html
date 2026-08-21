@@ -66,8 +66,8 @@
     <div class="sidebar">
         <div class="sidebar-header">
             <div style="display:flex; align-items:center; gap:10px;">
-                <img src="{{ url_for('static', filename='img/logo.png') }}?v=6.0" alt="Logo" style="height: 30px; border-radius: 4px;">
-                <h2>SOUL SIP CAFE</h2>
+                <img src="{{ url_for('static', filename=BRAND_LOGO) }}?v=6.0" alt="Logo" style="height: 30px; border-radius: 4px;">
+                <h2>{{ BRAND_NAME }}</h2>
             </div>
             <button class="sidebar-close-btn" onclick="toggleSidebar(false)" title="Close Menu">
                 <i class="fa-solid fa-xmark"></i>
@@ -140,10 +140,10 @@
                     <i class="fa-solid fa-bars"></i>
                 </button>
                 <div class="pos-brand-logo" style="background: none; padding: 0;">
-                    <img src="{{ url_for('static', filename='img/logo.png') }}?v=6.0" alt="Logo" style="height: 28px; border-radius: 4px;">
+                    <img src="{{ url_for('static', filename=BRAND_LOGO) }}?v=6.0" alt="Logo" style="height: 28px; border-radius: 4px;">
                 </div>
-                <div class="brand-outlet-title" title="Soul Sip Cafe">
-                    Soul Sip Cafe (R393522)
+                <div class="brand-outlet-title" title="{{ BRAND_NAME }}">
+                    {{ BRAND_NAME }} (R393522)
                 </div>
                 <button class="btn-new-order-red" onclick="openNewOrderModal()">
                     <i class="fa-solid fa-plus"></i> New Order
@@ -212,7 +212,7 @@
         </div>
         
         <div style="text-align: center; font-size: 0.75rem; color: #94a3b8; margin-top: auto; padding: 12px 0;">
-            &copy; 2026 Soul Sip Cafe &bull; Powered by SOUL SIP POS
+            &copy; 2026 {{ BRAND_NAME }} &bull; Powered by {{ BRAND_NAME }} POS
         </div>
     </div>
 
@@ -392,7 +392,7 @@
     <!-- Global Floating Waiter Call Container -->
     <div id="globalWaiterCallContainer" style="position:fixed;  right:24px; z-index:9999999; display:flex; flex-direction:column; gap:12px; max-width:340px; pointer-events:none;"></div>
 
-    <!-- SOUL SIP POS SCRIPTS -->
+    <!-- {{ BRAND_NAME }} POS SCRIPTS -->
     <script>
         function openModal(id) {
             document.getElementById(id).classList.add('active');

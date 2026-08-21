@@ -79,6 +79,16 @@ if not secret_key:
 app.config['SECRET_KEY'] = secret_key
 app.permanent_session_lifetime = timedelta(minutes=30)
 
+@app.context_processor
+def inject_brand():
+    return dict(
+        BRAND_NAME=os.environ.get('BRAND_NAME', 'Soul Sip Cafe'),
+        BRAND_TAGLINE=os.environ.get('BRAND_TAGLINE', 'Fresh Sips &bull; Delicious Bites &bull; Good Vibes'),
+        BRAND_ADDRESS=os.environ.get('BRAND_ADDRESS', 'Surat, Gujarat'),
+        BRAND_MOBILE=os.environ.get('BRAND_MOBILE', '85113 21898'),
+        BRAND_LOGO=os.environ.get('BRAND_LOGO', 'img/logo.png')
+    )
+
 db_dir = os.path.join(basedir, 'database')
 os.makedirs(db_dir, exist_ok=True)
 
@@ -461,7 +471,7 @@ def send_backup_email(zip_buffer):
         print("SMTP credentials not configured. Skipping email backup.")
         return False
         
-    subject = f"Soul Sip Cafe Database Backup - {datetime.now().strftime('%Y-%m-%d')}"
+    subject = f"{os.environ.get('BRAND_NAME', 'Soul Sip Cafe')} Database Backup - {datetime.now().strftime('%Y-%m-%d')}"
     to_email = os.environ.get('BACKUP_TO_EMAIL', 'soulsipcafe@gmail.com')
     body = "Please find attached the daily database backup (CSV format)."
     filename = f"soulsip_backup_{datetime.now().strftime('%Y%m%d')}.zip"

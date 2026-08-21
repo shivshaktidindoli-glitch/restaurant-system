@@ -52,7 +52,7 @@
     </div>
 
     <div class="invoice-paper thermal-80" id="invoicePaper">
-        <div class="text-center bold mb-2" style="font-size: 1.4em;">Soul Sip Cafe</div>
+        <div class="text-center bold mb-2" style="font-size: 1.4em;">{{ BRAND_NAME }}</div>
         <div class="text-center mb-2">
             123 Main Street, City<br>
             Phone: +91 9999999999<br>
@@ -149,7 +149,7 @@
         </div>
         
         <div style="text-align: center; font-size: 0.6em; color: #666; margin-top: 15px;">
-            &copy; 2026 Soul Sip Cafe.<br>All rights reserved. Unauthorized copying prohibited.
+            &copy; 2026 {{ BRAND_NAME }}.<br>All rights reserved. Unauthorized copying prohibited.
         </div>
     </div>
     
@@ -161,7 +161,7 @@
         }
         
         function shareWhatsApp() {
-            let billText = "*Soul Sip Cafe*\n";
+            let billText = "*{{ BRAND_NAME }}*\n";
             billText += "123 Main Street, City\n";
             billText += "----------------------------\n";
             billText += "*TAX INVOICE*\n";
