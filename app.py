@@ -3326,6 +3326,27 @@ try:
 except Exception as e:
     print(f"Auto-migrate warning: {e}")
 
+
+@app.route('/api/reset_orders_danger_zone')
+def reset_orders_danger_zone():
+    try:
+        Refund.query.delete()
+        CreditLedger.query.delete()
+        Invoice.query.delete()
+        OrderItem.query.delete()
+        Order.query.delete()
+        
+        tables = Table.query.all()
+        for t in tables:
+            t.status = 'vacant'
+            t.session_start_time = None
+            
+        db.session.commit()
+        return "ALL ORDERS AND INVOICES DELETED SUCCESSFULLY! YOU CAN GO BACK TO DASHBOARD NOW."
+    except Exception as e:
+        db.session.rollback()
+        return "ERROR: " + str(e)
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     socketio.run(app, debug=False, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)
