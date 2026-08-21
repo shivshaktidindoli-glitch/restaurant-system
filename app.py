@@ -3384,6 +3384,16 @@ def fix_all_items():
     db.session.commit()
     return "Fixed all bad translations!"
 
+@app.route('/api/undo_hindi_fix')
+def undo_hindi_fix():
+    updates = [4, 6, 9, 13, 14, 22, 36, 44, 59, 60, 64, 66, 91, 96, 3, 8, 10, 21, 27, 29, 35, 51, 61, 65, 81]
+    for item_id in updates:
+        item = MenuItem.query.get(item_id)
+        if item:
+            item.name_hi = None
+    db.session.commit()
+    return "Undo done!"
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     socketio.run(app, debug=False, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)
