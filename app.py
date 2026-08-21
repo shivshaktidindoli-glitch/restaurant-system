@@ -3364,6 +3364,17 @@ def get_item_11():
     item = MenuItem.query.get(11)
     return jsonify({'id': item.id, 'name': item.name, 'name_hi': item.name_hi})
 
+@app.route('/api/fix_two_items')
+def fix_two_items():
+    item11 = MenuItem.query.get(11)
+    if item11:
+        item11.name_hi = "आलू मटर"
+    item23 = MenuItem.query.get(23)
+    if item23:
+        item23.name_hi = "स्पे. हल्दी का साक (सीज़नल)"
+    db.session.commit()
+    return "Fixed 11 and 23!"
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     socketio.run(app, debug=False, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)
