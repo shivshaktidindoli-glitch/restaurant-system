@@ -80,11 +80,11 @@
                 <!-- Getting items exactly as saved in DB, maintaining the variant name inside -->
                 {% set aggregated = {} %}
                 {% for item in items %}
-                    {% set key = item.menu_item.name ~ (item.variant if item.variant else '') %}
+                    {% set key = (item.menu_item.name_hi or item.menu_item.name) ~ (item.variant if item.variant else '') %}
                     {% if key in aggregated %}
-                        {% set _ = aggregated.update({key: {'name': item.menu_item.name, 'var': item.variant, 'qty': aggregated[key].qty + item.quantity}}) %}
+                        {% set _ = aggregated.update({key: {'name': (item.menu_item.name_hi or item.menu_item.name), 'var': item.variant, 'qty': aggregated[key].qty + item.quantity}}) %}
                     {% else %}
-                        {% set _ = aggregated.update({key: {'name': item.menu_item.name, 'var': item.variant, 'qty': item.quantity}}) %}
+                        {% set _ = aggregated.update({key: {'name': (item.menu_item.name_hi or item.menu_item.name), 'var': item.variant, 'qty': item.quantity}}) %}
                     {% endif %}
                 {% endfor %}
                 
