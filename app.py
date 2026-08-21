@@ -3359,6 +3359,24 @@ def reset_orders_danger_zone():
         db.session.rollback()
         return "ERROR: " + str(e)
 
+@app.route('/api/dump_menu')
+def dump_menu():
+    items = MenuItem.query.all()
+    res = []
+    for item in items:
+        res.append({'id': item.id, 'name': item.name, 'name_hi': item.name_hi})
+    return jsonify(res)
+
+@app.route('/api/update_menu_hi', methods=['POST'])
+def update_menu_hi():
+    data = request.json
+    for item_data in data:
+        item = MenuItem.query.get(item_data['id'])
+        if item:
+            item.name_hi = item_data['name_hi']
+    db.session.commit()
+    return jsonify({'success': True})
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     socketio.run(app, debug=False, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)
