@@ -166,6 +166,12 @@ def inject_inventory_alerts():
     return dict(low_stock_items=[])
 
 
+@app.template_filter('ist')
+def to_ist(dt):
+    if not dt: return ""
+    from datetime import timedelta
+    return (dt + timedelta(hours=5, minutes=30)).strftime('%Y-%m-%d %I:%M %p')
+
 # Create tables and auto-seed on startup safely
 def init_database_and_seed():
     with app.app_context():
