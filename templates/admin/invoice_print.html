@@ -29,10 +29,26 @@
         th, td { text-align: left; vertical-align: top; }
         .money { text-align: right; }
         
-        @media print { @page { margin: 0; }
-            body { background: white; padding: 0; align-items: flex-start; }
+        @media print { 
+            @page { margin: 0; }
+            body { background: white; padding: 0; margin: 0; display: block; }
             .print-controls { display: none; }
-            .invoice-paper { box-shadow: none; padding: 0 4mm; margin: 0; width: auto; }
+            .invoice-paper { 
+                box-shadow: none; 
+                margin: 0 auto; 
+                padding: 12mm 5mm 5mm 5mm !important; 
+                width: 68mm !important; 
+                font-weight: 900 !important; 
+                font-size: 14px !important; 
+            }
+            .invoice-paper * {
+                color: #000 !important;
+                font-weight: 900 !important;
+            }
+            .thermal-80, .thermal-58 {
+                font-size: 14px !important;
+            }
+            .text-center.bold.mb-2 { font-size: 1.6em !important; }
         }
     </style>
 </head>
