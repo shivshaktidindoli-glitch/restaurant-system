@@ -82,7 +82,7 @@ app.permanent_session_lifetime = timedelta(minutes=30)
 @app.context_processor
 def inject_brand():
     return dict(
-        BRAND_NAME=os.environ.get('BRAND_NAME', 'Soul Sip Cafe'),
+        BRAND_NAME=os.environ.get('BRAND_NAME', 'Shree Chamunda Restaurant'),
         BRAND_TAGLINE=os.environ.get('BRAND_TAGLINE', 'Fresh Sips &bull; Delicious Bites &bull; Good Vibes'),
         BRAND_ADDRESS=os.environ.get('BRAND_ADDRESS', 'Surat, Gujarat'),
         BRAND_MOBILE=os.environ.get('BRAND_MOBILE', '85113 21898'),
