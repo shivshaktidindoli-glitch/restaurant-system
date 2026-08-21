@@ -190,7 +190,7 @@
             {% if invoice.discount > 0 %}
             billText += "Discount: -Rs.{{ '%.2f'|format(invoice.discount) }}\n";
             {% endif %}
-            billText += "Taxes: Rs.{{ '%.2f'|format(invoice.gst_amount) }}\n";
+            
             billText += "Round Off: Rs.{{ '%.2f'|format(invoice.round_off) }}\n";
             billText += "*GRAND TOTAL: Rs.{{ invoice.total }}*\n";
             billText += "----------------------------\n";

@@ -1427,7 +1427,7 @@ def my_deliveries():
 @role_required('manager', 'cashier')
 def billing():
     # Fetch all completed orders with eager loading to prevent massive N+1 slow queries
-    completed_orders = Order.query.options(joinedload(Order.items), joinedload(Order.table)).filter_by(status='completed').order_by(Order.created_at.desc()).limit(200).all()
+    completed_orders = Order.query.options(joinedload(Order.items), joinedload(Order.table)).outerjoin(Invoice).filter(Order.status == 'completed', Invoice.id == None).order_by(Order.created_at.desc()).limit(200).all()
     
     # Group by table for dine-in, keep parcel separate
     sessions = {}
@@ -1575,7 +1575,7 @@ def settle_bill():
     if discount > subtotal: discount = subtotal
     
     taxable = subtotal - discount + delivery_charge
-    gst_amount = taxable * 0.05
+    gst_amount = 0.0
     exact_total = taxable + gst_amount
     rounded_total = round(exact_total)
     round_off = rounded_total - exact_total

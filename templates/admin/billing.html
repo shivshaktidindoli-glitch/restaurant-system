@@ -127,10 +127,7 @@
                         <span>Discount</span>
                         <span id="txt-discount">-₹0.00</span>
                     </div>
-                    <div class="summary-row">
-                        <span>GST (5%)</span>
-                        <span id="txt-gst">₹0.00</span>
-                    </div>
+                    
                     <div class="summary-row total">
                         <span>Grand Total</span>
                         <span id="txt-total">₹0</span>
@@ -178,6 +175,13 @@
     let currentOrderIds = [];
     let currentSubtotal = 0;
     
+    // Fix for BFCache (Safari/iOS/Chrome) when user clicks Back after printing
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+
     async function loadBill(type, id, el) {
         document.querySelectorAll('.bill-session').forEach(n => n.classList.remove('active'));
         el.classList.add('active');
@@ -219,13 +223,13 @@
         if (discount > currentSubtotal) discount = currentSubtotal;
         
         let taxable = currentSubtotal - discount;
-        let gst = taxable * 0.05;
+        let gst = 0.0;
         let total = taxable + gst;
         let exactTotal = taxable + gst;
         
         document.getElementById('txt-subtotal').innerText = '₹' + currentSubtotal.toFixed(2);
         document.getElementById('txt-discount').innerText = '-₹' + discount.toFixed(2);
-        document.getElementById('txt-gst').innerText = '₹' + gst.toFixed(2);
+        
         document.getElementById('txt-total').innerText = '₹' + Math.round(exactTotal);
         
         toggleUPI();
