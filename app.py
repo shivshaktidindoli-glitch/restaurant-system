@@ -1435,6 +1435,16 @@ def billing():
     # Fetch all completed orders with eager loading to prevent massive N+1 slow queries
     completed_orders = Order.query.options(joinedload(Order.items), joinedload(Order.table)).outerjoin(Invoice).filter(Order.status == 'completed', Invoice.id == None).order_by(Order.created_at.desc()).limit(200).all()
     
+    # Post-filter to remove orphaned merged orders for tables that are already vacant (settled)
+    valid_orders = []
+    for o in completed_orders:
+        if o.table_id:
+            if o.table and o.table.status != 'vacant':
+                valid_orders.append(o)
+        else:
+            valid_orders.append(o)
+    completed_orders = valid_orders
+    
     # Group by table for dine-in, keep parcel separate
     sessions = {}
     parcels = []
@@ -1461,44 +1471,42 @@ def billing():
 @app.route('/api/get_bill_details/<string:type>/<int:id>')
 @login_required
 def get_bill_details(type, id):
-    # type is 'table' or 'order'
-    items = []
-    subtotal = 0.0
-    orders = []
-    
-    if type == 'table':
-        orders = Order.query.filter_by(table_id=id, status='completed').all()
-    else:
-        order = Order.query.get(id)
-        if order and order.status == 'completed':
-            orders = [order]
-            
-    for order in orders:
-        for item in order.items:
-            items.append({
-                'name': item.menu_item.name,
-                'quantity': item.quantity,
-                'price': item.price_at_order,
-                'total': item.quantity * item.price_at_order
-            })
-            subtotal += item.quantity * item.price_at_order
-            
-    # Combine same items
-    merged_items = {}
-    for item in items:
-        key = item['name']
-        if key not in merged_items:
-            merged_items[key] = item
+    try:
+        items = []
+        subtotal = 0.0
+        orders = []
+        
+        if type == 'table':
+            orders = Order.query.outerjoin(Invoice).filter(Order.table_id == id, Order.status == 'completed', Invoice.id == None).all()
         else:
-            merged_items[key]['quantity'] += item['quantity']
-            merged_items[key]['total'] += item['total']
-            
-    return jsonify({
-        'items': list(merged_items.values()),
-        'subtotal': subtotal,
-        'order_ids': [o.id for o in orders]
-    })
-
+            order = Order.query.get(id)
+            if order and order.status == 'completed':
+                orders = [order]
+                
+        for order in orders:
+            for item in order.items:
+                items.append({
+                    'name': item.menu_item.name if item.menu_item else 'Deleted Item',
+                    'quantity': item.quantity,
+                    'price': item.price_at_order,
+                    'total': item.quantity * item.price_at_order
+                })
+                subtotal += item.quantity * item.price_at_order
+                
+        merged_items = {}
+        for item in items:
+            key = item['name']
+            if key not in merged_items:
+                merged_items[key] = item
+            else:
+                merged_items[key]['quantity'] += item['quantity']
+                merged_items[key]['total'] += item['total']
+                
+        return jsonify({'items': list(merged_items.values()), 'subtotal': subtotal, 'order_ids': [o.id for o in orders]})
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({'items': [], 'subtotal': 0.0, 'order_ids': [], 'error': str(e)})
 @app.route('/api/settle_bill', methods=['POST'])
 @login_required
 def settle_bill():
