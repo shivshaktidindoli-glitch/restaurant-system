@@ -38,8 +38,8 @@
                 box-shadow: none; 
                 margin: 0 auto !important; 
                 padding: 10mm 2mm 0mm 2mm !important; 
-                width: 65mm !important;
-                max-width: 65mm !important;
+                width: 73mm !important;
+                max-width: 73mm !important;
                 box-sizing: border-box !important;
                 font-weight: 900 !important; 
                 font-size: 15px !important; 
@@ -69,8 +69,7 @@
         <div class="format-toggle">
             <label>Format: </label>
             <select id="formatSelect" onchange="changeFormat()">
-                <option value="thermal-80">Thermal 80mm</option>
-                <option value="thermal-58">Thermal 58mm</option>
+                <option value="thermal-58" selected>Thermal 58mm</option><option value="thermal-80">Thermal 80mm</option>
                 <option value="a4-desktop">A4 Desktop</option>
             </select>
         </div>
@@ -78,7 +77,7 @@
         <button class="btn-whatsapp" onclick="shareWhatsApp()" style="background-color: #25D366; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600; margin-left: 10px; font-size: 1rem;"><i class="fa-brands fa-whatsapp"></i> Share on WhatsApp</button>
     </div>
 
-    <div class="invoice-paper thermal-80" id="invoicePaper">
+    <div class="invoice-paper thermal-58" id="invoicePaper">
         <div class="text-center bold mb-2" style="font-size: 1.4em;">{{ BRAND_NAME }}</div>
         <div class="text-center mb-2">
             {{ BRAND_ADDRESS }}<br>
