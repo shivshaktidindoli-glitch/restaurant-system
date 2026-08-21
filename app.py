@@ -3327,9 +3327,12 @@ except Exception as e:
     print(f"Auto-migrate warning: {e}")
 
 
+
 @app.route('/api/reset_orders_danger_zone')
 def reset_orders_danger_zone():
     try:
+        Feedback.query.delete()
+        WaiterCall.query.delete()
         Refund.query.delete()
         CreditLedger.query.delete()
         Invoice.query.delete()
