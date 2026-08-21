@@ -29,7 +29,7 @@
         th, td { text-align: left; vertical-align: top; padding-bottom: 5px; }
         .qty-col { text-align: right; width: 40px; }
         
-        @media print {
+        @media print { @page { margin: 0; }
             body { background: white; padding: 0; align-items: flex-start; }
             .print-controls { display: none; }
             .invoice-paper { box-shadow: none; padding: 0 4mm; margin: 0; width: auto; }
@@ -57,7 +57,7 @@
         <table style="margin-bottom: 10px;">
             <tr><td>Order No:</td><td class="text-right bold">#{{ order.id }}</td></tr>
             <tr><td>KOT No:</td><td class="text-right bold">{{ kot_number }}</td></tr>
-            <tr><td>Date:</td><td class="text-right">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td></tr>
+            <tr><td>Date:</td><td class="text-right">{{ order.created_at|ist }}</td></tr>
             <tr><td>Type:</td><td class="text-right">{{ order.type|capitalize }}</td></tr>
             {% if order.table %}
             <tr><td>Table:</td><td class="text-right bold" style="font-size: 1.2em;">{{ order.table.name }}</td></tr>
@@ -105,7 +105,7 @@
         <div class="divider-solid"></div>
         
         <div class="text-center mt-3" style="margin-top: 10px; font-size: 0.9em; font-style: italic;">
-            (Printed by POS)
+            Powered by Radha POS System
         </div>
     </div>
     

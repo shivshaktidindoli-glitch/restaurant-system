@@ -29,7 +29,7 @@
         th, td { text-align: left; vertical-align: top; }
         .money { text-align: right; }
         
-        @media print {
+        @media print { @page { margin: 0; }
             body { background: white; padding: 0; align-items: flex-start; }
             .print-controls { display: none; }
             .invoice-paper { box-shadow: none; padding: 0 4mm; margin: 0; width: auto; }
@@ -141,9 +141,7 @@
             Please visit again.
         </div>
         
-        <div style="text-align: center; font-size: 0.6em; color: #666; margin-top: 15px;">
-            &copy; 2026 {{ BRAND_NAME }}.<br>All rights reserved. Unauthorized copying prohibited.
-        </div>
+        <div style="text-align: center; font-size: 0.8em; margin-top: 15px; font-weight: bold;">Powered by Radha POS System</div>
     </div>
     
     <script>
