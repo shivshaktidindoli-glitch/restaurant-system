@@ -35,18 +35,26 @@
             .print-controls { display: none; }
             .invoice-paper { 
                 box-shadow: none; 
-                margin: 0; 
-                padding: 12mm 5mm 0mm 6mm !important; 
+                margin: 0 auto; 
+                padding: 10mm 15mm 0mm 15mm !important; 
                 width: 100% !important;
+                max-width: 100% !important;
                 box-sizing: border-box !important;
-                font-weight: bold !important; 
-                font-size: 12px !important; 
+                font-weight: 900 !important; 
+                font-size: 15px !important; 
                 height: auto !important;
                 min-height: 0 !important;
+                overflow: hidden !important;
             }
             .invoice-paper * {
                 color: #000 !important;
+                font-weight: 900 !important;
+                white-space: pre-wrap !important;
+                word-wrap: break-word !important;
             }
+            .text-center.bold.mb-2 { font-size: 20px !important; }
+            .invoice-paper th, .invoice-paper td { font-size: 15px !important; }
+            table { width: 100% !important; max-width: 100% !important; table-layout: auto !important; }
         }
     </style>
 </head>
