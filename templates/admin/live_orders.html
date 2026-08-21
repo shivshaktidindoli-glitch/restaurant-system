@@ -745,8 +745,8 @@
     // Button Logic
     function updateStatus(orderId, newStatus) {
         try {
-            const card = document.querySelector(.order-card[data-id="\"]);
-            const targetList = document.getElementById(list-\);
+            const card = document.querySelector(`.order-card[data-id="${orderId}"]`);
+            const targetList = document.getElementById(`list-${newStatus}`);
             if (card && targetList) {
                 targetList.appendChild(card);
                 updateStatusAPI(orderId, newStatus);
