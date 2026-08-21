@@ -1605,7 +1605,7 @@ def settle_bill():
     
     invoice = Invoice(
         order_id=main_order.id,
-        invoice_number=f"INV-{main_order.id}-{datetime.utcnow().strftime('%H%M%S')}",
+        invoice_number=f"INV-{main_order.id}-{(datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime('%H%M%S')}",
         subtotal=subtotal,
         discount=discount,
         gst_percent=5.0,
@@ -2828,7 +2828,7 @@ def split_bill():
         for i in range(split_ways):
             inv = Invoice(
                 order_id=order.id,
-                invoice_number=f"INV-{order.id}-P{i+1}-{datetime.utcnow().strftime('%H%M%S')}",
+                invoice_number=f"INV-{order.id}-P{i+1}-{(datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime('%H%M%S')}",
                 subtotal=total_subtotal / split_ways,
                 discount=discount / split_ways,
                 gst_percent=5.0,
@@ -2849,7 +2849,7 @@ def split_bill():
             split_amount = round(exact_grand_total * ratio)
             inv = Invoice(
                 order_id=order.id,
-                invoice_number=f"INV-{order.id}-Pct{i+1}-{datetime.utcnow().strftime('%H%M%S')}",
+                invoice_number=f"INV-{order.id}-Pct{i+1}-{(datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime('%H%M%S')}",
                 subtotal=total_subtotal * ratio,
                 discount=discount * ratio,
                 gst_percent=5.0,
@@ -2879,7 +2879,7 @@ def split_bill():
             
             inv = Invoice(
                 order_id=order.id,
-                invoice_number=f"INV-{order.id}-Itm{part_num}-{datetime.utcnow().strftime('%H%M%S')}",
+                invoice_number=f"INV-{order.id}-Itm{part_num}-{(datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime('%H%M%S')}",
                 subtotal=part_subtotal,
                 discount=part_discount,
                 gst_percent=5.0,

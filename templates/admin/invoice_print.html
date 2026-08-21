@@ -63,7 +63,7 @@
         
         <table style="margin-bottom: 10px;">
             <tr><td>Inv No:</td><td class="text-right">{{ invoice.invoice_number }}</td></tr>
-            <tr><td>Date:</td><td class="text-right">{{ invoice.created_at.strftime('%Y-%m-%d %H:%M') }}</td></tr>
+            <tr><td>Date:</td><td class="text-right">{{ invoice.created_at|ist }}</td></tr>
             <tr><td>Type:</td><td class="text-right">{{ invoice.order.type|capitalize }}</td></tr>
             {% if invoice.order.table %}
             <tr><td>Table:</td><td class="text-right">{{ invoice.order.table.name }}</td></tr>
@@ -116,15 +116,8 @@
                 <td class="money">-{{ "%.2f"|format(invoice.discount) }}</td>
             </tr>
             {% endif %}
-            <tr>
-                <!-- Formula: gst = (subtotal - discount) * 0.05 -->
-                <td>CGST (2.5%)</td>
-                <td class="money">{{ "%.2f"|format(invoice.gst_amount / 2) }}</td>
-            </tr>
-            <tr>
-                <td>SGST (2.5%)</td>
-                <td class="money">{{ "%.2f"|format(invoice.gst_amount / 2) }}</td>
-            </tr>
+            
+            
             <tr>
                 <!-- Formula: round_off = rounded_total - exact_total -->
                 <td>Round Off</td>
@@ -166,7 +159,7 @@
             billText += "----------------------------\n";
             billText += "*TAX INVOICE*\n";
             billText += "Inv No: {{ invoice.invoice_number }}\n";
-            billText += "Date: {{ invoice.created_at.strftime('%Y-%m-%d %H:%M') }}\n";
+            billText += "Date: {{ invoice.created_at|ist }}\n";
             {% if invoice.order.customer_name %}
             billText += "Customer: {{ invoice.order.customer_name }}\n";
             {% endif %}
