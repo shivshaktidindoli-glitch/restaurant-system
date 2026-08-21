@@ -84,7 +84,7 @@ def inject_brand():
     return dict(
         BRAND_NAME=os.environ.get('BRAND_NAME', 'Shree Chamunda Restaurant'),
         BRAND_TAGLINE=os.environ.get('BRAND_TAGLINE', 'Fresh Sips &bull; Delicious Bites &bull; Good Vibes'),
-        BRAND_ADDRESS=os.environ.get('BRAND_ADDRESS', 'Surat, Gujarat'),
+        BRAND_ADDRESS=os.environ.get('BRAND_ADDRESS', 'Raj laxmi campus, police chowki, Mansarovar road, opp. Devadh gam, Godadara, Surat, Gujarat 395010'),
         BRAND_MOBILE=os.environ.get('BRAND_MOBILE', '85113 21898'),
         BRAND_LOGO=os.environ.get('BRAND_LOGO', 'img/logo.png')
     )
