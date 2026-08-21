@@ -3364,16 +3364,23 @@ def get_item_11():
     item = MenuItem.query.get(11)
     return jsonify({'id': item.id, 'name': item.name, 'name_hi': item.name_hi})
 
-@app.route('/api/fix_two_items')
-def fix_two_items():
-    item11 = MenuItem.query.get(11)
-    if item11:
-        item11.name_hi = "आलू मटर"
-    item23 = MenuItem.query.get(23)
-    if item23:
-        item23.name_hi = "स्पे. हल्दी का साक (सीज़नल)"
+@app.route('/api/fix_more_items')
+def fix_more_items():
+    updates = {
+        24: "स्पे. मेथी मकई मटर",
+        26: "वेज. कढ़ाई",
+        28: "वेज. हैदराबादी",
+        68: "वेज. मंचूरियन ड्राय",
+        69: "वेज. मंचूरियन ग्रेवी",
+        71: "वेज. शेज़वान मंचूरियन",
+        93: "पनीर बाल्टी"
+    }
+    for item_id, name_hi in updates.items():
+        item = MenuItem.query.get(item_id)
+        if item:
+            item.name_hi = name_hi
     db.session.commit()
-    return "Fixed 11 and 23!"
+    return "Fixed more items!"
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
