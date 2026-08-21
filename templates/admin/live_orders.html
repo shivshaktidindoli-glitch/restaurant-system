@@ -4,7 +4,6 @@
 {% block page_title %}Live Orders{% endblock %}
 
 {% block content %}
-<div style="background: red; color: white; padding: 20px; text-align: center; font-size: 24px; font-weight: bold; margin-bottom: 20px;" id="cache-buster-banner">SYSTEM UPDATED. BROWSER CACHE CLEARED SUCCESSFULLY. IF YOU SEE THIS BANNER, CLICK START PREPARING AND IT WILL WORK.</div>
 <div class="filters-bar">
     <div class="filters-left">
         <select id="filter-type" onchange="applyFilters()">
@@ -329,7 +328,7 @@
         }
     }
 
-    async function openSettleModal(orderId, type, customerName, customerMobile, totalStr, coupon) {
+    function openSettleModal(orderId, type, customerName, customerMobile, totalStr, coupon) {
         currentSettleOrderId = orderId;
         currentSettleOrderTotal = parseFloat(totalStr);
         currentSettleCoupon = coupon || '';
@@ -351,16 +350,17 @@
         document.getElementById('settle-loyalty-section').style.display = 'none';
 
         if (currentSettleMobile) {
-            try {
-                const resp = await fetch('/api/customer/history?mobile=' + encodeURIComponent(currentSettleMobile));
-                const data = await resp.json();
-                if (data.success && data.loyalty_points > 0) {
-                    currentAvailablePoints = data.loyalty_points;
-                    document.getElementById('settle-available-points').innerText = data.loyalty_points;
-                    document.getElementById('settle-redeem-points').max = data.loyalty_points;
-                    document.getElementById('settle-loyalty-section').style.display = 'block';
-                }
-            } catch(e) { console.error('Error fetching loyalty points:', e); }
+            fetch('/api/customer/history?mobile=' + encodeURIComponent(currentSettleMobile))
+                .then(function(resp) { return resp.json(); })
+                .then(function(data) {
+                    if (data.success && data.loyalty_points > 0) {
+                        currentAvailablePoints = data.loyalty_points;
+                        document.getElementById('settle-available-points').innerText = data.loyalty_points;
+                        document.getElementById('settle-redeem-points').max = data.loyalty_points;
+                        document.getElementById('settle-loyalty-section').style.display = 'block';
+                    }
+                })
+                .catch(function(e) { console.error('Error fetching loyalty points:', e); });
         }
         
         document.getElementById('settle-modal').classList.add('active');
@@ -484,17 +484,18 @@
         currentSplitType = tab;
     }
     
-    async function openSplitModal() {
+    function openSplitModal() {
         document.getElementById('split-modal').classList.add('active');
-        try {
-            const resp = await fetch(`/api/order_details/${currentSettleOrderId}`);
-            const data = await resp.json();
-            if (data.success) {
-                renderSplitItems(data.items);
-            }
-        } catch (e) {
-            console.error(e);
-        }
+        fetch(`/api/order_details/${currentSettleOrderId}`)
+            .then(function(resp) { return resp.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    renderSplitItems(data.items);
+                }
+            })
+            .catch(function(e) {
+                console.error(e);
+            });
     }
     
     function renderSplitItems(items) {
@@ -689,29 +690,29 @@
         }
     }
     
-    setInterval(async () => {
+    setInterval(function() {
         // If a modal is open (e.g. settling bill), delay the update so we don't interrupt the user
         if (document.querySelector('.modal.active')) return;
         
-        try {
-            const resp = await fetch(`/api/check_updates?since=${lastUpdateCheck}`);
-            if (resp.ok) {
-                const data = await resp.json();
-                if (data.has_updates) {
+        fetch(`/api/check_updates?since=${lastUpdateCheck}`)
+            .then(function(resp) { return resp.ok ? resp.json() : null; })
+            .then(function(data) {
+                if (data && data.has_updates) {
                     localStorage.setItem('play_update_sound', 'true');
-                    try {
-                        const htmlResp = await fetch(window.location.href);
-                        const htmlText = await htmlResp.text();
-                        const doc = new DOMParser().parseFromString(htmlText, 'text/html');
-                        document.querySelector('.kanban-board').innerHTML = doc.querySelector('.kanban-board').innerHTML;
-                        updateCounts();
-                        lastUpdateCheck = data.timestamp;
-                    } catch(e) { window.location.reload(); }
+                    fetch(window.location.href)
+                        .then(function(htmlResp) { return htmlResp.text(); })
+                        .then(function(htmlText) {
+                            const doc = new DOMParser().parseFromString(htmlText, 'text/html');
+                            document.querySelector('.kanban-board').innerHTML = doc.querySelector('.kanban-board').innerHTML;
+                            updateCounts();
+                            lastUpdateCheck = data.timestamp;
+                        })
+                        .catch(function(e) { window.location.reload(); });
                 }
-            }
-        } catch (e) {
-            console.error("Polling error", e);
-        }
+            })
+            .catch(function(e) {
+                console.error("Polling error", e);
+            });
     }, 10000);
 
     // Drag and Drop Logic
@@ -776,17 +777,15 @@
         updateCounts();
     }
     
-    async function updateStatusAPI(orderId, status) {
-        try {
-            await fetch('/api/update_order_status', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '' },
-                body: JSON.stringify({ order_id: orderId, status: status })
-            });
-        } catch (err) {
+    function updateStatusAPI(orderId, status) {
+        fetch('/api/update_order_status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '' },
+            body: JSON.stringify({ order_id: orderId, status: status })
+        }).catch(function(err) {
             console.error("Failed to update status", err);
             alert("Error updating order status!");
-        }
+        });
     }
     
     function updateCounts() {
