@@ -402,6 +402,9 @@ def add_security_headers(response):
         print(f"[LIFECYCLE] {request.path} took {elapsed:.4f}s", flush=True)
 
     response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
     response.headers['Server'] = 'Protected'
     response.headers.pop('X-Powered-By', None)
     response.headers['X-Frame-Options'] = 'DENY'
