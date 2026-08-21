@@ -1,4 +1,4 @@
-﻿import gevent.monkey
+import gevent.monkey
 gevent.monkey.patch_all()
 import threading
 import gevent
@@ -314,7 +314,7 @@ def deduct_item_inventory(menu_item, quantity, order_id=None, order_type='dine-i
         # Check Low Stock Warning (e.g. <= 5 items remaining)
         if mat.current_stock <= mat.low_stock_threshold:
             display_qty = int(mat.current_stock) if mat.current_stock.is_integer() else mat.current_stock
-            alert_msg = f"âš ï¸ Low Stock Warning: Only {display_qty} {mat.unit} left for '{mat.name}'!"
+            alert_msg = f"⚠️ Low Stock Warning: Only {display_qty} {mat.unit} left for '{mat.name}'!"
             
             socketio.emit('inventory_alert', {
                 'id': mat.id,
@@ -977,7 +977,7 @@ def add_inventory_entry():
             'current_stock': mat.current_stock,
             'threshold': mat.low_stock_threshold,
             'unit': mat.unit,
-            'message': f"âš ï¸ Low Stock Warning: Only {display_qty} {mat.unit} left for '{mat.name}'!"
+            'message': f"⚠️ Low Stock Warning: Only {display_qty} {mat.unit} left for '{mat.name}'!"
         }, namespace='/')
         
     return redirect(url_for('admin_inventory'))
@@ -1055,7 +1055,7 @@ def api_quick_inventory_update():
             'current_stock': mat.current_stock,
             'threshold': mat.low_stock_threshold,
             'unit': mat.unit,
-            'message': f"âš ï¸ Low Stock Warning: Only {display_qty} {mat.unit} left for '{mat.name}'!"
+            'message': f"⚠️ Low Stock Warning: Only {display_qty} {mat.unit} left for '{mat.name}'!"
         }, namespace='/')
         
     return jsonify({
@@ -2107,7 +2107,7 @@ def verify_coupon():
         return jsonify({'success': False, 'message': 'Coupon usage limit reached.'})
         
     if c.min_order_amount and total < c.min_order_amount:
-        return jsonify({'success': False, 'message': f'Minimum order amount of â‚¹{c.min_order_amount} required.'})
+        return jsonify({'success': False, 'message': f'Minimum order amount of ₹{c.min_order_amount} required.'})
         
     discount = 0
     if c.discount_type == 'flat':
@@ -2241,7 +2241,7 @@ def day_end_close():
         total_tips=total_tips
     )
     db.session.add(record)
-    log_activity('day_end', f"{current_user.name} closed the day with sales â‚¹{total_sales}")
+    log_activity('day_end', f"{current_user.name} closed the day with sales ₹{total_sales}")
     db.session.commit()
     
     return jsonify({'success': True})
@@ -2632,7 +2632,7 @@ def export_all_backup_csv():
         writer = csv.writer(orders_output)
         writer.writerow(['Order ID', 'Date', 'Type', 'Table/Customer', 'Status', 'Total Amount', 'Items Summary'])
         for o in Order.query.order_by(Order.created_at.desc()).limit(500).all():
-            items_str = "; ".join([f"{i.quantity}x {i.menu_item.name if i.menu_item else 'Item'} (â‚¹{i.price_at_order})" for i in o.items])
+            items_str = "; ".join([f"{i.quantity}x {i.menu_item.name if i.menu_item else 'Item'} (₹{i.price_at_order})" for i in o.items])
             total_val = sum(i.quantity * i.price_at_order for i in o.items)
             tbl = o.table.name if o.table else (o.customer_name or 'N/A')
             writer.writerow([o.id, o.created_at.strftime('%Y-%m-%d %H:%M:%S'), o.type, tbl, o.status, total_val, items_str])
@@ -2720,7 +2720,7 @@ def reset_transaction_data():
         
         # Log fresh start
         log_activity('system_reset', f"Admin {current_user.name} safely reset transaction data after CSV backup.")
-        flash("âœ… All orders, invoices, and transaction logs have been successfully reset! Menu, categories, tables, and staff accounts remain 100% intact.", "success")
+        flash("✅ All orders, invoices, and transaction logs have been successfully reset! Menu, categories, tables, and staff accounts remain 100% intact.", "success")
     except Exception as e:
         db.session.rollback()
         flash(f"Error resetting database: {str(e)}", "danger")
@@ -3055,7 +3055,7 @@ def add_expense():
             recorded_by=current_user.id
         )
         db.session.add(exp)
-        log_activity('expense', f"Recorded expense â‚¹{amount} for {category} by {current_user.name}")
+        log_activity('expense', f"Recorded expense ₹{amount} for {category} by {current_user.name}")
         db.session.commit()
         flash('Expense recorded successfully!')
     return redirect(url_for('admin_expenses'))
@@ -3100,7 +3100,7 @@ def add_cashflow():
             recorded_by=current_user.id
         )
         db.session.add(cf)
-        log_activity('cashflow', f"{current_user.name} recorded drawer {flow_type.upper()} â‚¹{amount} ({reason})")
+        log_activity('cashflow', f"{current_user.name} recorded drawer {flow_type.upper()} ₹{amount} ({reason})")
         db.session.commit()
         flash('Cash flow transaction recorded successfully!')
     return redirect(url_for('admin_cashflow'))
@@ -3367,15 +3367,15 @@ def get_item_11():
 @app.route('/api/fix_all_items')
 def fix_all_items():
     updates = {
-        11: "आलू मटर",
-        23: "स्पे. हल्दी का साक (सीज़नल)",
-        24: "स्पे. मेथी मकई मटर",
-        26: "वेज. कढ़ाई",
-        28: "वेज. हैदराबादी",
-        68: "वेज. मंचूरियन ड्राय",
-        69: "वेज. मंचूरियन ग्रेवी",
-        71: "वेज. शेज़वान मंचूरियन",
-        93: "पनीर बाल्टी"
+        11: "??? ???",
+        23: "????. ????? ?? ??? (?????)",
+        24: "????. ???? ??? ???",
+        26: "???. ????",
+        28: "???. ?????????",
+        68: "???. ???????? ?????",
+        69: "???. ???????? ??????",
+        71: "???. ?????? ????????",
+        93: "???? ??????"
     }
     for item_id, name_hi in updates.items():
         item = MenuItem.query.get(item_id)
@@ -3383,16 +3383,6 @@ def fix_all_items():
             item.name_hi = name_hi
     db.session.commit()
     return "Fixed all bad translations!"
-
-@app.route('/api/undo_hindi_fix')
-def undo_hindi_fix():
-    updates = [4, 6, 9, 13, 14, 22, 36, 44, 59, 60, 64, 66, 91, 96, 3, 8, 10, 21, 27, 29, 35, 51, 61, 65, 81]
-    for item_id in updates:
-        item = MenuItem.query.get(item_id)
-        if item:
-            item.name_hi = None
-    db.session.commit()
-    return "Undo done!"
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
