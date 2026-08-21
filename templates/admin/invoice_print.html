@@ -12,7 +12,7 @@
         .format-toggle select { padding: 8px; border-radius: 4px; }
         
         /* Default Thermal 80mm style */
-        .invoice-paper { background: white; padding: 20px; color: #000; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .invoice-paper { background: white; padding: 20px; color: #000 !important; box-shadow: 0 4px 10px rgba(0,0,0,0.1); font-weight: bold; }
         .thermal-80 { width: 302px; font-size: 12px; } /* ~80mm */
         .thermal-58 { width: 219px; font-size: 10px; } /* ~58mm */
         .a4-desktop { width: 700px; font-size: 14px; font-family: 'Arial', sans-serif; }
@@ -32,7 +32,7 @@
         @media print {
             body { background: white; padding: 0; align-items: flex-start; }
             .print-controls { display: none; }
-            .invoice-paper { box-shadow: none; padding: 0; margin: 0; }
+            .invoice-paper { box-shadow: none; padding: 0 4mm; margin: 0; width: auto; }
         }
     </style>
 </head>
