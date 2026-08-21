@@ -102,10 +102,10 @@
                 <!-- Getting unique items by merging from the main order (and theoretically others if merged) -->
                 {% set items = {} %}
                 {% for item in invoice.order.items %}
-                    {% if (item.menu_item.name_hi or item.menu_item.name) in items %}
-                        {% set _ = items.update({(item.menu_item.name_hi or item.menu_item.name): {'qty': items[(item.menu_item.name_hi or item.menu_item.name)].qty + item.quantity, 'tot': items[(item.menu_item.name_hi or item.menu_item.name)].tot + (item.quantity * item.price_at_order)}}) %}
+                    {% if item.menu_item.name in items %}
+                        {% set _ = items.update({item.menu_item.name: {'qty': items[item.menu_item.name].qty + item.quantity, 'tot': items[item.menu_item.name].tot + (item.quantity * item.price_at_order)}}) %}
                     {% else %}
-                        {% set _ = items.update({(item.menu_item.name_hi or item.menu_item.name): {'qty': item.quantity, 'tot': (item.quantity * item.price_at_order)}}) %}
+                        {% set _ = items.update({item.menu_item.name: {'qty': item.quantity, 'tot': (item.quantity * item.price_at_order)}}) %}
                     {% endif %}
                 {% endfor %}
                 
@@ -181,10 +181,10 @@
             
             {% set items = {} %}
             {% for item in invoice.order.items %}
-                {% if (item.menu_item.name_hi or item.menu_item.name) in items %}
-                    {% set _ = items.update({(item.menu_item.name_hi or item.menu_item.name): {'qty': items[(item.menu_item.name_hi or item.menu_item.name)].qty + item.quantity, 'tot': items[(item.menu_item.name_hi or item.menu_item.name)].tot + (item.quantity * item.price_at_order)}}) %}
+                {% if item.menu_item.name in items %}
+                    {% set _ = items.update({item.menu_item.name: {'qty': items[item.menu_item.name].qty + item.quantity, 'tot': items[item.menu_item.name].tot + (item.quantity * item.price_at_order)}}) %}
                 {% else %}
-                    {% set _ = items.update({(item.menu_item.name_hi or item.menu_item.name): {'qty': item.quantity, 'tot': (item.quantity * item.price_at_order)}}) %}
+                    {% set _ = items.update({item.menu_item.name: {'qty': item.quantity, 'tot': (item.quantity * item.price_at_order)}}) %}
                 {% endif %}
             {% endfor %}
             
