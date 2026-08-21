@@ -12,7 +12,7 @@
         .format-toggle select { padding: 8px; border-radius: 4px; }
         
         /* Default Thermal 80mm style */
-        .invoice-paper { background: white; padding: 20px; color: #000 !important; box-shadow: 0 4px 10px rgba(0,0,0,0.1); font-weight: bold; }
+        .invoice-paper { page-break-after: avoid !important; break-after: avoid !important; background: white; padding: 20px; color: #000 !important; box-shadow: 0 4px 10px rgba(0,0,0,0.1); font-weight: bold; }
         .thermal-80 { width: 302px; font-size: 12px; } /* ~80mm */
         .thermal-58 { width: 219px; font-size: 10px; } /* ~58mm */
         .a4-desktop { width: 700px; font-size: 14px; font-family: 'Arial', sans-serif; }
@@ -30,10 +30,10 @@
         .money { text-align: right; }
         
         @media print { 
-            @page { margin: 0; }
+            @page { margin: 0; size: auto; }
             body { background: white; padding: 0; margin: 0; display: block; height: auto; }
             .print-controls { display: none; }
-            .invoice-paper { 
+            .invoice-paper { page-break-after: avoid !important; break-after: avoid !important; 
                 box-shadow: none; 
                 margin: 0 auto; 
                 padding: 10mm 15mm 0mm 15mm !important; 
@@ -104,20 +104,20 @@
                     <th class="money">Total</th>
                 </tr>
             </thead>
-            <tbody>
-                <!-- Getting unique items by merging from the main order (and theoretically others if merged) -->
+                        <tbody>
                 {% set items = {} %}
                 {% for item in invoice.order.items %}
-                    {% if item.menu_item.name in items %}
-                        {% set _ = items.update({item.menu_item.name: {'qty': items[item.menu_item.name].qty + item.quantity, 'tot': items[item.menu_item.name].tot + (item.quantity * item.price_at_order)}}) %}
+                    {% set k = item.menu_item.id %}
+                    {% if k in items %}
+                        {% set _ = items.update({k: {'name': (item.menu_item.name_hi or item.menu_item.name), 'qty': items[k].qty + item.quantity, 'tot': items[k].tot + (item.quantity * item.price_at_order)}}) %}
                     {% else %}
-                        {% set _ = items.update({item.menu_item.name: {'qty': item.quantity, 'tot': (item.quantity * item.price_at_order)}}) %}
+                        {% set _ = items.update({k: {'name': (item.menu_item.name_hi or item.menu_item.name), 'qty': item.quantity, 'tot': (item.quantity * item.price_at_order)}}) %}
                     {% endif %}
                 {% endfor %}
                 
-                {% for name, data in items.items() %}
+                {% for k, data in items.items() %}
                 <tr>
-                    <td>{{ name }}</td>
+                    <td>{{ data.name }}</td>
                     <td class="text-center">{{ data.qty }}</td>
                     <td class="money">{{ "%.2f"|format(data.tot) }}</td>
                 </tr>

@@ -12,7 +12,7 @@
         .format-toggle select { padding: 8px; border-radius: 4px; }
         
         /* Default Thermal 80mm style */
-        .invoice-paper { background: white; padding: 20px; color: #000 !important; box-shadow: 0 4px 10px rgba(0,0,0,0.1); font-weight: bold; }
+        .invoice-paper { page-break-after: avoid !important; break-after: avoid !important; background: white; padding: 20px; color: #000 !important; box-shadow: 0 4px 10px rgba(0,0,0,0.1); font-weight: bold; }
         .thermal-80 { width: 302px; font-size: 14px; } /* ~80mm */
         .thermal-58 { width: 219px; font-size: 12px; } /* ~58mm */
         .a4-desktop { width: 700px; font-size: 16px; font-family: 'Arial', sans-serif; }
@@ -30,10 +30,10 @@
         .qty-col { text-align: right; width: 40px; }
         
         @media print { 
-            @page { margin: 0; }
+            @page { margin: 0; size: auto; }
             body { background: white; padding: 0; margin: 0; display: block; height: auto; }
             .print-controls { display: none; }
-            .invoice-paper { 
+            .invoice-paper { page-break-after: avoid !important; break-after: avoid !important; 
                 box-shadow: none; 
                 margin: 0 auto; 
                 padding: 10mm 15mm 0mm 15mm !important; 
@@ -98,19 +98,18 @@
                     <th class="qty-col">Qty</th>
                 </tr>
             </thead>
-            <tbody>
-                <!-- Getting items exactly as saved in DB, maintaining the variant name inside -->
+                        <tbody>
                 {% set aggregated = {} %}
                 {% for item in items %}
-                    {% set key = item.menu_item.name ~ (item.variant if item.variant else '') %}
-                    {% if key in aggregated %}
-                        {% set _ = aggregated.update({key: {'name': item.menu_item.name, 'var': item.variant, 'qty': aggregated[key].qty + item.quantity}}) %}
+                    {% set k = item.menu_item.id|string ~ (item.variant if item.variant else '') %}
+                    {% if k in aggregated %}
+                        {% set _ = aggregated.update({k: {'name': (item.menu_item.name_hi or item.menu_item.name), 'var': item.variant, 'qty': aggregated[k].qty + item.quantity}}) %}
                     {% else %}
-                        {% set _ = aggregated.update({key: {'name': item.menu_item.name, 'var': item.variant, 'qty': item.quantity}}) %}
+                        {% set _ = aggregated.update({k: {'name': (item.menu_item.name_hi or item.menu_item.name), 'var': item.variant, 'qty': item.quantity}}) %}
                     {% endif %}
                 {% endfor %}
                 
-                {% for key, data in aggregated.items() %}
+                {% for k, data in aggregated.items() %}
                 <tr>
                     <td class="bold">
                         {{ data.name }}
