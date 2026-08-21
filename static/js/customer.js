@@ -48,6 +48,9 @@ function initMenuTabs() {
                 sections.forEach(s => s.classList.remove('active'));
                 const targetSec = document.getElementById(target);
                 if (targetSec) targetSec.classList.add('active');
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             }
 
             // Smoothly scroll clicked tab into the middle of the category bar
