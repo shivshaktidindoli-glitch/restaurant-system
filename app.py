@@ -1,4 +1,4 @@
-import gevent.monkey
+﻿import gevent.monkey
 gevent.monkey.patch_all()
 import threading
 import gevent
@@ -314,7 +314,7 @@ def deduct_item_inventory(menu_item, quantity, order_id=None, order_type='dine-i
         # Check Low Stock Warning (e.g. <= 5 items remaining)
         if mat.current_stock <= mat.low_stock_threshold:
             display_qty = int(mat.current_stock) if mat.current_stock.is_integer() else mat.current_stock
-            alert_msg = f"⚠️ Low Stock Warning: Only {display_qty} {mat.unit} left for '{mat.name}'!"
+            alert_msg = f"âš ï¸ Low Stock Warning: Only {display_qty} {mat.unit} left for '{mat.name}'!"
             
             socketio.emit('inventory_alert', {
                 'id': mat.id,
@@ -977,7 +977,7 @@ def add_inventory_entry():
             'current_stock': mat.current_stock,
             'threshold': mat.low_stock_threshold,
             'unit': mat.unit,
-            'message': f"⚠️ Low Stock Warning: Only {display_qty} {mat.unit} left for '{mat.name}'!"
+            'message': f"âš ï¸ Low Stock Warning: Only {display_qty} {mat.unit} left for '{mat.name}'!"
         }, namespace='/')
         
     return redirect(url_for('admin_inventory'))
@@ -1055,7 +1055,7 @@ def api_quick_inventory_update():
             'current_stock': mat.current_stock,
             'threshold': mat.low_stock_threshold,
             'unit': mat.unit,
-            'message': f"⚠️ Low Stock Warning: Only {display_qty} {mat.unit} left for '{mat.name}'!"
+            'message': f"âš ï¸ Low Stock Warning: Only {display_qty} {mat.unit} left for '{mat.name}'!"
         }, namespace='/')
         
     return jsonify({
@@ -2107,7 +2107,7 @@ def verify_coupon():
         return jsonify({'success': False, 'message': 'Coupon usage limit reached.'})
         
     if c.min_order_amount and total < c.min_order_amount:
-        return jsonify({'success': False, 'message': f'Minimum order amount of ₹{c.min_order_amount} required.'})
+        return jsonify({'success': False, 'message': f'Minimum order amount of â‚¹{c.min_order_amount} required.'})
         
     discount = 0
     if c.discount_type == 'flat':
@@ -2241,7 +2241,7 @@ def day_end_close():
         total_tips=total_tips
     )
     db.session.add(record)
-    log_activity('day_end', f"{current_user.name} closed the day with sales ₹{total_sales}")
+    log_activity('day_end', f"{current_user.name} closed the day with sales â‚¹{total_sales}")
     db.session.commit()
     
     return jsonify({'success': True})
@@ -2632,7 +2632,7 @@ def export_all_backup_csv():
         writer = csv.writer(orders_output)
         writer.writerow(['Order ID', 'Date', 'Type', 'Table/Customer', 'Status', 'Total Amount', 'Items Summary'])
         for o in Order.query.order_by(Order.created_at.desc()).limit(500).all():
-            items_str = "; ".join([f"{i.quantity}x {i.menu_item.name if i.menu_item else 'Item'} (₹{i.price_at_order})" for i in o.items])
+            items_str = "; ".join([f"{i.quantity}x {i.menu_item.name if i.menu_item else 'Item'} (â‚¹{i.price_at_order})" for i in o.items])
             total_val = sum(i.quantity * i.price_at_order for i in o.items)
             tbl = o.table.name if o.table else (o.customer_name or 'N/A')
             writer.writerow([o.id, o.created_at.strftime('%Y-%m-%d %H:%M:%S'), o.type, tbl, o.status, total_val, items_str])
@@ -2720,7 +2720,7 @@ def reset_transaction_data():
         
         # Log fresh start
         log_activity('system_reset', f"Admin {current_user.name} safely reset transaction data after CSV backup.")
-        flash("✅ All orders, invoices, and transaction logs have been successfully reset! Menu, categories, tables, and staff accounts remain 100% intact.", "success")
+        flash("âœ… All orders, invoices, and transaction logs have been successfully reset! Menu, categories, tables, and staff accounts remain 100% intact.", "success")
     except Exception as e:
         db.session.rollback()
         flash(f"Error resetting database: {str(e)}", "danger")
@@ -3055,7 +3055,7 @@ def add_expense():
             recorded_by=current_user.id
         )
         db.session.add(exp)
-        log_activity('expense', f"Recorded expense ₹{amount} for {category} by {current_user.name}")
+        log_activity('expense', f"Recorded expense â‚¹{amount} for {category} by {current_user.name}")
         db.session.commit()
         flash('Expense recorded successfully!')
     return redirect(url_for('admin_expenses'))
@@ -3100,7 +3100,7 @@ def add_cashflow():
             recorded_by=current_user.id
         )
         db.session.add(cf)
-        log_activity('cashflow', f"{current_user.name} recorded drawer {flow_type.upper()} ₹{amount} ({reason})")
+        log_activity('cashflow', f"{current_user.name} recorded drawer {flow_type.upper()} â‚¹{amount} ({reason})")
         db.session.commit()
         flash('Cash flow transaction recorded successfully!')
     return redirect(url_for('admin_cashflow'))
@@ -3383,6 +3383,57 @@ def fix_all_items():
             item.name_hi = name_hi
     db.session.commit()
     return "Fixed all bad translations!"
+
+@app.route('/api/apply_new_menu')
+def apply_new_menu():
+    import json
+    import os
+    file_path = os.path.join(basedir, 'menu_extraction_temp.json')
+    if not os.path.exists(file_path):
+        return "File not found", 404
+        
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+        
+    # Dictionary to cache categories
+    cat_map = {}
+    
+    new_items_count = 0
+    updated_items_count = 0
+    
+    for item in data:
+        cat_name = item['category']
+        if cat_name not in cat_map:
+            # Find or create category
+            cat = Category.query.filter_by(name=cat_name).first()
+            if not cat:
+                cat = Category(name=cat_name)
+                db.session.add(cat)
+                db.session.commit()
+            cat_map[cat_name] = cat.id
+            
+        cat_id = cat_map[cat_name]
+        
+        # Find or create menu item
+        menu_item = MenuItem.query.filter_by(name=item['name_en']).first()
+        if menu_item:
+            menu_item.name_hi = item['name_hi']
+            menu_item.price = float(item['price'])
+            menu_item.category_id = cat_id
+            updated_items_count += 1
+        else:
+            menu_item = MenuItem(
+                name=item['name_en'],
+                name_hi=item['name_hi'],
+                price=float(item['price']),
+                category_id=cat_id,
+                is_available=True
+            )
+            db.session.add(menu_item)
+            new_items_count += 1
+            
+    db.session.commit()
+    return f"Success! New: {new_items_count}, Updated: {updated_items_count}"
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

@@ -1,0 +1,770 @@
+﻿[
+    {
+        "category":  "Dalbati",
+        "name_en":  "Sp. Chamunda Dalbati",
+        "name_hi":  "स्पे. चामुंडा दाल-बाटी",
+        "price":  210
+    },
+    {
+        "category":  "Dalbati",
+        "name_en":  "Regular Dalbati (3 Pcs. With Ghee \u0026 Dal + Chatni Oniyn + Leman)",
+        "name_hi":  "रेग्युलर दाल-बाटी",
+        "price":  150
+    },
+    {
+        "category":  "Dalbati",
+        "name_en":  "Regular Dalbati (Dalbati Plain)",
+        "name_hi":  "रेग्युलर दाल-बाटी प्लेन",
+        "price":  130
+    },
+    {
+        "category":  "Dalbati",
+        "name_en":  "Rajasthani kadhi Bati",
+        "name_hi":  "राजस्थानी कढ़ी-बाटी",
+        "price":  150
+    },
+    {
+        "category":  "Tandoori Roti \u0026 Naan",
+        "name_en":  "Plain Tandoori Roti",
+        "name_hi":  "सादी तंदूरी रोटी",
+        "price":  20
+    },
+    {
+        "category":  "Tandoori Roti \u0026 Naan",
+        "name_en":  "Butter Tandoori Roti",
+        "name_hi":  "बटर तंदूरी रोटी",
+        "price":  25
+    },
+    {
+        "category":  "Tandoori Roti \u0026 Naan",
+        "name_en":  "Lassa Paratha",
+        "name_hi":  "लस्सा परोठा",
+        "price":  40
+    },
+    {
+        "category":  "Tandoori Roti \u0026 Naan",
+        "name_en":  "Butter Lassa Paratha",
+        "name_hi":  "बटर लस्सा परोठा",
+        "price":  50
+    },
+    {
+        "category":  "Tandoori Roti \u0026 Naan",
+        "name_en":  "Plain Naan",
+        "name_hi":  "प्लेन नान",
+        "price":  30
+    },
+    {
+        "category":  "Tandoori Roti \u0026 Naan",
+        "name_en":  "Butter Naan",
+        "name_hi":  "बटर नान",
+        "price":  40
+    },
+    {
+        "category":  "Tandoori Roti \u0026 Naan",
+        "name_en":  "Garlic Naan",
+        "name_hi":  "गार्लिक नान",
+        "price":  70
+    },
+    {
+        "category":  "Tandoori Roti \u0026 Naan",
+        "name_en":  "Butter Kulcha",
+        "name_hi":  "बटर कुलचा",
+        "price":  50
+    },
+    {
+        "category":  "Tandoori Roti \u0026 Naan",
+        "name_en":  "Aloo Paratha",
+        "name_hi":  "आलू परोठा",
+        "price":  100
+    },
+    {
+        "category":  "Pulav \u0026 Biriyani",
+        "name_en":  "Sp. Chamunda Pulav",
+        "name_hi":  "स्पे. चामुंडा पुलाव",
+        "price":  210
+    },
+    {
+        "category":  "Pulav \u0026 Biriyani",
+        "name_en":  "Veg. Cheese Pulav",
+        "name_hi":  "वेज. चीज पुलाव",
+        "price":  180
+    },
+    {
+        "category":  "Pulav \u0026 Biriyani",
+        "name_en":  "Veg. Hederabadi Pulav",
+        "name_hi":  "वेज. हैदराबादी पुलाव",
+        "price":  200
+    },
+    {
+        "category":  "Pulav \u0026 Biriyani",
+        "name_en":  "Veg. Pulav",
+        "name_hi":  "वेज. पुलाव",
+        "price":  150
+    },
+    {
+        "category":  "Pulav \u0026 Biriyani",
+        "name_en":  "Veg. Paneer Pulav",
+        "name_hi":  "वेज. पनीर पुलाव",
+        "price":  170
+    },
+    {
+        "category":  "Pulav \u0026 Biriyani",
+        "name_en":  "Veg. Biriyani",
+        "name_hi":  "वेज. बिरीयानी",
+        "price":  210
+    },
+    {
+        "category":  "Pulav \u0026 Biriyani",
+        "name_en":  "Veg. Hederabadi Biriyani",
+        "name_hi":  "वेज. हैदराबादी बिरीयानी",
+        "price":  230
+    },
+    {
+        "category":  "Veg. Panjabi (Khajana)",
+        "name_en":  "Sp. Methi Makai Mattre",
+        "name_hi":  "स्पे. मेथी मलाई मटर",
+        "price":  180
+    },
+    {
+        "category":  "Veg. Panjabi (Khajana)",
+        "name_en":  "Veg. Handi",
+        "name_hi":  "वेज. हांडी",
+        "price":  190
+    },
+    {
+        "category":  "Veg. Panjabi (Khajana)",
+        "name_en":  "Veg. kadai",
+        "name_hi":  "वेज. कडाई",
+        "price":  190
+    },
+    {
+        "category":  "Veg. Panjabi (Khajana)",
+        "name_en":  "Vag. Jaipuri",
+        "name_hi":  "वेज. जयपुरी",
+        "price":  180
+    },
+    {
+        "category":  "Veg. Panjabi (Khajana)",
+        "name_en":  "Veg. Hedraldadi",
+        "name_hi":  "वेज. हैदराबादी",
+        "price":  180
+    },
+    {
+        "category":  "Veg. Panjabi (Khajana)",
+        "name_en":  "Veg. Hariyali Mix",
+        "name_hi":  "वेज. हरियाली मिक्स",
+        "price":  180
+    },
+    {
+        "category":  "Veg. Panjabi (Khajana)",
+        "name_en":  "Veg. kolapuri",
+        "name_hi":  "वेज. कोल्हापुरी",
+        "price":  180
+    },
+    {
+        "category":  "Veg. Panjabi (Khajana)",
+        "name_en":  "Mix Vegetable",
+        "name_hi":  "मिक्स वेजिटेबल",
+        "price":  150
+    },
+    {
+        "category":  "Veg. Panjabi (Khajana)",
+        "name_en":  "MushRoom Butter Masala",
+        "name_hi":  "मशरूम बटर मसाला",
+        "price":  200
+    },
+    {
+        "category":  "Veg. Panjabi (Khajana)",
+        "name_en":  "Chana Masala",
+        "name_hi":  "चना मसाला",
+        "price":  150
+    },
+    {
+        "category":  "Veg. Panjabi (Khajana)",
+        "name_en":  "Chana Paneer Masala",
+        "name_hi":  "चना पनीर मसाला",
+        "price":  220
+    },
+    {
+        "category":  "Veg. Panjabi (Khajana)",
+        "name_en":  "Plain Palak",
+        "name_hi":  "प्लेन पालक",
+        "price":  140
+    },
+    {
+        "category":  "Tava Roti Tikad \u0026 Khoba",
+        "name_en":  "Tava Chapati",
+        "name_hi":  "तवा चपाती",
+        "price":  15
+    },
+    {
+        "category":  "Tava Roti Tikad \u0026 Khoba",
+        "name_en":  "Butter Tava Chapadi",
+        "name_hi":  "बटर तवा चपाती",
+        "price":  20
+    },
+    {
+        "category":  "Tava Roti Tikad \u0026 Khoba",
+        "name_en":  "Plain Parratha",
+        "name_hi":  "सादा पराठा",
+        "price":  40
+    },
+    {
+        "category":  "Tava Roti Tikad \u0026 Khoba",
+        "name_en":  "Butter Parratha",
+        "name_hi":  "बटर पराठा",
+        "price":  50
+    },
+    {
+        "category":  "Tava Roti Tikad \u0026 Khoba",
+        "name_en":  "Marwadi Tikkad Roti (Ghee)",
+        "name_hi":  "मारवाड़ी तिक्कड़ रोटी (घी)",
+        "price":  80
+    },
+    {
+        "category":  "Tava Roti Tikad \u0026 Khoba",
+        "name_en":  "Khoba Roti (Ghee)",
+        "name_hi":  "खोबा रोटी (घी)",
+        "price":  100
+    },
+    {
+        "category":  "Tava Roti Tikad \u0026 Khoba",
+        "name_en":  "Aloo parrtha Tava (Lunch)",
+        "name_hi":  "आलू पराठा तवा (लंच)",
+        "price":  130
+    },
+    {
+        "category":  "Tava Roti Tikad \u0026 Khoba",
+        "name_en":  "Paneer Parratha Tava",
+        "name_hi":  "पनीर पराठा तवा",
+        "price":  160
+    },
+    {
+        "category":  "Tava Roti Tikad \u0026 Khoba",
+        "name_en":  "Bajri na Rotala (Shegnebul)",
+        "name_hi":  "बाजरी ना रोटला (शेगनेबुल)",
+        "price":  60
+    },
+    {
+        "category":  "Kofta",
+        "name_en":  "Malai Kofta (Sweet)",
+        "name_hi":  "मलाई कोफ्ता (स्वीट)",
+        "price":  240
+    },
+    {
+        "category":  "Kofta",
+        "name_en":  "Kaju Kofta",
+        "name_hi":  "काजू कोफ्ता",
+        "price":  250
+    },
+    {
+        "category":  "Kofta",
+        "name_en":  "Paneer Kofta",
+        "name_hi":  "पनीर कोफ्ता",
+        "price":  230
+    },
+    {
+        "category":  "Kofta",
+        "name_en":  "Nargisi Kofta",
+        "name_hi":  "नरगिसी कोफ्ता",
+        "price":  220
+    },
+    {
+        "category":  "Dal \u0026 Rice",
+        "name_en":  "Dal Fry",
+        "name_hi":  "दाल फ्राय",
+        "price":  120
+    },
+    {
+        "category":  "Dal \u0026 Rice",
+        "name_en":  "Dal Tadka",
+        "name_hi":  "दाल तड़का",
+        "price":  140
+    },
+    {
+        "category":  "Dal \u0026 Rice",
+        "name_en":  "Dal Fry with Butter",
+        "name_hi":  "दाल फ्राय बटर",
+        "price":  140
+    },
+    {
+        "category":  "Dal \u0026 Rice",
+        "name_en":  "Stem Rice",
+        "name_hi":  "स्टीम राइस",
+        "price":  80
+    },
+    {
+        "category":  "Dal \u0026 Rice",
+        "name_en":  "Jeera Rice",
+        "name_hi":  "जीरा राइस",
+        "price":  110
+    },
+    {
+        "category":  "Dal \u0026 Rice",
+        "name_en":  "Masala Rice",
+        "name_hi":  "मसाला राइस",
+        "price":  140
+    },
+    {
+        "category":  "Salad / Raita / Papad",
+        "name_en":  "Green Salad",
+        "name_hi":  "ग्रीन सलाद",
+        "price":  80
+    },
+    {
+        "category":  "Salad / Raita / Papad",
+        "name_en":  "Tomato Salad",
+        "name_hi":  "टमाटर का सलाद",
+        "price":  50
+    },
+    {
+        "category":  "Salad / Raita / Papad",
+        "name_en":  "Boondi Raita",
+        "name_hi":  "बूंदी रायता",
+        "price":  100
+    },
+    {
+        "category":  "Salad / Raita / Papad",
+        "name_en":  "Veg. Raita",
+        "name_hi":  "वेज. रायता",
+        "price":  100
+    },
+    {
+        "category":  "Salad / Raita / Papad",
+        "name_en":  "Fry. Papad",
+        "name_hi":  "फ्राय पापड़",
+        "price":  30
+    },
+    {
+        "category":  "Salad / Raita / Papad",
+        "name_en":  "Rosted Papad",
+        "name_hi":  "रोस्टेड पापड़",
+        "price":  20
+    },
+    {
+        "category":  "Salad / Raita / Papad",
+        "name_en":  "Masala Papad With Cheese",
+        "name_hi":  "मसाला पापड़ चीज़",
+        "price":  60
+    },
+    {
+        "category":  "Salad / Raita / Papad",
+        "name_en":  "Masala Papad",
+        "name_hi":  "मसाला पापड़",
+        "price":  40
+    },
+    {
+        "category":  "Salad / Raita / Papad",
+        "name_en":  "Rosted Khiciya",
+        "name_hi":  "रोस्टेड खिचीया",
+        "price":  40
+    },
+    {
+        "category":  "Salad / Raita / Papad",
+        "name_en":  "Fry. Khiciya",
+        "name_hi":  "फ्राय खिचीया",
+        "price":  50
+    },
+    {
+        "category":  "Salad / Raita / Papad",
+        "name_en":  "Masala Khiciya",
+        "name_hi":  "मसाला खिचीया",
+        "price":  80
+    },
+    {
+        "category":  "Salad / Raita / Papad",
+        "name_en":  "Masala Khiciya With Cheese",
+        "name_hi":  "मसाला खिचीया चीज़",
+        "price":  100
+    },
+    {
+        "category":  "Rajasthani Tadka",
+        "name_en":  "Sp. Malai Besan gatta",
+        "name_hi":  "स्पे. मलाई बेसन गट्टा",
+        "price":  150
+    },
+    {
+        "category":  "Rajasthani Tadka",
+        "name_en":  "Besan Gatta (Regular)",
+        "name_hi":  "बेसन गट्टा (रेगुलर)",
+        "price":  130
+    },
+    {
+        "category":  "Rajasthani Tadka",
+        "name_en":  "Sp. Ker sangri",
+        "name_hi":  "स्पे. केर सांगरी",
+        "price":  330
+    },
+    {
+        "category":  "Rajasthani Tadka",
+        "name_en":  "Sp. Kaju Gatiya",
+        "name_hi":  "स्पे. काजू गाठिया",
+        "price":  160
+    },
+    {
+        "category":  "Rajasthani Tadka",
+        "name_en":  "Rabadi Masala",
+        "name_hi":  "राबोड़ी का सब्जी",
+        "price":  140
+    },
+    {
+        "category":  "Rajasthani Tadka",
+        "name_en":  "Sev Tamatra",
+        "name_hi":  "सेव टमाटर",
+        "price":  140
+    },
+    {
+        "category":  "Rajasthani Tadka",
+        "name_en":  "Sev Masala",
+        "name_hi":  "सेव मसाला",
+        "price":  140
+    },
+    {
+        "category":  "Rajasthani Tadka",
+        "name_en":  "Sev Payaz",
+        "name_hi":  "सेव प्याज़",
+        "price":  180
+    },
+    {
+        "category":  "Rajasthani Tadka",
+        "name_en":  "Sev Bhaji milk",
+        "name_hi":  "सेव भाजी मिल्क",
+        "price":  170
+    },
+    {
+        "category":  "Rajasthani Tadka",
+        "name_en":  "Malai Payaz",
+        "name_hi":  "मलाई प्याज़",
+        "price":  140
+    },
+    {
+        "category":  "Rajasthani Tadka",
+        "name_en":  "Allu Matter",
+        "name_hi":  "आलू मटर",
+        "price":  140
+    },
+    {
+        "category":  "Rajasthani Tadka",
+        "name_en":  "Allu Gobi",
+        "name_hi":  "आलू गोभी",
+        "price":  140
+    },
+    {
+        "category":  "Rajasthani Tadka",
+        "name_en":  "Allu palak",
+        "name_hi":  "आलू पालक",
+        "price":  150
+    },
+    {
+        "category":  "Rajasthani Tadka",
+        "name_en":  "Papad Payaz",
+        "name_hi":  "पापड़ प्याज़",
+        "price":  160
+    },
+    {
+        "category":  "Rajasthani Tadka",
+        "name_en":  "Sp. Lasaniya Bataka (katiyawadi)",
+        "name_hi":  "स्पे. लसणीया बटाका (काठियावाड़ी)",
+        "price":  130
+    },
+    {
+        "category":  "Rajasthani Tadka",
+        "name_en":  "Dahi Fry.",
+        "name_hi":  "दही फ्राय",
+        "price":  120
+    },
+    {
+        "category":  "Rajasthani Tadka",
+        "name_en":  "Dahi Payaz Tomato",
+        "name_hi":  "दही प्याज़ टमाटर",
+        "price":  140
+    },
+    {
+        "category":  "Kaju Khajana",
+        "name_en":  "Kaju Butter Masala",
+        "name_hi":  "काजू बटर मसाला",
+        "price":  270
+    },
+    {
+        "category":  "Kaju Khajana",
+        "name_en":  "Kaju Cheese Masala",
+        "name_hi":  "काजू चीज मसाला",
+        "price":  280
+    },
+    {
+        "category":  "Kaju Khajana",
+        "name_en":  "Kaju Curry",
+        "name_hi":  "काजू करी",
+        "price":  250
+    },
+    {
+        "category":  "Kaju Khajana",
+        "name_en":  "Kaju Masala (Spaicy)",
+        "name_hi":  "काजू मसाला (स्पाइसी)",
+        "price":  270
+    },
+    {
+        "category":  "Kaju Khajana",
+        "name_en":  "Khoya Kaju",
+        "name_hi":  "खोया काजू",
+        "price":  290
+    },
+    {
+        "category":  "Sp. Haldi Ka Sak",
+        "name_en":  "Sp. Haldi Ka Sak (sigenebal)",
+        "name_hi":  "स्पे. हल्दी की सब्जी (सिंजनेबल)",
+        "price":  310
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Sp. Chamunda",
+        "name_hi":  "स्पे. चामुंडा",
+        "price":  320
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Paneer Tika Masala",
+        "name_hi":  "पनीर टीका मसाला",
+        "price":  200
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Paneer Butter Masala",
+        "name_hi":  "पनीर बटर मसाला",
+        "price":  200
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Paneer Pasanda",
+        "name_hi":  "पनीर पसंदा",
+        "price":  230
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Paneer Chatpata",
+        "name_hi":  "पनीर चटपटा",
+        "price":  210
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Paneer Lasniya",
+        "name_hi":  "पनीर लसनिया",
+        "price":  200
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Paneer. Balti",
+        "name_hi":  "पनीर बाल्टी",
+        "price":  220
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Paneer Tava",
+        "name_hi":  "पनीर तवा",
+        "price":  240
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Paneer Handi",
+        "name_hi":  "पनीर हांडी",
+        "price":  220
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Cheese Anguri",
+        "name_hi":  "चीज़ अंगूरी",
+        "price":  280
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Paneer Patiyala",
+        "name_hi":  "पनीर पटियाला",
+        "price":  220
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Paneer Shahi",
+        "name_hi":  "पनीर शाही",
+        "price":  220
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Paneer Toofani",
+        "name_hi":  "पनीर तूफानी",
+        "price":  220
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Paneer Angara",
+        "name_hi":  "पनीर अंगारा",
+        "price":  250
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Paneer Bhurji",
+        "name_hi":  "पनीर भुर्जी",
+        "price":  270
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Palk Paneer Bhurji",
+        "name_hi":  "पालक पनीर भुर्जी",
+        "price":  220
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Palk Paneer",
+        "name_hi":  "पालक पनीर",
+        "price":  190
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Mutter Paneer",
+        "name_hi":  "मटर पनीर",
+        "price":  170
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Chna Paneer Masala",
+        "name_hi":  "चना पनीर मसाला",
+        "price":  180
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Paneer Cheese Masala",
+        "name_hi":  "पनीर चीज़ मसाला",
+        "price":  250
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Paneer kaju Masala",
+        "name_hi":  "पनीर काजू मसाला",
+        "price":  240
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Cheese Butter Masala",
+        "name_hi":  "चीज़ बटर मसाला",
+        "price":  240
+    },
+    {
+        "category":  "Paneer Main Course",
+        "name_en":  "Paneer Aachari",
+        "name_hi":  "पनीर अचारी",
+        "price":  200
+    },
+    {
+        "category":  "Started Chineese",
+        "name_en":  "Veg. Manchurian Dry.",
+        "name_hi":  "वेज. मंचूरियन ड्राय",
+        "price":  120
+    },
+    {
+        "category":  "Started Chineese",
+        "name_en":  "Veg. Manchurian Greavy",
+        "name_hi":  "वेज. मंचूरियन ग्रेवी",
+        "price":  140
+    },
+    {
+        "category":  "Started Chineese",
+        "name_en":  "Paneer Chilly Dry.",
+        "name_hi":  "पनीर चिली ड्राय",
+        "price":  200
+    },
+    {
+        "category":  "Started Chineese",
+        "name_en":  "Veg. Schezwan Manchurian",
+        "name_hi":  "वेज. सेजवान मंचूरियन",
+        "price":  140
+    },
+    {
+        "category":  "Started Chineese",
+        "name_en":  "Paneer Chilly Greavy",
+        "name_hi":  "पनीर चिली ग्रेवी",
+        "price":  220
+    },
+    {
+        "category":  "Chinese Rice \u0026 Noodles",
+        "name_en":  "Veg. Hakka Noodles",
+        "name_hi":  "वेज. हक्का नूडल्स",
+        "price":  120
+    },
+    {
+        "category":  "Chinese Rice \u0026 Noodles",
+        "name_en":  "Singapori Noodles",
+        "name_hi":  "सिंगापुर नूडल्स",
+        "price":  130
+    },
+    {
+        "category":  "Chinese Rice \u0026 Noodles",
+        "name_en":  "Chainiz Bhel",
+        "name_hi":  "चाईनीज भेल",
+        "price":  150
+    },
+    {
+        "category":  "Chinese Rice \u0026 Noodles",
+        "name_en":  "Fried Rice",
+        "name_hi":  "फ्राइड राइस",
+        "price":  120
+    },
+    {
+        "category":  "Chinese Rice \u0026 Noodles",
+        "name_en":  "Singapori Fried Rice",
+        "name_hi":  "सिंगापुरी फ्राइड राइस",
+        "price":  130
+    },
+    {
+        "category":  "Chinese Rice \u0026 Noodles",
+        "name_en":  "Schezwan Noodles",
+        "name_hi":  "सेजवान नूडल्स",
+        "price":  140
+    },
+    {
+        "category":  "Chinese Rice \u0026 Noodles",
+        "name_en":  "Bombay Bhal",
+        "name_hi":  "बॉम्बे भेल",
+        "price":  140
+    },
+    {
+        "category":  "Started Tandoor",
+        "name_en":  "Paneer Tikka Dry.",
+        "name_hi":  "पनीर टिक्का ड्राय",
+        "price":  210
+    },
+    {
+        "category":  "Started Tandoor",
+        "name_en":  "Hara Bhara Kabab",
+        "name_hi":  "हरा भरा कबाब",
+        "price":  150
+    },
+    {
+        "category":  "Started Tandoor",
+        "name_en":  "Pudina Tikka Dry.",
+        "name_hi":  "पुदीना टिक्का ड्राय",
+        "price":  220
+    },
+    {
+        "category":  "Soups",
+        "name_en":  "Hot N Sour Soup",
+        "name_hi":  "हॉट एंड सॉर सूप",
+        "price":  100
+    },
+    {
+        "category":  "Soups",
+        "name_en":  "Manshau Soup",
+        "name_hi":  "मनचाऊ सूप",
+        "price":  100
+    },
+    {
+        "category":  "Soups",
+        "name_en":  "Cream Of Tomato Soup",
+        "name_hi":  "क्रीम ऑफ़ टोमेटो सूप",
+        "price":  90
+    },
+    {
+        "category":  "Soups",
+        "name_en":  "Lemon Coriander",
+        "name_hi":  "लेमन कोरिअंडर",
+        "price":  70
+    }
+]
