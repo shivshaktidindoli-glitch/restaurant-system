@@ -86,22 +86,20 @@
                     </td>
                     <td style="text-align: center; white-space: nowrap;">
                         <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
-                            <button type="button" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500;" title="Edit Item" onclick='openEditItemModal({{ {
-                                "id": item.id,
-                                "name": item.name,
-                                "name_hi": item.name_hi or "",
-                                "name_gu": item.name_gu or "",
-                                "category_id": item.category_id,
-                                "price": item.price,
-                                "variant_name": item.variant_name or "",
-                                "food_type": item.food_type or "veg",
-                                "short_code": item.short_code or "",
-                                "is_favorite": item.is_favorite,
-                                "is_combo": item.is_combo,
-                                "description": item.description or "",
-                                "desc_hi": item.desc_hi or "",
-                                "desc_gu": item.desc_gu or ""
-                            }|tojson }})'>
+                            <button type="button" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500;" title="Edit Item"
+                                data-id="{{ item.id }}"
+                                data-name="{{ item.name }}"
+                                data-name_hi="{{ item.name_hi or '' }}"
+                                data-name_gu="{{ item.name_gu or '' }}"
+                                data-category_id="{{ item.category_id }}"
+                                data-price="{{ item.price }}"
+                                data-variant_name="{{ item.variant_name or '' }}"
+                                data-food_type="{{ item.food_type or 'veg' }}"
+                                data-short_code="{{ item.short_code or '' }}"
+                                data-is_favorite="{{ 'true' if item.is_favorite else 'false' }}"
+                                data-is_combo="{{ 'true' if item.is_combo else 'false' }}"
+                                data-description="{{ item.description or '' }}"
+                                onclick="openEditItemModal(this)">
                                 ✏️ Edit
                             </button>
                             <form method="POST" action="/admin/items/delete/{{ item.id }}" onsubmit="return confirm('Are you sure you want to delete \'{{ item.name }}\'?');" style="display: inline-block; margin: 0;">
