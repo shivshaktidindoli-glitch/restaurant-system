@@ -1778,3 +1778,39 @@ body {
 }
 
 
+
+/* CRUD Layout Mobile Fixes */
+@media (max-width: 992px) {
+    .layout-row {
+        flex-direction: column !important;
+    }
+    .layout-row .col-side {
+        width: 100% !important;
+        order: -1 !important;
+        margin-bottom: 20px !important;
+    }
+    .layout-row .col-main {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+    .data-table {
+        display: block !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Make table rows and actions look better on mobile */
+    .data-table th, .data-table td {
+        padding: 8px 10px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .data-table .btn-sm {
+        padding: 4px 6px !important;
+        font-size: 0.7rem !important;
+    }
+}
