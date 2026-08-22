@@ -686,13 +686,10 @@ body {
 @media (max-width: 768px) {
     .category-tabs-wrapper {
         display: flex;
-        overflow-x: auto;
+        flex-wrap: wrap;
         gap: 10px;
         margin-bottom: 20px;
         padding-bottom: 5px;
-        white-space: nowrap;
-        -ms-overflow-style: none;
-        scrollbar-width: none;
     }
     .category-tabs-wrapper::-webkit-scrollbar {
         display: none;
