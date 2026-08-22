@@ -1635,9 +1635,7 @@ body {
     }
     
     /* Hide text from quick-action tools to save space */
-    .petpooja-tool-item span {
-        display: none !important;
-    }
+    /* Tool item spans visible but wrapped on mobile */
     
     .petpooja-tool-item {
         padding: 5px !important;
@@ -1645,16 +1643,13 @@ body {
     }
     
     .petpooja-right-tools {
-        gap: 5px !important;
-        overflow-x: auto;
-        white-space: nowrap;
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-        flex-wrap: nowrap;
+        gap: 10px !important;
+        overflow-x: visible;
+        white-space: normal;
+        flex-wrap: wrap !important;
+        justify-content: flex-end;
     }
-    .petpooja-right-tools::-webkit-scrollbar {
-        display: none;
-    }
+    
 
     /* Remove the pos-brand text to save space */
     .brand-outlet-title {
