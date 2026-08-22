@@ -3549,7 +3549,6 @@ def apply_missing_menu():
                 name_hi=item['name_hi'],
                 price=item['price'],
                 category_id=cat.id,
-                branch_id=1,
                 type='veg',
                 is_available=True
             )
@@ -3625,7 +3624,6 @@ def apply_missing_menu_2():
                     name_hi=item['name_hi'],
                     price=item['price'],
                     category_id=cat.id,
-                    branch_id=1,
                     type='veg',
                     is_available=True
                 )
