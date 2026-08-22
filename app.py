@@ -908,6 +908,65 @@ def check_updates():
         'server_time': get_global_timestamp()
     })
 
+
+@app.route('/api/fix_tandoor')
+def fix_tandoor():
+    try:
+        cat_tandoor = Category.query.filter_by(name='Started Tandoor').first()
+        if not cat_tandoor:
+            cat_tandoor = Category.query.filter_by(name='Starter Tandoor').first()
+        if not cat_tandoor:
+            cat_tandoor = Category(name='Started Tandoor', display_order=20)
+            db.session.add(cat_tandoor)
+            db.session.flush()
+        
+        items = [
+            {"name_en": "Paneer Tikka Dry.", "name_hi": "???? ?????? ?????", "price": 210},
+            {"name_en": "Hara Bhara Kabab", "name_hi": "??? ??? ????", "price": 150},
+            {"name_en": "Pudina Tikka Dry.", "name_hi": "?????? ?????? ?????", "price": 220}
+        ]
+        
+        added = []
+        for item in items:
+            mi = MenuItem.query.filter_by(name=item['name_en']).first()
+            if not mi:
+                mi = MenuItem(category_id=cat_tandoor.id, name=item['name_en'], name_hi=item['name_hi'], price=item['price'], is_available=True)
+                db.session.add(mi)
+                added.append(item['name_en'])
+            else:
+                mi.category_id = cat_tandoor.id
+                mi.name_hi = item['name_hi']
+                mi.price = item['price']
+                
+        cat_soup = Category.query.filter_by(name='Soups').first()
+        if not cat_soup:
+            cat_soup = Category(name='Soups', display_order=21)
+            db.session.add(cat_soup)
+            db.session.flush()
+            
+        soups = [
+            {"name_en": "Hot N Sour Soup", "name_hi": "??? ??? ??? ???", "price": 100},
+            {"name_en": "Manshau Soup", "name_hi": "????? ???", "price": 100},
+            {"name_en": "Cream Of Tomato Soup", "name_hi": "????? ?? ?????? ???", "price": 90},
+            {"name_en": "Lemon Coriander", "name_hi": "???? ????????", "price": 70}
+        ]
+        
+        for item in soups:
+            mi = MenuItem.query.filter_by(name=item['name_en']).first()
+            if not mi:
+                mi = MenuItem(category_id=cat_soup.id, name=item['name_en'], name_hi=item['name_hi'], price=item['price'], is_available=True)
+                db.session.add(mi)
+                added.append(item['name_en'])
+            else:
+                mi.category_id = cat_soup.id
+                mi.name_hi = item['name_hi']
+                mi.price = item['price']
+                
+        db.session.commit()
+        return f"Fixed! Added/Updated: {added}"
+    except Exception as e:
+        return str(e)
+
 @app.route('/admin/inventory')
 @login_required
 def admin_inventory():
