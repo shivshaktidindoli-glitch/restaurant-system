@@ -3549,7 +3549,7 @@ def apply_missing_menu():
                 name_hi=item['name_hi'],
                 price=item['price'],
                 category_id=cat.id,
-                type='veg',
+                food_type='veg',
                 is_available=True
             )
             db.session.add(new_item)
@@ -3624,7 +3624,7 @@ def apply_missing_menu_2():
                     name_hi=item['name_hi'],
                     price=item['price'],
                     category_id=cat.id,
-                    type='veg',
+                    food_type='veg',
                     is_available=True
                 )
                 db.session.add(new_item)
