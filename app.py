@@ -129,11 +129,26 @@ limiter = Limiter(
 )
 db.init_app(app)
 
+import os
 import time
-GLOBAL_LAST_UPDATE_TIMESTAMP = time.time()
+
+def get_global_timestamp():
+    sync_file = 'sync_timestamp.txt'
+    try:
+        if os.path.exists(sync_file):
+            with open(sync_file, 'r') as f:
+                return float(f.read().strip())
+    except Exception:
+        pass
+    return time.time()
+
 def update_global_timestamp(*args, **kwargs):
-    global GLOBAL_LAST_UPDATE_TIMESTAMP
-    GLOBAL_LAST_UPDATE_TIMESTAMP = time.time()
+    sync_file = 'sync_timestamp.txt'
+    try:
+        with open(sync_file, 'w') as f:
+            f.write(str(time.time()))
+    except Exception:
+        pass
 
 class DummySocket:
     def emit(self, *args, **kwargs):
@@ -889,8 +904,8 @@ def api_customer_order_status(order_id):
 def check_updates():
     client_time = request.args.get('since', type=float, default=0.0)
     return jsonify({
-        'has_updates': GLOBAL_LAST_UPDATE_TIMESTAMP > client_time,
-        'server_time': GLOBAL_LAST_UPDATE_TIMESTAMP
+        'has_updates': get_global_timestamp() > client_time,
+        'server_time': get_global_timestamp()
     })
 
 @app.route('/admin/inventory')
