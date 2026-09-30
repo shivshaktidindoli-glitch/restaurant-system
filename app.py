@@ -3487,3 +3487,13 @@ def force_reset_now_magic():
 
 
 
+
+@app.route('/debug_menu')
+def debug_menu():
+    try:
+        from flask import current_app
+        with current_app.test_request_context('/menu'):
+            return str(menu())
+    except Exception as e:
+        import traceback
+        return traceback.format_exc().replace('\n', '<br>')
