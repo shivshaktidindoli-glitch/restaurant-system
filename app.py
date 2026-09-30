@@ -3514,7 +3514,7 @@ def debug_menu():
 def fix_lang():
     try:
         import json
-        with open('lang_data.json', 'r', encoding='utf-8') as f:
+        with open('lang_data.json', 'r', encoding='utf-8-sig') as f:
             data = json.load(f)
         hindi_map = data.get('hi', {})
         guj_map = data.get('gu', {})
