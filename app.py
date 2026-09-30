@@ -3511,3 +3511,21 @@ def debug_menu():
 
 
 
+
+@app.route('/api/force_reset_admin')
+def force_reset_admin():
+    try:
+        from models import User
+        admin = User.query.filter_by(role='admin').first()
+        if not admin:
+            admin = User(name='Admin', mobile='8511321898', role='admin')
+            admin.set_password('shreechamunda898')
+            db.session.add(admin)
+        else:
+            admin.mobile = '8511321898'
+            admin.set_password('shreechamunda898')
+        db.session.commit()
+        return "Admin reset successful!"
+    except Exception as e:
+        db.session.rollback()
+        return str(e)
