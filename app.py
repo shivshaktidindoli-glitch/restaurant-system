@@ -230,7 +230,7 @@ def init_database_and_seed():
 
         # Auto-seed logic for fresh deployments & menu loading
         try:
-                        if User.query.count() == 0:
+            if User.query.count() == 0:
                 print("Empty database detected. Running auto-seed...")
                 import seed
                 seed.seed_data()
