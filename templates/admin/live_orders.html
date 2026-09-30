@@ -24,7 +24,7 @@
             <input type="checkbox" id="sound-toggle" checked>
             <span>🔔 Sound on New Order</span>
         </label>
-        <button class="btn-primary" onclick="alert('New Parcel - Coming in Phase 5')">New Parcel</button>
+        <button class="btn-primary" onclick="window.location.href='/admin/new_dinein'">Take Order (POS)</button>
     </div>
 </div>
 
@@ -705,7 +705,7 @@
                             const doc = new DOMParser().parseFromString(htmlText, 'text/html');
                             document.querySelector('.kanban-board').innerHTML = doc.querySelector('.kanban-board').innerHTML;
                             updateCounts();
-                            lastUpdateCheck = data.timestamp;
+                            lastUpdateCheck = data.server_time;
                         })
                         .catch(function(e) { window.location.reload(); });
                 }
