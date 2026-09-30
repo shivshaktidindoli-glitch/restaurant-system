@@ -3510,3 +3510,27 @@ def debug_menu():
 
 
 
+@app.route('/api/fix_lang')
+def fix_lang():
+    try:
+        import json
+        with open('lang_data.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        hindi_map = data.get('hi', {})
+        guj_map = data.get('gu', {})
+        from models import MenuItem, Category
+        for item in MenuItem.query.all():
+            if item.name in hindi_map:
+                item.name_hi = hindi_map[item.name]
+            if item.name in guj_map:
+                item.name_gu = guj_map[item.name]
+        for cat in Category.query.all():
+            if cat.name in hindi_map:
+                cat.name_hi = hindi_map[cat.name]
+            if cat.name in guj_map:
+                cat.name_gu = guj_map[cat.name]
+        db.session.commit()
+        return "Language encoding fixed successfully!"
+    except Exception as e:
+        db.session.rollback()
+        return str(e)
