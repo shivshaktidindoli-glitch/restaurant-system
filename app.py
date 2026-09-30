@@ -1,3 +1,5 @@
+import os
+os.environ['DATABASE_URL'] = "postgresql://neondb_owner:npg_j39FPUdQbGKJ@ep-green-forest-az6jxn0g-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
 import gevent.monkey
 gevent.monkey.patch_all()
 import threading
