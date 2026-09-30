@@ -3503,14 +3503,4 @@ def debug_menu():
 
 
 
-@app.route('/api/wipe_menu_v2')
-def wipe_menu_v2():
-    try:
-        from models import MenuItem, Category
-        MenuItem.query.delete()
-        Category.query.delete()
-        db.session.commit()
-        return "ALL GONE FOREVER"
-    except Exception as e:
-        db.session.rollback()
-        return str(e)
+
