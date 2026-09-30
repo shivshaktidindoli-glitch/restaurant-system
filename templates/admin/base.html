@@ -82,6 +82,7 @@
             {% if current_user.role in ['admin', 'manager', 'waiter'] %}
             <div class="nav-section">ORDERS & BILLING</div>
             <a href="/admin/live_orders" class="nav-link {% if active_page == 'live_orders' %}active{% endif %}"><i class="fa-solid fa-bell-concierge"></i> Live Orders / KDS</a>
+            <a href="/admin/live_print" class="nav-link {% if active_page == 'live_print' %}active{% endif %}"><i class="fa-solid fa-print"></i> Live Print Hub</a>
             <a href="/admin/new_parcel" class="nav-link {% if active_page == 'new_parcel' %}active{% endif %}"><i class="fa-solid fa-box"></i> New Parcel Order</a>
             <a href="/admin/live_tables" class="nav-link {% if active_page == 'live_tables' %}active{% endif %}"><i class="fa-solid fa-utensils"></i> Tables View</a>
             <a href="/admin/tables" class="nav-link {% if active_page == 'tables' %}active{% endif %}"><i class="fa-solid fa-chair"></i> Tables Management</a>

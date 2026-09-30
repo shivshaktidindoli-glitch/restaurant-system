@@ -79,41 +79,40 @@
     <script>
     let lastUpdateCheck = Date.now() / 1000;
     
-    setInterval(async () => {
+            setInterval(async () => {
         try {
-            const resp = await fetch(`/api/check_updates?since=${lastUpdateCheck}`);
+            const resp = await fetch('/api/check_updates?since=' + lastUpdateCheck);
             if (resp.ok) {
                 const data = await resp.json();
                 if (data.has_updates) {
-                    if (document.getElementById('sound-toggle').checked) {
-                        const audio = document.getElementById('notif-sound');
-                        let playCount = 0;
-                        function playBeep() {
-                            if (playCount < 3) {
-                                audio.play().catch(e => console.log(e));
-                            } else {
-                                try {
-                                    const htmlResp = await fetch(window.location.href);
-                                    const htmlText = await htmlResp.text();
-                                    const doc = new DOMParser().parseFromString(htmlText, 'text/html');
-                                    document.querySelector('.kds-grid').innerHTML = doc.querySelector('.kds-grid').innerHTML;
-                                    lastUpdateCheck = data.timestamp;
-                                } catch(e) { window.location.reload(); }
-                            }
-                        }
-                        audio.onended = () => {
-                            playCount++;
-                            setTimeout(playBeep, 500); // 0.5s gap
-                        };
-                        playBeep(); // Start the first beep
-                    } else {
+                    
+                    async function doUpdate() {
                         try {
                             const htmlResp = await fetch(window.location.href);
                             const htmlText = await htmlResp.text();
                             const doc = new DOMParser().parseFromString(htmlText, 'text/html');
                             document.querySelector('.kds-grid').innerHTML = doc.querySelector('.kds-grid').innerHTML;
-                            lastUpdateCheck = data.timestamp;
+                            lastUpdateCheck = data.server_time;
                         } catch(e) { window.location.reload(); }
+                    }
+
+                    if (document.getElementById('sound-toggle').checked) {
+                        const audio = document.getElementById('notif-sound');
+                        let playCount = 0;
+                        function playBeep() {
+                            if (playCount < 3) {
+                                audio.play().catch(e => { console.log(e); doUpdate(); });
+                            } else {
+                                doUpdate();
+                            }
+                        }
+                        audio.onended = () => {
+                            playCount++;
+                            setTimeout(playBeep, 500);
+                        };
+                        playBeep();
+                    } else {
+                        doUpdate();
                     }
                 }
             }

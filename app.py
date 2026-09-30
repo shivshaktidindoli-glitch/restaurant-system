@@ -3515,3 +3515,15 @@ def debug_menu():
 
 
 
+
+@app.route('/admin/live_print')
+@login_required
+@role_required('admin', 'manager', 'cashier')
+def live_print_station():
+    # Show last 20 active or completed orders today
+    orders = Order.query.order_by(Order.created_at.desc()).limit(20).all()
+    # Calculate total for display
+    for o in orders:
+        o.total = sum(i.price_at_order * i.quantity for i in o.items)
+    return render_template('admin/live_print.html', orders=orders, active_page='live_print')
+
