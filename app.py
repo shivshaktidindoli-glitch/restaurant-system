@@ -3505,14 +3505,4 @@ def debug_menu():
         import traceback
         return traceback.format_exc().replace('\n', '<br>')
 
-@app.route('/api/wipe_menu')
-def wipe_menu():
-    try:
-        from models import MenuItem, Category
-        MenuItem.query.delete()
-        Category.query.delete()
-        db.session.commit()
-        return "All menu items and categories deleted successfully!"
-    except Exception as e:
-        db.session.rollback()
-        return str(e)
+
