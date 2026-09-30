@@ -240,10 +240,6 @@ def init_database_and_seed():
                     admin.set_password('shreechamunda898')
                     db.session.commit()
                 print("Auto-seed successful!")
-            elif Category.query.count() == 0:
-                import seed
-                seed.load_menu_from_csv()
-                print("Menu auto-loaded from CSV!")
         except Exception as e:
             print(f"Auto-seed warning: {e}")
             db.session.rollback()
