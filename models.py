@@ -82,7 +82,8 @@ class Order(db.Model):
     has_new_items = db.Column(db.Boolean, default=False)
     created_by = db.Column(db.Integer, db.ForeignKey('staff_users.id'), nullable=True, index=True)
     covers = db.Column(db.Integer, default=1)
-    items = db.relationship('OrderItem', backref='order', lazy=True, cascade="all, delete-orphan")
+    items = db.relationship('OrderItem', backref='order', lazy=True, cascade="all, delete-orphan"
+    invoices = db.relationship('Invoice', backref='order_ref', lazy=True)
     table = db.relationship('Table')
     creator = db.relationship('User', foreign_keys=[created_by])
     delivery_staff = db.relationship('User', foreign_keys=[delivery_staff_id])
