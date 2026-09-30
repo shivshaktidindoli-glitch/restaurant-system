@@ -230,10 +230,15 @@ def init_database_and_seed():
 
         # Auto-seed logic for fresh deployments & menu loading
         try:
-            if User.query.count() == 0:
+                        if User.query.count() == 0:
                 print("Empty database detected. Running auto-seed...")
                 import seed
                 seed.seed_data()
+                admin = User.query.filter_by(role='admin').first()
+                if admin:
+                    admin.mobile = '8511321898'
+                    admin.set_password('shreechamunda898')
+                    db.session.commit()
                 print("Auto-seed successful!")
             elif Category.query.count() == 0:
                 import seed
