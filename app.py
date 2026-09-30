@@ -3513,3 +3513,12 @@ def debug_menu():
 
 
 
+
+@app.route('/api/fix_gujarati')
+def fix_gujarati():
+    try:
+        import subprocess
+        result = subprocess.run(['python', 'patch_gujarati.py'], capture_output=True, text=True)
+        return result.stdout + result.stderr
+    except Exception as e:
+        return str(e)
