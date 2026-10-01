@@ -1172,7 +1172,9 @@ def admin_login():
         session.permanent = True
         login_user(user, remember=remember)
         log_activity('staff_login', f"User {user.name} ({user.role}) logged in.")
-        return redirect(url_for('admin_dashboard'))
+        if user.role == "waiter":
+            return redirect(url_for("live_orders"))
+        return redirect(url_for("admin_dashboard"))
         
     return render_template('admin/login.html')
 
