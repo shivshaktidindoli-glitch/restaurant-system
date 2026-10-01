@@ -892,10 +892,17 @@
 
     <!-- MOBILE OWNER BOTTOM APP NAVIGATION BAR -->
     <nav class="mobile-bottom-nav">
+        {% if current_user.role != "waiter" %}
         <a href="{{ url_for('admin_dashboard') }}" class="mobile-nav-tab {% if active_page == 'dashboard' %}active{% endif %}">
             <i class="fa-solid fa-chart-pie"></i>
             <span>Hub</span>
         </a>
+        {% else %}
+        <a href="/admin/logout" class="mobile-nav-tab">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Logout</span>
+        </a>
+        {% endif %}
         <a href="/admin/live_tables" class="mobile-nav-tab {% if active_page == 'live_tables' %}active{% endif %}">
             <i class="fa-solid fa-utensils"></i>
             <span>Tables</span>
