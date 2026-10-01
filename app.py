@@ -1224,7 +1224,7 @@ def admin_dashboard():
 
 @app.route('/admin/live_orders')
 @login_required
-@role_required('manager', 'waiter')
+@role_required('admin', 'manager', 'cashier')
 def live_orders():
     # Only show completed orders for today
     today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)

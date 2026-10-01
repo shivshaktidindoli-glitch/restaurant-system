@@ -83,7 +83,7 @@
             
             {% if current_user.role in ['admin', 'manager', 'waiter'] %}
             <div class="nav-section">ORDERS & BILLING</div>
-            <a href="/admin/live_orders" class="nav-link {% if active_page == 'live_orders' %}active{% endif %}"><i class="fa-solid fa-bell-concierge"></i> Live Orders / KDS</a>
+            {% if current_user.role != "waiter" %}<a href="/admin/live_orders" class="nav-link {% if active_page == 'live_orders' %}active{% endif %}"><i class="fa-solid fa-bell-concierge"></i> Live Orders / KDS</a>{% endif %}
             {% if current_user.role != 'waiter' %}
             <a href="/admin/live_print" class="nav-link {% if active_page == 'live_print' %}active{% endif %}"><i class="fa-solid fa-print"></i> Live Print Hub</a>
             {% endif %}
@@ -913,10 +913,17 @@
             </div>
             <span>New Order</span>
         </a>
+        {% if current_user.role != "waiter" %}
         <a href="/admin/live_orders" class="mobile-nav-tab {% if active_page == 'live_orders' %}active{% endif %}">
             <i class="fa-solid fa-tower-broadcast"></i>
             <span>Live KDS</span>
         </a>
+        {% else %}
+        <a href="/admin/new_parcel" class="mobile-nav-tab {% if active_page == 'new_parcel' %}active{% endif %}">
+            <i class="fa-solid fa-box"></i>
+            <span>Parcel</span>
+        </a>
+        {% endif %}
         <a href="javascript:void(0)" onclick="toggleSidebar(true)" class="mobile-nav-tab">
             <i class="fa-solid fa-bars"></i>
             <span>Menu</span>
