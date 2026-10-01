@@ -166,10 +166,14 @@
             </div>
 
             <div class="petpooja-right-tools">
+                {% if current_user.role != "waiter" %}
+                {% if current_user.role != "waiter" %}
                 <button class="petpooja-tool-item" onclick="openItemOnOffModal()" title="Item Quick On/Off">
+                {% endif %}
                     <i class="fa-solid fa-toggle-on"></i>
                     <span>Item On/Off</span>
                 </button>
+                {% endif %}
                 <a href="/admin/live_tables" class="petpooja-tool-item" title="Store / Tables">
                     <i class="fa-solid fa-store"></i>
                     <span>Store</span>
