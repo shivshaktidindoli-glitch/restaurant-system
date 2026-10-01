@@ -391,7 +391,11 @@ window.onerror = function(msg, url, line, col, error) {
                 if(printKOT) {
                     window.open('/admin/kot/print/{{ order.id }}', '_blank');
                 }
-                window.location.href = '/admin/live_orders';
+                {% if current_user.role == "waiter" %}
+                  window.location.href = "/admin/live_tables";
+                  {% else %}
+                  window.location.href = "/admin/live_orders";
+                  {% endif %}
             } else {
                 const data = await resp.json();
                 alert('Failed to save order: ' + (data.error || 'Unknown error'));
