@@ -46,7 +46,9 @@
                 {% set total = total + (item.price_at_order * item.quantity) %}
             {% endfor %}
             {% set total = (total * 1.05)|round(2) %}
+            {% if current_user.role != 'waiter' %}
             <button class="btn-primary" style="width:100%; background:#dc2626;" onclick="window.location.href='/admin/billing'">Settle Bill</button>
+            {% endif %}
         {% endif %}
     </div>
 </div>
