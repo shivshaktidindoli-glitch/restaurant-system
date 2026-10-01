@@ -877,7 +877,10 @@ def update_order():
                 has_added = True
                 
     if changes:
-        if has_added and order.status == 'preparing':
+        if has_added:
+            if order.status == 'preparing':
+                order.has_new_items = True
+            socketio.emit('new_kot', {'order_id': order.id, 'kot_number': next_kot}, namespace='/')
             order.has_new_items = True
             
         log_activity('order_edited', f"Order #{order_id} edited by {current_user.name}: " + ", ".join(changes))
