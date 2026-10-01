@@ -3527,3 +3527,16 @@ def live_print_station():
         o.total = sum(i.price_at_order * i.quantity for i in o.items)
     return render_template('admin/live_print.html', orders=orders, active_page='live_print')
 
+@app.route('/api/seed_waiters')
+def seed_waiters():
+    from werkzeug.security import generate_password_hash
+    created = []
+    for i in range(1, 11):
+        num = str(i).zfill(2) # '01', '02', ... '10'
+        u = User.query.filter_by(mobile=num).first()
+        if not u:
+            new_u = User(name=f'Waiter {i}', mobile=num, password_hash=generate_password_hash('1234'), role='waiter', branch_id=1)
+            db.session.add(new_u)
+            created.append(num)
+    db.session.commit()
+    return 'Created waiters: ' + ', '.join(created)
