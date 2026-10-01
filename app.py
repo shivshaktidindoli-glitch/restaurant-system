@@ -1145,14 +1145,18 @@ def api_quick_inventory_update():
 @app.route('/admin')
 def admin_index():
     if current_user.is_authenticated:
-        return redirect(url_for('admin_dashboard'))
+        if current_user.role == "waiter":
+            return redirect(url_for("live_orders"))
+        return redirect(url_for("admin_dashboard"))
     return redirect(url_for('admin_login'))
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 @limiter.limit("5 per minute", methods=["POST"])
 def admin_login():
     if current_user.is_authenticated:
-        return redirect(url_for('admin_dashboard'))
+        if current_user.role == "waiter":
+            return redirect(url_for("live_orders"))
+        return redirect(url_for("admin_dashboard"))
         
     if request.method == 'POST':
         mobile = request.form.get('mobile')
@@ -1181,6 +1185,7 @@ def admin_logout():
 
 @app.route('/admin/dashboard')
 @login_required
+@role_required('admin', 'manager', 'cashier')
 def admin_dashboard():
     # Timezone aware start of day (IST is UTC+5:30)
     ist_now = datetime.utcnow() + timedelta(hours=5, minutes=30)
